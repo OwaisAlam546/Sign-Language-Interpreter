@@ -86,15 +86,25 @@ class PredictionService:
                            'send at least 2 frames for a sequence prediction')
         hands = [_validate_hand(f) for f in frames]
 
+        start = time.perf_counter()
         result = self.pipeline.predict_frames(hands)
         # legacy keys the frontend already consumes
         votes = [self._model.classify(h) for h in hands]
-        counter = Counter(v['gesture'] for v in votes)
+        if strategy == 'average':
+            # soft-vote: weight each frame's vote by its confidence so a
+            # shaky frame counts less than a textbook one
+            score: Counter = Counter()
+            for v in votes:
+                score[v['gesture']] += v['confidence']
+            result['votes'] = dict(score)
+        else:
+            result['votes'] = dict(Counter(v['gesture'] for v in votes))
         result['strategy'] = strategy
         result['frameCount'] = len(frames)
-        result['votes'] = dict(counter)
         result['perFrame'] = [
             {'frame': i, 'gesture': v['gesture'], 'confidence': v['confidence']}
             for i, v in enumerate(votes)
         ]
+        # True end-to-end cost — votes included, as the facade promises.
+        result['latencyMs'] = round((time.perf_counter() - start) * 1000, 2)
         return result

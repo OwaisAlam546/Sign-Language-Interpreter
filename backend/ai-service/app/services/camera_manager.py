@@ -99,7 +99,16 @@ class CameraManager:
         self._source.close()
 
     def read_frame(self) -> Optional[list[list[float]]]:
-        return self._source.read_frame()
+        frame = self._source.read_frame()
+        if frame is None and isinstance(self._source, OpenCVCamera):
+            # Server-side landmark extraction isn't wired yet (the browser
+            # MediaPipe is the primary source) — engage the deterministic
+            # demo source so capture semantics stay alive on any box.
+            log.info('server capture returned nothing — switching to simulated camera')
+            self._source.close()
+            self._source = SimulatedCamera()
+            frame = self._source.read_frame()
+        return frame
 
     def status(self) -> dict[str, Any]:
         return {'source': self._source.__class__.__name__}

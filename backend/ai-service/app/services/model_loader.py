@@ -74,7 +74,8 @@ class RuleEngine(BaseEngine):
         winner = max(by_label, key=by_label.get)
         return {'gesture': winner,
                 'confidence': round(by_label[winner] / len(votes), 4),
-                'probs': by_label}
+                'probs': by_label,
+                'engine': 'rule'}
 
     def status(self) -> dict[str, Any]:
         return {
@@ -87,6 +88,9 @@ class RuleEngine(BaseEngine):
             'fallback': True,
             'fallbackReason': 'no trained weights in models/ (or ML runtime absent)',
         }
+
+
+_RULE_ENGINE = RuleEngine()  # shared singleton — used by frame-model windows
 
 
 class KerasEngine(BaseEngine):
@@ -138,12 +142,17 @@ class KerasEngine(BaseEngine):
 
     def predict_window(self, window: list[list[float]]) -> dict[str, Any]:
         """A (W, 63) window → softmax probabilities → label."""
+        if self._input_mode == 'frame':
+            # A frame model judges single frames, not windows — mirror of
+            # classify(): windows on a frame model are a rule-engine job.
+            return _RULE_ENGINE.predict_window(window)
         batch = np.asarray(window, dtype=np.float32)[np.newaxis, ...]
         probs = self._model.predict(batch, verbose=0)[0]
         idx = int(probs.argmax())
         return {'gesture': self._labels[idx],
                 'confidence': float(probs[idx]),
-                'probs': {self._labels[i]: float(p) for i, p in enumerate(probs)}}
+                'probs': {self._labels[i]: float(p) for i, p in enumerate(probs)},
+                'engine': 'tensorflow'}
 
     def status(self) -> dict[str, Any]:
         return {'engine': 'tensorflow', 'loaded': True,

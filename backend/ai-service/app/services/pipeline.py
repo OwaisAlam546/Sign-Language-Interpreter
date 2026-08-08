@@ -17,10 +17,13 @@
 from __future__ import annotations
 
 import base64
+import logging
 import time
 from typing import Any, Optional
 
 from app.utils.envelope import ApiError
+
+log = logging.getLogger('app')
 
 # Official MediaPipe hand topology — 21 landmarks, 21 connections.
 # (thumb chain, four finger chains, palm cross-links, wrist seam.)
@@ -83,8 +86,9 @@ class HandPipeline:
                 min_tracking_confidence=0.5,
             )
             self._mp = mp
-        except Exception:
+        except Exception as exc:
             self._mp_hands = None  # real tracking unavailable → client mode
+            log.warning('server-side mediapipe unavailable (%s) — hands mode only', exc)
 
         self._last_t = time.perf_counter()
         self._fps = 0.0
@@ -112,6 +116,7 @@ class HandPipeline:
         return {
             'label': result['gesture'],
             'confidence': result['confidence'],
+            'engine': result.get('engine', self._model.engine.id),
         }
 
     # ── server-side (image) detection ─────────────────────────
@@ -169,9 +174,10 @@ class HandPipeline:
                     'handednessScore': None,
                     'label': prediction['label'],
                     'confidence': prediction['confidence'],
+                    'engine': prediction['engine'],
                     'bbox': _bbox(points),
                 })
-            engine = self._model.engine.id
+            engine = detected[0]['engine'] if detected else self._model.engine.id
         else:
             raise ApiError(400, 'NO_INPUT',
                            'send an image (base64) or a hands landmark set')

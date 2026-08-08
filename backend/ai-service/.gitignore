@@ -6,4 +6,4 @@ models/*.h5
 models/*.keras
 models/*.tflite
 models/*.onnx
-models/*.pkl
+models/*.pkl_*.json

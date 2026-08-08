@@ -12,6 +12,14 @@ async function connectDB() {
   let uri = env.mongoUri;
 
   if (!uri) {
+    // Production MUST never silently boot an in-memory store — it also
+    // can't: mongodb-memory-server is a devDependency (Docker installs
+    // --omit=dev). Fail fast with the same clarity env.js gives secrets.
+    if (env.isProd) {
+      throw new Error(
+        'MONGO_URI is required in production — set it in .env (see deploy/.env.production)'
+      );
+    }
     logger.warn('MONGO_URI not set — starting in-memory MongoDB (dev fallback). Set MONGO_URI in .env for a real database.');
     // Lazy require: this package is never loaded in production (devDependency)
     const { MongoMemoryServer } = require('mongodb-memory-server');

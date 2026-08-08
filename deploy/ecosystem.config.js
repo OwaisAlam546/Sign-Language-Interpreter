@@ -23,8 +23,9 @@ module.exports = {
     {
       name: 'signspeak-ai',
       cwd: './backend/ai-service',
-      script: 'uvicorn',
-      interpreter: 'python3', // join to the service venv below
+      // venv-created by deploy.sh — the global python3 has no uvicorn.
+      script: './.venv/bin/uvicorn',
+      interpreter: 'none', // shebang in .venv/bin/uvicorn handles the rest
       args: 'app.main:app --host 127.0.0.1 --port 8000',
       instances: 1, // TF keeps streaming state in this process — one only
       max_memory_restart: '2G',

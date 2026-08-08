@@ -16,7 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 
-# Trained artifact + label map (also mounted at runtime).
+# Trained artifact + label map (baked here; the compose stack mounts an
+# ai_models volume over /app/models so retrains ship without a rebuild).
 COPY models ./models
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \

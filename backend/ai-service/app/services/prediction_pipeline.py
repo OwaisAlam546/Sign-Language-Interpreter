@@ -85,6 +85,7 @@ class InferencePipeline:
         if probs is None:                     # rule engine → derive probs
             probs = {result['gesture']: result['confidence']}
         decision = self._decide(probs)
+        engine_id = result.get('engine', self._model.engine.id)
         return {
             'gesture': decision['gesture'],
             'confidence': decision['confidence'],
@@ -94,8 +95,8 @@ class InferencePipeline:
             'scoresTop3': decision['scoresTop3'],
             'windowSize': len(window),
             'smoothed': False,
-            'engine': self._model.engine.id,
-            'fallbackUsed': self._model.engine.status()['fallback'],
+            'engine': engine_id,
+            'fallbackUsed': engine_id == 'rule',
             'latencyMs': latency_ms,
         }
 
@@ -115,6 +116,7 @@ class InferencePipeline:
         if probs is None:
             probs = {result['gesture']: result['confidence']}
         decision = self._decide(self._smooth_probs(probs))
+        engine_id = result.get('engine', self._model.engine.id)
         return {
             'pending': False,
             'gesture': decision['gesture'],
@@ -126,7 +128,7 @@ class InferencePipeline:
             'windowSize': self.window,
             'buffered': len(self._buf),
             'smoothed': True,
-            'engine': self._model.engine.id,
+            'engine': engine_id,
             'latencyMs': latency_ms,
         }
 

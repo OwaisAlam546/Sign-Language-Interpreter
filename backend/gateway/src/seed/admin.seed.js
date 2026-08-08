@@ -29,6 +29,13 @@ async function seedAdmin() {
 }
 
 async function main() {
+  // In production the default admin is created ONLY on explicit request
+  // (SEED_ADMIN=true in .env) — never boot with a known default password.
+  const env = require('../config/env');
+  if (env.isProd && process.env.SEED_ADMIN !== 'true') {
+    logger.warn('Prod: skipping default admin seed. Set SEED_ADMIN=true to create admin@signspeak.ai.');
+    return;
+  }
   await connectDB();
   const result = await seedAdmin();
   logger.info(`Admin seeded (${result}) — admin@signspeak.ai / ${ADMIN.password}`);

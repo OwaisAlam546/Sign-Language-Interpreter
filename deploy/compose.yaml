@@ -47,7 +47,7 @@ services:
       - VERIFY_TOKEN_TTL=1h
       - RESET_TOKEN_TTL=15m
       - REQUIRE_EMAIL_VERIFICATION=true
-      - CLIENT_URL=${CLIENT_ORIGIN:-https://signalspeak.example.com}
+      - CLIENT_URL=${CLIENT_ORIGIN:-https://signspeak.example.com}
       - AI_SERVICE_URL=http://ai:8000
       - AI_TIMEOUT_MS=8000
       - SMTP_HOST=${SMTP_HOST}
@@ -69,8 +69,7 @@ services:
       dockerfile: deploy/nginx/Dockerfile.web
     image: signspeak/web:latest
     ports:
-      - '80:80'
-      - '443:443'
+      - '80:80' # HTTP-only container path; TLS terminates via certbot on bare metal
     depends_on:
       gateway:
         condition: service_started
