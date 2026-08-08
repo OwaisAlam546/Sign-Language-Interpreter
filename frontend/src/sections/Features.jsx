@@ -13,7 +13,7 @@ const FEATURES = [
   {
     icon: FiCpu,
     title: 'Deep Learning Core',
-    text: 'A TensorFlow LSTM network classifies landmark sequences with 97.2% accuracy on the ASL alphabet.',
+    text: 'The server-side TensorFlow LSTM classifies landmark sequences (97.2% on the toy ASL-alphabet model); the browser demo runs the lightweight geometric rule engine in real time.',
     tag: 'LSTM · 97.2%',
   },
   {

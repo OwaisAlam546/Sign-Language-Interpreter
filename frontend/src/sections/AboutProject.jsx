@@ -62,7 +62,7 @@ export default function AboutProject() {
               <p className="mt-3 text-[15px] leading-relaxed text-slate-400">
                 Design and develop a real-time system that captures hand gestures through a standard webcam, extracts hand
                 landmarks with MediaPipe, and translates them into corresponding{' '}
-                <span className="text-slate-200">text and speech</span> using an LSTM deep learning model — promoting
+                <span className="text-slate-200">text and speech</span> using geometric rule recognition plus an LSTM deep-learning API — promoting
                 inclusive, accessible interaction in everyday scenarios.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">

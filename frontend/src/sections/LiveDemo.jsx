@@ -264,7 +264,7 @@ function LiveDemo() {
         <SectionHeading
           eyebrow="Live Demo"
           title="Watch Sign Language Become Text"
-          sub="A live webcam feed, MediaPipe hand tracking and an LSTM neural network work together — recognized in real time and spoken out loud."
+          sub="A live webcam feed and MediaPipe hand tracking feed the in-browser rule engine — recognized in real time and spoken out loud (server LSTM available via API)."
         />
 
         {/* status bar */}
@@ -318,7 +318,7 @@ function LiveDemo() {
                 {/* live MediaPipe overlay (canvas, imperative) */}
                 <HandOverlay ref={overlayRef} mirror={mirror} className="" />
 
-                {/* simulated signing hand (fallback while the real model loads) */}
+                {/* simulated signing hand (fallback — no webcam / model unavailable) */}
                 {run && !modelReady && !camError && (
                   <div className="absolute inset-0 flex items-center justify-center px-16">
                     <HandSkeleton auto={phrase.signPoses} className="w-full max-w-[300px]" />

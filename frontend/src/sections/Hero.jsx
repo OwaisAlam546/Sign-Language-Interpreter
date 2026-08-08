@@ -65,7 +65,7 @@ export default function Hero() {
           <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}
             className="mb-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-white/8 pb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-slate-500">
             <span className="flex items-center gap-2 text-cyan-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 status-dot" /> LSTM v2 · Model Loaded
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 status-dot" /> Rule Engine · Live
             </span>
             <span className="hidden sm:inline">MediaPipe · 21 Landmarks</span>
             <span className="hidden md:inline">Ramaiah College · BCA VI</span>
@@ -123,7 +123,7 @@ export default function Hero() {
           {/* stats band */}
           <motion.div variants={fadeUp} initial="hidden" animate="show" custom={6}
             className="glass mt-14 grid max-w-xl grid-cols-2 gap-y-8 rounded-2xl px-6 py-6 sm:grid-cols-4 sm:divide-x sm:divide-white/8">
-            <Stat value={97.2} decimals={1} suffix="%" label="Accuracy" />
+            <Stat value={97.2} decimals={1} suffix="%" label="Server LSTM Acc." />
             <Stat value={26} suffix="+" label="Letters" />
             <Stat value={30} suffix=" FPS" label="Tracking" />
             <Stat value={45} suffix="ms" label="Inference" />
@@ -199,7 +199,7 @@ export default function Hero() {
 
               {/* footer chips */}
               <div className="mt-4 flex flex-wrap gap-2">
-                {['MediaPipe Hands', '21 Landmarks', 'LSTM Sequence', 'TTS Engine'].map((c) => (
+                {['MediaPipe Hands', '21 Landmarks', 'Rules + LSTM', 'TTS Engine'].map((c) => (
                   <span key={c} className="rounded-full border border-white/8 px-3 py-1 font-mono text-[10px] text-slate-500">{c}</span>
                 ))}
               </div>

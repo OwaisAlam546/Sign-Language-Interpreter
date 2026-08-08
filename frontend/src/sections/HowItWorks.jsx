@@ -33,10 +33,10 @@ const STEPS = [
   },
   {
     n: '04',
-    title: 'LSTM Prediction',
-    text: 'Landmark sequences feed a TensorFlow LSTM neural network — trained on the ASL alphabet and word-level gesture sequences.',
+    title: 'Rule Score + LSTM',
+    text: 'Each hand is scored instantly by the geometric rule engine in the browser; the optional server LSTM handles sequence-level recognition on windowed landmark batches.',
     icon: FiCpu,
-    tag: 'TensorFlow · LSTM',
+    tag: 'Rule + LSTM',
   },
   {
     n: '05',
