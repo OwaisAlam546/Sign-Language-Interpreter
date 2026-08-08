@@ -1,0 +1,1 @@
+# SignSpeak AI — inference microservice (FastAPI)

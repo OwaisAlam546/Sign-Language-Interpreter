@@ -1,0 +1,17 @@
+# ── SignSpeak AI · web image (frontend build → nginx) ──────────
+# Multi-stage: Vite build in node, static files + nginx in stage 2.
+FROM node:20-alpine AS build
+WORKDIR /build
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+# The day the frontend calls the API, set VITE_API_BASE_URL here —
+# Vite inlines it at BUILD time, so it must exist in this stage.
+ARG VITE_API_BASE_URL=/api
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+RUN npm run build
+
+FROM nginx:1.27-alpine
+COPY deploy/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /build/dist /usr/share/nginx/html
+EXPOSE 80 443

@@ -1,0 +1,70 @@
+# ── SignSpeak AI · CI/CD ──────────────────────────────────────
+# Three parallel test jobs mirror the canonical local suites:
+#   gateway    → npm test (verify.js, 140 checks, in-memory Mongo)
+#   ai-service → smoke test (24/24 TF; 20/20 rule fallback)
+#   frontend   → production build (type-free, vite build)
+# deploy job runs on main after all three are green and builds/pulls
+# the stack on the VPS via ssh. Secrets live in GitHub → Settings →
+# Secrets and variables → Actions (repository-level).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  gateway:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm, cache-dependency-path: backend/gateway/package-lock.json }
+      - run: npm ci --omit=dev
+      - run: npm test
+
+  ai-service:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/ai-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python scripts/smoke_test.py
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: npm ci
+      - run: npm run build
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [gateway, ai-service, frontend]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd "${{ secrets.APP_DIR }}"
+            git pull --ff-only
+            bash deploy/deploy.sh

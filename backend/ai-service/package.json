@@ -1,0 +1,11 @@
+{
+  "name": "signspeak-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SignSpeak AI inference microservice (FastAPI) — model, camera, prediction, TTS",
+  "scripts": {
+    "test": "\".venv\\Scripts\\python.exe\" scripts\\smoke_test.py",
+    "verify": "\".venv\\Scripts\\python.exe\" scripts\\smoke_test.py",
+    "start": "\".venv\\Scripts\\python.exe\" -m uvicorn app.main:app --port 8000"
+  }
+}

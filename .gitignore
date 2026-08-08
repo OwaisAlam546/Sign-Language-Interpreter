@@ -1,0 +1,32 @@
+# ── SignSpeak AI · repository hygiene ──────────────────────────
+# Defense-in-depth: per-service .gitignore files also exist.
+# Secrets NEVER ride along in git.
+
+# Environment (never commit real values)
+.env
+.env.*
+!.env.example
+!.env.production
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Builds
+dist/
+build/
+
+# Logs & OS
+*.log
+logs/
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
