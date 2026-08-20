@@ -2,11 +2,11 @@
 import { FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
 import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
-import { TEAM } from '../lib/data.js';
+import { TEAM, FUTURE } from '../lib/data.js';
 
 export default function Team() {
   return (
-    <section id="team" className="relative z-10 px-5 py-24 md:px-10 md:py-32">
+    <section id="team" className="relative z-10 px-5 py-20 md:px-10 md:py-28">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="The Team"
@@ -76,6 +76,27 @@ export default function Team() {
             <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-cyan-300">Bachelor of Computer Applications · VI Semester</span>
           </div>
         </Reveal>
+
+        {/* Future Work — compact 3-card panel (harvested from roadmap) */}
+        <div className="mt-14">
+          <Reveal>
+            <h3 className="mb-6 text-center font-display text-2xl font-semibold text-white md:text-3xl">
+              The Roadmap <span className="grad-text">Ahead</span>
+            </h3>
+          </Reveal>
+          <div className="grid gap-5 md:grid-cols-3">
+            {FUTURE.map((f, i) => (
+              <Reveal key={f.title} delay={i * 0.1} className="h-full">
+                <div className="glass sheen group relative h-full rounded-3xl p-7 transition-all duration-500 hover:-translate-y-2 hover:border-violet-400/30 hover:shadow-glow-violet">
+                  <span className="absolute right-6 top-6 rounded-full bg-white/5 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-violet-300">{f.tag}</span>
+                  <h4 className="font-display text-xl font-semibold text-white">{f.title}</h4>
+                  <p className="mt-2.5 text-sm leading-relaxed text-slate-400">{f.text}</p>
+                  <div className="mt-5 h-px w-full bg-gradient-to-r from-violet-400/30 to-transparent" aria-hidden="true" />
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

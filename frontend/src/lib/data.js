@@ -112,9 +112,21 @@ export const TEAM = [
   },
 ];
 
-export const SCREENSHOTS = [
-  { title: 'Live Translation View', desc: 'Webcam + recognition HUD', grad: 'from-sky-500/30 to-cyan-500/20' },
-  { title: 'Gesture Recognition', desc: 'Signed hand overlay', grad: 'from-violet-500/30 to-fuchsia-500/20' },
-  { title: 'Analytics Dashboard', desc: 'Model performance', grad: 'from-emerald-500/30 to-cyan-500/20' },
-  { title: 'Gesture Library', desc: 'A–Z + word search', grad: 'from-amber-500/30 to-orange-500/20' },
+// Future-work roadmap (shown compactly inside the Team section).
+export const FUTURE = [
+  {
+    title: 'Regional Language Support',
+    text: 'Extend text and speech output to Hindi and Kannada for broader accessibility across India.',
+    tag: 'Phase 2',
+  },
+  {
+    title: 'Sentence-Level Grammar',
+    text: 'Apply NLP to convert recognized gesture sequences into grammatically correct sentences.',
+    tag: 'Phase 3',
+  },
+  {
+    title: 'Two-Way Communication',
+    text: 'Long-term vision — convert typed text back into sign gestures with an animated avatar for fully bidirectional conversation.',
+    tag: 'Phase 4',
+  },
 ];

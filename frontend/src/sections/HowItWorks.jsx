@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { FiVideo, FiEye, FiGrid, FiCpu, FiType, FiVolume2 } from 'react-icons/fi';
 import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
+import { ARCH_STEPS } from '../lib/data.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -128,6 +129,25 @@ export default function HowItWorks() {
             })}
           </div>
         </div>
+
+        {/* Architecture flow — merged in (was a separate section) */}
+        <Reveal>
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-x-2 gap-y-3 md:mt-20">
+            {ARCH_STEPS.map((s, i) => (
+              <div key={s.label} className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5 rounded-full border border-white/8 bg-white/[0.03] py-2 pl-2 pr-4 transition-all duration-500 hover:border-cyan-400/30 hover:shadow-glow">
+                  <span className={`grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br ${s.color} font-mono text-[10px] font-bold text-ink-950`}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-slate-300">{s.label}</span>
+                </div>
+                {i < ARCH_STEPS.length - 1 && (
+                  <span className="text-cyan-400/50" aria-hidden="true">→</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </div>
     </section>
   );

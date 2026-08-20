@@ -8,6 +8,7 @@ const LINKS = [
   { id: 'gestures', label: 'Gestures' },
   { id: 'model', label: 'Model' },
   { id: 'team', label: 'Team' },
+  { id: 'contact', label: 'Contact' },
 ];
 
 function scrollTo(id) {
