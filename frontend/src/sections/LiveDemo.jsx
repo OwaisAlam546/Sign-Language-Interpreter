@@ -305,7 +305,7 @@ function LiveDemo() {
           {/* ── Webcam window ── */}
           <Reveal delay={0.1}>
             <div className="glass-deep relative overflow-hidden rounded-3xl p-4 shadow-panel">
-              <div className="scanline relative aspect-[4/3] overflow-hidden rounded-2xl bg-ink-950 ring-1 ring-white/10">
+              <div className={`scanline relative aspect-[4/3] overflow-hidden rounded-2xl bg-ink-950 ring-1 ring-white/10 transition-all duration-500 ${hands > 0 ? 'shadow-glow ring-cyan-400/40' : ''}`}>
                 {/* real webcam (mirror = CSS flip, same axis as the overlay) */}
                 <video
                   ref={videoRef}

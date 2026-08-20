@@ -44,6 +44,8 @@ const HandOverlay = forwardRef(function HandOverlay(
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
+      // Smoothly fade the overlay in/out as tracking is gained/lost (PRD #13).
+      canvas.style.opacity = hands.length > 0 ? '1' : '0';
       if (mirrorRef.current) {
         // mirrored canvas: landmark x maps to (w − x·w)
         ctx.translate(w, 0);
@@ -118,8 +120,8 @@ const HandOverlay = forwardRef(function HandOverlay(
   }));
 
   return (
-    <div ref={boxRef} className={`absolute inset-0 ${className}`}>
-      <canvas ref={canvasRef} className="h-full w-full" />
+    <div ref={boxRef} className={`absolute inset-0 pointer-events-none ${className}`}>
+      <canvas ref={canvasRef} className="h-full w-full block transition-opacity duration-300" />
     </div>
   );
 });

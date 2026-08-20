@@ -92,11 +92,11 @@ function GestureCard({ letter, detail, pre = 0, hovered, onHovered }) {
       <div
         onMouseEnter={() => onHovered(true)}
         onMouseLeave={() => onHovered(false)}
-        className="glass sheen group relative h-full overflow-hidden rounded-2xl p-5 text-center transition-all duration-500 hover:-translate-y-1.5 hover:border-cyan-400/30 hover:shadow-glow"
+        className={`glass sheen group relative h-full overflow-hidden rounded-2xl p-5 text-center transition-all duration-500 hover:-translate-y-1.5 hover:border-cyan-400/30 hover:shadow-glow ${hovered ? 'bg-ink-950/80' : ''}`}
       >
         <div className="relative mx-auto grid h-20 w-20 place-items-center">
           {hovered ? (
-            <HandSkeleton pose="OPEN" className="h-16 w-16" />
+            <HandSkeleton pose={letter} className="h-16 w-16" glow={true} />
           ) : (
             <span className="font-display text-5xl font-bold grad-text transition-transform duration-500 group-hover:scale-110">{letter}</span>
           )}
