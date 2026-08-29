@@ -30,3 +30,7 @@ Thumbs.db
 # Editors
 .idea/
 .vscode/
+
+backend/ai-service/data/
+
+backend/ai-service/models/hand_landmarker.task

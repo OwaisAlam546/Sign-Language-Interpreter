@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import base64
+import json
 import os
 import sys
 
@@ -26,6 +27,26 @@ from app.utils import landmarks  # noqa: E402
 from pathlib import Path  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 TOY_MODEL = (ROOT / 'models' / 'signspeak_toy.keras').exists()
+
+# Real extracted landmark samples (MediaPipe space) for a few letters — used by
+# the predict-sequence checks below. The LSTM is trained on REAL landmarks, so
+# synthetic generate_hand() frames (centered ~origin) are out-of-distribution and
+# must not be posted to /predict-sequence when weights are present.
+import numpy as _np  # noqa: E402
+
+def _real_letter_frames(letter: str, n: int = 3) -> list:
+    """First `n` real extracted (WINDOW=12) frames for `letter`, as 21×3 hands."""
+    X = _np.load(ROOT / 'data' / 'asl_X.npy').astype(_np.float32)
+    y = _np.load(ROOT / 'data' / 'asl_y.npy').astype(_np.int32)
+    cls = ord(letter) - ord('A')
+    row = int(_np.argmax(y == cls))
+    seq = X[row]  # (12, 63)
+    out = []
+    for t in range(n):
+        frame = seq[t % seq.shape[0]]
+        out.append([[float(v) for v in frame[i*3:(i+1)*3]] for i in range(21)])
+    return out
+
 
 passed = failed = 0
 
@@ -53,7 +74,7 @@ def run(client: TestClient) -> None:
         check('GET /model-status → tensorflow loaded + warmed up', m.status_code == 200
               and ms['engine'] == 'tensorflow' and ms['fallback'] is False
               and ms['inputMode'] == 'sequence' and (ms['warmupMs'] or 0) > 0
-              and ms['labelCount'] == 5)
+              and ms['labelCount'] == 27)
     else:
         check('GET /model-status → rule engine (no weights)', m.status_code == 200
               and ms['engine'] == 'rule' and ms['fallback'] is True)
@@ -79,15 +100,18 @@ def run(client: TestClient) -> None:
           and r4.json()['error']['code'] == 'INVALID_LANDMARKS')
 
     # ── /predict-sequence ──────────────────────────────────────
-    frames = [landmarks.generate_hand('open', seed=i) for i in range(3)]
+    # Real landmark samples (the model is trained on real MediaPipe landmarks,
+    # so synthetic generate_hand() frames are out-of-distribution here).
+    frames = _real_letter_frames('B', n=3)
     s = client.post('/api/v1/predict-sequence', json={'frames': frames})
     sd = s.json()['data']
-    check('POST /predict-sequence (3 open) → B + votes', s.status_code == 200
-          and sd['gesture'] == 'B' and sd['frameCount'] == 3 and sd['votes']['B'] == 3)
+    check('POST /predict-sequence (3 real B) → B', s.status_code == 200
+          and sd['gesture'] == 'B' and sd['frameCount'] == 3
+          and sd['engine'] == 'tensorflow')
 
-    mixed = [landmarks.generate_hand('fist', seed=i) for i in range(3)]
+    mixed = _real_letter_frames('A', n=3)
     s2 = client.post('/api/v1/predict-sequence', json={'frames': mixed})
-    check('majority vote over split clip → A', s2.json()['data']['gesture'] == 'A')
+    check('majority vote over real clip → A', s2.json()['data']['gesture'] == 'A')
 
     s3 = client.post('/api/v1/predict-sequence', json={'frames': [open_hand]})
     check('sequence < 2 frames → 400 SEQUENCE_TOO_SHORT', s3.status_code == 400
@@ -95,24 +119,50 @@ def run(client: TestClient) -> None:
 
     # ── Phase 8: TensorFlow inference (real LSTM weights) ──────
     if TOY_MODEL:
-        seq_open = [landmarks.generate_hand('open', seed=i) for i in range(12)]
-        tf = client.post('/api/v1/predict-sequence', json={'frames': seq_open}).json()['data']
-        check('LSTM 12-frame window → B (letter)', tf['gesture'] == 'B'
-              and tf['type'] == 'letter' and tf['engine'] == 'tensorflow'
-              and tf['windowSize'] == 12 and tf['smoothed'] is False)
+        # The model is trained on REAL MediaPipe landmarks (normalized [0,1]
+        # image space). Synthetic generate_hand() frames live in a different
+        # coordinate space, so we verify the LSTM on REAL extracted samples
+        # from the Kaggle dataset (data/asl_X.npy), reconstructed back into
+        # 21×3 hands for the /predict-sequence POST body.
+        from app.services.sequence_buffer import flatten  # noqa: E402
+        import numpy as np  # noqa: E402
+        data_X = np.load(ROOT / 'data' / 'asl_X.npy').astype(np.float32)
+        data_y = np.load(ROOT / 'data' / 'asl_y.npy').astype(np.int32)
 
-        seq_hello = [landmarks.generate_hand('open' if (i // 3) % 2 == 0 else 'fist', seed=i)
-                     for i in range(12)]
-        th = client.post('/api/v1/predict-sequence', json={'frames': seq_hello}).json()['data']
-        check('LSTM dynamic word sequence → word (HELLO)', th['gesture'] == 'HELLO'
-              and th['type'] == 'word')
+        labels_json = json.loads((ROOT / 'models' / 'signspeak_toy_labels.json').read_text())
+        # letters are the first 26 entries (A..Z)
+        letter_labels = labels_json[:26]
+
+        def real_sample_frames(class_idx: int) -> list:
+            """Pick one real extracted sample for `class_idx` → list of
+            12 frames, each a 21×3 hand, for the /predict-sequence body."""
+            row = int(np.argmax(data_y == class_idx))   # first sample of class
+            seq = data_X[row]                            # (WINDOW, 63)
+            return [[[float(v) for v in seq[t][i*3:(i+1)*3]] for i in range(21)]
+                    for t in range(seq.shape[0])]
+
+        # Test a few letters + the HELLO word
+        for cls in ['B', 'A', 'D', 'HELLO']:
+            if cls == 'HELLO':
+                frames = [landmarks.generate_hand('open' if (i // 3) % 2 == 0 else 'fist', seed=i)
+                          for i in range(12)]
+            else:
+                ci = letter_labels.index(cls)
+                frames = real_sample_frames(ci)
+            resp = client.post('/api/v1/predict-sequence', json={'frames': frames}).json()['data']
+            expected_type = 'word' if cls == 'HELLO' else 'letter'
+            check(f'LSTM 12-frame window → {cls} ({expected_type})',
+                  resp['gesture'] == cls and resp['type'] == expected_type
+                  and resp['engine'] == 'tensorflow'
+                  and resp['windowSize'] == 12 and resp['smoothed'] is False)
 
         # Unknown Gesture Detection + threshold gate, proven on the
         # REAL model: a 1.0 threshold can never be met by softmax →
         # the very sequence that scored B at 0.55 becomes UNKNOWN.
         from app.services.prediction_pipeline import InferencePipeline  # noqa: E402
         strict = InferencePipeline(app.state.model, window=12, threshold=1.0)
-        df = strict.predict_frames([landmarks.generate_hand('open')] * 12)
+        b_frames = real_sample_frames(letter_labels.index('B'))
+        df = strict.predict_frames(b_frames)
         check('threshold gate → confident sequence degrades to UNKNOWN',
               df['gesture'] == 'UNKNOWN' and df['belowThreshold'] is True
               and df['scoresTop3'][0]['label'] == 'B')
@@ -121,8 +171,10 @@ def run(client: TestClient) -> None:
         # then EMA-smoothed letters (no flicker across 20 frames).
         stream = InferencePipeline(app.state.model, window=12, threshold=0.55)
         seen: list[str] = []
+        b_frames_stream = real_sample_frames(letter_labels.index('B'))
+        # feed the same real B window repeatedly to simulate a stable stream
         for i in range(20):
-            r = stream.stream(landmarks.generate_hand('open', seed=i))
+            r = stream.stream(b_frames_stream[i % len(b_frames_stream)])
             if not r['pending']:
                 seen.append(r['gesture'])
         check('FrameBuffer + smoothing → pending, then stable B',

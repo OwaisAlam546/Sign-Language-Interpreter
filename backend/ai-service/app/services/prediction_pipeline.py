@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import time
+from collections import Counter, deque
 from typing import Any, Optional
 
 from app.services.model_loader import ModelManager
@@ -23,15 +24,20 @@ from app.services.sequence_buffer import FrameBuffer, SequenceBuffer
 
 class InferencePipeline:
     def __init__(self, model: ModelManager, window: int = 12,
-                 threshold: float = 0.55, alpha: float = 0.6):
+                 threshold: float = 0.55, alpha: float = 0.6,
+                 display_threshold: float = 0.75,
+                 stable_window: int = 8, stable_min: int = 5):
         self._model = model
         self.window = window
         self.threshold = threshold
         self.alpha = alpha
+        self.display_threshold = display_threshold
+        self._stable_min = stable_min
         self._buf = FrameBuffer(maxlen=max(window * 2, 24),
                                 min_frames=max(2, window // 2))
         self._seq = SequenceBuffer(window)
         self._smooth: Optional[dict[str, float]] = None
+        self._stable: deque[str] = deque(maxlen=stable_window)
 
     # ── helpers ───────────────────────────────────────────────
     @staticmethod
@@ -73,6 +79,29 @@ class InferencePipeline:
             'scoresTop3': [{'label': g, 'score': round(c, 4)} for g, c in top],
         }
 
+    def _apply_gates(self, decision: dict[str, Any], temporal: bool) -> dict[str, Any]:
+        """Confidence display gate + (stream) temporal majority vote.
+
+        A gesture is shown only when its softmax confidence clears
+        display_threshold AND (in stream mode) it is the majority label in
+        the last `stable_window` predictions — otherwise the UI gets 'NONE'
+        (no gesture detected). This kills single-frame flicker and low-
+        confidence noise without touching the model."""
+        if temporal:
+            self._stable.append(decision['gesture'])
+            counts = Counter(self._stable)
+            _, agree = counts.most_common(1)[0]
+        else:
+            agree = 1
+        displayed = decision['confidence'] >= self.display_threshold
+        stable = (not temporal) or (agree >= self._stable_min)
+        if displayed and stable:
+            return {**decision, 'displayed': True, 'stable': bool(stable),
+                    'recentAgreement': agree}
+        return {**decision, 'gesture': 'NONE', 'type': 'none',
+                'displayed': False, 'stable': bool(stable),
+                'recentAgreement': agree}
+
     # ── one-shot (offline sequence) ───────────────────────────
     def predict_frames(self, frames: list[list[list[float]]]) -> dict[str, Any]:
         """Full window → one decision. Used by /predict-sequence."""
@@ -85,16 +114,20 @@ class InferencePipeline:
         if probs is None:                     # rule engine → derive probs
             probs = {result['gesture']: result['confidence']}
         decision = self._decide(probs)
+        gated = self._apply_gates(decision, temporal=False)
         engine_id = result.get('engine', self._model.engine.id)
         return {
-            'gesture': decision['gesture'],
-            'confidence': decision['confidence'],
-            'type': decision['type'],
+            'gesture': gated['gesture'],
+            'confidence': gated['confidence'],
+            'type': gated['type'],
             'threshold': decision['threshold'],
             'belowThreshold': decision['belowThreshold'],
             'scoresTop3': decision['scoresTop3'],
             'windowSize': len(window),
             'smoothed': False,
+            'displayed': gated['displayed'],
+            'stable': gated['stable'],
+            'recentAgreement': gated['recentAgreement'],
             'engine': engine_id,
             'fallbackUsed': engine_id == 'rule',
             'latencyMs': latency_ms,
@@ -116,18 +149,22 @@ class InferencePipeline:
         if probs is None:
             probs = {result['gesture']: result['confidence']}
         decision = self._decide(self._smooth_probs(probs))
+        gated = self._apply_gates(decision, temporal=True)
         engine_id = result.get('engine', self._model.engine.id)
         return {
             'pending': False,
-            'gesture': decision['gesture'],
-            'confidence': decision['confidence'],
-            'type': decision['type'],
+            'gesture': gated['gesture'],
+            'confidence': gated['confidence'],
+            'type': gated['type'],
             'threshold': decision['threshold'],
             'belowThreshold': decision['belowThreshold'],
             'scoresTop3': decision['scoresTop3'],
             'windowSize': self.window,
             'buffered': len(self._buf),
             'smoothed': True,
+            'displayed': gated['displayed'],
+            'stable': gated['stable'],
+            'recentAgreement': gated['recentAgreement'],
             'engine': engine_id,
             'latencyMs': latency_ms,
         }
@@ -135,3 +172,4 @@ class InferencePipeline:
     def reset(self) -> None:
         self._buf.reset()
         self._smooth = None
+        self._stable.clear()
