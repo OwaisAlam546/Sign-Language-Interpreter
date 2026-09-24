@@ -2,7 +2,7 @@
 
 > **Breaking Communication Barriers Through AI** — Real-Time Sign Language Translator (Final Year Project · BCA VI · Ramaiah College)
 
-A premium, award-style frontend for a real-time sign language translator. Webcam → MediaPipe hand landmarks → LSTM prediction → text + speech. This repo is the **frontend presentation layer** — the model pipeline runs on the Flask + TensorFlow backend.
+A frontend for a real-time sign-language recognition prototype. Webcam → MediaPipe hand landmarks → server TensorFlow sequence prediction → text + speech. This repo is the **frontend presentation layer**; the model pipeline runs through the gateway to the FastAPI service.
 
 ## Tech
 
@@ -27,7 +27,7 @@ npm run preview    # serve production build
 | Section | Highlights |
 |---|---|
 | Hero | Editorial lockup, **auto-signing MediaPipe hand** (21 animated landmarks), magnetic CTAs, live stats |
-| Live Demo | Real webcam via `getUserMedia` + simulated recognition overlay, letter tiles, waveform, confidence/FPS/latency HUD, status badges |
+| Live Demo | Real webcam via `getUserMedia`, 12-frame server-model inference, stability-gated text, wrapping committed words, confidence/FPS/latency HUD |
 | How It Works | 6-step pipeline timeline with scroll-drawn spine |
 | Features | Glass cards with glow + sheen |
 | Gesture Library | Searchable A–Z + words grid, hover shows live-signing preview |
@@ -42,8 +42,8 @@ npm run preview    # serve production build
 
 ## Notes
 
-- The **Live Demo camera** requires browser permission (`getUserMedia`). If unavailable, it falls back to simulated mode with the AI hand still signing.
-- Recognition in the demo is **simulated** — the real LSTM inference lives in the Flask backend (see `Project_Synopsis.pdf`).
+- The **Live Demo camera** requires browser permission (`getUserMedia`) and a running gateway plus AI service. It deliberately shows no simulated translations when either is unavailable.
+- The bundled model is a 27-label prototype (A–Z plus synthetic `HELLO`). It needs an independently evaluated, signer-separated video dataset before accuracy claims can be made.
 - Accessibility: `prefers-reduced-motion` respected, ARIA labels, keyboard-navigable, semantic landmarks.
 
 ## Folder Structure

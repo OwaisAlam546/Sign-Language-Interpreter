@@ -11,5 +11,8 @@ const path = require('path');
 const win = process.platform === 'win32';
 const python = win ? path.join('.venv', 'Scripts', 'python.exe') : 'python3';
 
-const run = spawnSync(python, ['scripts/smoke_test.py'], { stdio: 'inherit' });
+const run = spawnSync(python, ['scripts/smoke_test.py'], {
+  stdio: 'inherit',
+  env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+});
 process.exit(run.status ?? 1);

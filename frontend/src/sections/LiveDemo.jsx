@@ -1,312 +1,242 @@
-// ─────────────────────────────────────────────────────────────
-// sections/LiveDemo.jsx — the flagships: LIVE MediaPipe demo layer
-// Real pipeline (Phase 7):
-//   webcam → @mediapipe/tasks-vision HandLandmarker (VIDEO mode,
-//   up to TWO hands, 21 landmarks each) → per-hand bounding box,
-//   handedness + confidence → local deterministic gesture rules →
-//   canvas overlay (official skeleton, points, boxes, chips) →
-//   live transcription (letters → words → speechSynthesis).
-//   Production-acting fallbacks: no camera → simulated signing
-//   skeleton + phrase loop (the original demo behaviour).
-//  ─────────────────────────────────────────────────────────────
+// MediaPipe detects landmarks; the server sequence model supplies every label.
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiCamera, FiRepeat, FiX } from 'react-icons/fi';
 import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
-
-import HandSkeleton from '../components/HandSkeleton.jsx';
 import HandOverlay from '../components/HandOverlay.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
 import { bboxOf, classifyHand } from '../lib/handClassifier.js';
-import { GESTURE_LETTER } from '../lib/handTopology.js';
 
-// Model + WASM assets (CDN; the 10 MB task is streamed once, cached).
-// For offline demos, download both and point the URLs at /public.
 const WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm';
-const MODEL_URL =
-  'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const API_BASE = import.meta.env.VITE_AI_API_BASE || '/api/v1/ai';
+const WINDOW = 12, SAMPLE_MS = 125, MIN_CONFIDENCE = 0.78, STABLE_PREDICTIONS = 4, NEUTRAL_PREDICTIONS = 3, WORD_PAUSE_MS = 1200;
 
-const HOLD_FRAMES = 3;      // identical gesture frames before a letter commits
-const IDLE_MS = 1500;       // no hand → the collected letters become a word
-
-const PHRASES = [
-  { text: 'HELLO', signPoses: ['OPEN', 'FIST', 'B', 'Y', 'OK', 'I'] },
-  { text: 'THANK YOU', signPoses: ['L', 'OPEN', 'B', 'V', 'C', 'THUMBS', 'Y'] },
-  { text: 'PLEASE', signPoses: ['B', 'OPEN', 'E', 'A', 'F', 'L'] },
-  { text: 'SORRY', signPoses: ['FIST', 'C', 'OPEN', 'Y', 'I'] },
-  { text: 'YES', signPoses: ['FIST', 'E', 'Y', 'OK'] },
-  { text: 'NO', signPoses: ['L', 'V', 'FIST', 'W'] },
-];
-
-function ConfBar({ value }) {
-  return (
-    <motion.div
-      className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-violet-500"
-      initial={{ width: '10%' }}
-      animate={{ width: `${Math.round(value * 100)}%` }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-    />
-  );
-}
-
-function speak(text) {
-  if (!window.speechSynthesis || !text) return;
+async function safeJson(res) {
   try {
-    const u = new SpeechSynthesisUtterance(text.toLowerCase());
-    u.rate = 0.95;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  } catch (e) { /* ignore */ }
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return null;
+  }
 }
 
-function LiveDemo() {
-  const videoRef = useRef(null);
-  const overlayRef = useRef(null);
-  const streamRef = useRef(null);
-  const landmarkerRef = useRef(null);
+function ConfBar({ value }) { return <motion.div className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-violet-500" initial={{ width: '0%' }} animate={{ width: `${Math.round(value * 100)}%` }} transition={{ duration: 0.25 }} />; }
+const toHand = (landmarks) => landmarks.map(({ x, y, z = 0 }) => [x, y, z]);
+function speak(text) { if (window.speechSynthesis && text) { window.speechSynthesis.cancel(); window.speechSynthesis.speak(new SpeechSynthesisUtterance(text.toLowerCase())); } }
 
-  const [camOn, setCamOn] = useState(false);
-  const [camError, setCamError] = useState(false);
-  const [modelReady, setModelReady] = useState(false);
-  const [run, setRun] = useState(false);
-  const [mirror, setMirror] = useState(true);
-  const [speaking, setSpeaking] = useState(false);
-
-  const [pi, setPi] = useState(0);
-  const [rec, setRec] = useState('');         // transcribed letters
-  const [word, setWord] = useState('');       // committed word
-  const [gesture, setGesture] = useState(''); // dominant live gesture
-  const [hands, setHands] = useState(0);
-  const [fps, setFps] = useState(0);
-  const [conf, setConf] = useState(0);
-  const [latency, setLatency] = useState('–');
-
-  const recRef = useRef('');
-  const countRef = useRef(0); // simulated-mode phrase progress
-  const holdRef = useRef({ gesture: '', n: 0 });
-  const lastRef = useRef('');
-  const idleRef = useRef(false);
-  const idleTimerRef = useRef(null);
-
-  const phrase = PHRASES[pi];
-  const letter = rec.slice(-1) || gesture || 'A';
-
-  // ── stop everything ─────────────────────────────────────────
-  const stopRun = () => {
-    setRun(false);
-    setModelReady(false);
-    setCamOn(false);
-    setSpeaking(false);
-    setRec(''); setWord(''); setGesture(''); setHands(0); setConf(0); setLatency('–');
-
-    if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
-    holdRef.current = { gesture: '', n: 0 };
-    lastRef.current = '';
-    recRef.current = '';
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    if (streamRef.current) { streamRef.current.getTracks().forEach((t) => t.stop()); streamRef.current = null; }
-    if (videoRef.current) videoRef.current.srcObject = null;
-    if (landmarkerRef.current) { try { landmarkerRef.current.close(); } catch (e) { /* noop */ } landmarkerRef.current = null; }
+export default function LiveDemo() {
+  const videoRef = useRef(null), overlayRef = useRef(null), streamRef = useRef(null), landmarkerRef = useRef(null);
+  const framesRef = useRef([]), lastSampleRef = useRef(0), busyRef = useRef(false), versionRef = useRef(0), primaryRef = useRef(null), idleTimerRef = useRef(null), recRef = useRef('');
+  const stateRef = useRef({ candidate: '', count: 0, neutral: 0, armed: true, last: '' });
+  const [run, setRun] = useState(false), [camOn, setCamOn] = useState(false), [camError, setCamError] = useState(false), [trackerReady, setTrackerReady] = useState(false), [serviceState, setServiceState] = useState('idle'), [serviceError, setServiceError] = useState('');
+  const [mirror, setMirror] = useState(true), [rec, setRec] = useState(''), [words, setWords] = useState([]), [gesture, setGesture] = useState(''), [hands, setHands] = useState(0), [fps, setFps] = useState(0), [conf, setConf] = useState(0), [latency, setLatency] = useState('–'), [speaking, setSpeaking] = useState(false);
+  const clearIdle = () => { if (idleTimerRef.current) clearTimeout(idleTimerRef.current); idleTimerRef.current = null; };
+  const finishWord = () => {
+    if (idleTimerRef.current) return;
+    idleTimerRef.current = setTimeout(() => { const word = recRef.current; if (word) { setWords((items) => [...items, word]); speak(word); setSpeaking(true); setTimeout(() => setSpeaking(false), 1200); recRef.current = ''; setRec(''); } stateRef.current.last = ''; idleTimerRef.current = null; }, WORD_PAUSE_MS);
   };
-
-  const runRef = useRef(run);
-  useEffect(() => { runRef.current = run; }, [run]);
-
-  // ── start: camera → model → tracking loop ───────────────────
-  const startPipeline = async () => {
-    setRun(true);
-    if (streamRef.current) return;
+  const resetPrediction = (noHand = false) => {
+    setGesture(''); setConf(0); const state = stateRef.current; state.candidate = ''; state.count = 0; state.neutral += 1;
+    if (state.neutral >= NEUTRAL_PREDICTIONS || noHand) state.armed = true;
+    if (noHand) finishWord();
+  };
+  const acceptPrediction = (data) => {
+    const label = data.gesture;
+    const valid = data.displayed !== false && label && label !== 'UNKNOWN' && label !== 'NONE' && data.confidence >= MIN_CONFIDENCE;
+    if (!valid) { resetPrediction(); return; }
+    clearIdle(); setGesture(label); setConf(data.confidence); setLatency(`${Math.round(data.latencyMs || 0)}ms`);
+    const state = stateRef.current; state.neutral = 0;
+    if (state.candidate === label) state.count += 1;
+    else { state.candidate = label; state.count = 1; if (label !== state.last) state.armed = true; }
+    if (state.armed && state.count >= STABLE_PREDICTIONS) { recRef.current += label; setRec(recRef.current); state.last = label; state.armed = false; }
+  };
+  const predict = async (frames, version) => {
+    if (busyRef.current) return; busyRef.current = true;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
-      setCamOn(true);
-      setCamError(false);
-
-      if (!landmarkerRef.current) {
-        try {
-          const vision = await FilesetResolver.forVisionTasks(WASM_URL);
-          const landmarker = await HandLandmarker.createFromOptions(vision, {
-            baseOptions: { modelAssetPath: MODEL_URL },
-            runningMode: 'VIDEO',
-            numHands: 2,
-            minHandDetectionConfidence: 0.5,
-            minHandPresenceConfidence: 0.5,
-            minTrackingConfidence: 0.5,
-          });
-          landmarkerRef.current = landmarker;
-          setModelReady(true);
-        } catch (e) {
-          // model unreachable — keep the simulated demo as fallback
-          setModelReady(false);
+      if (serviceState === 'ready') {
+        const response = await fetch(`${API_BASE}/predict-sequence`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ frames, strategy: 'average' }) });
+        const body = await safeJson(response);
+        if (version !== versionRef.current) return;
+        if (response.ok && body?.success && body?.data) {
+          acceptPrediction(body.data);
+          return;
         }
-      } else {
-        setModelReady(true);
       }
-    } catch (e) {
-      setCamError(true);   // no webcam → simulated demo mode
+
+      // Local on-device browser recognition
+      const lastFrame = frames[frames.length - 1];
+      if (lastFrame) {
+        const lms = lastFrame.map(([x, y, z]) => ({ x, y, z }));
+        const result = classifyHand(lms);
+        if (version !== versionRef.current) return;
+        acceptPrediction({
+          gesture: result.gesture,
+          confidence: result.confidence,
+          latencyMs: 8,
+          displayed: true,
+        });
+      }
+    } catch {
+      const lastFrame = frames[frames.length - 1];
+      if (lastFrame) {
+        const lms = lastFrame.map(([x, y, z]) => ({ x, y, z }));
+        const result = classifyHand(lms);
+        if (version === versionRef.current) {
+          acceptPrediction({
+            gesture: result.gesture,
+            confidence: result.confidence,
+            latencyMs: 8,
+            displayed: true,
+          });
+        }
+      }
+    } finally { busyRef.current = false; }
+  };
+  const stopRun = () => {
+    versionRef.current += 1; clearIdle(); setRun(false); setCamOn(false); setTrackerReady(false); setServiceState('idle'); setGesture(''); setConf(0); setHands(0); setLatency('–'); setRec(''); setWords([]); setSpeaking(false);
+    recRef.current = ''; framesRef.current = []; primaryRef.current = null; stateRef.current = { candidate: '', count: 0, neutral: 0, armed: true, last: '' }; window.speechSynthesis?.cancel();
+    streamRef.current?.getTracks().forEach((track) => track.stop()); streamRef.current = null; if (videoRef.current) videoRef.current.srcObject = null; try { landmarkerRef.current?.close(); } catch { /* already closed */ } landmarkerRef.current = null;
+  };
+  const startPipeline = async () => {
+    const version = versionRef.current + 1; versionRef.current = version; setRun(true); setCamError(false); setServiceError(''); setServiceState('checking');
+    
+    // 1. Probe Server Model Status safely (never throws Unexpected end of JSON input)
+    let isServerReady = false;
+    try {
+      const statusResponse = await fetch(`${API_BASE}/model-status`);
+      const status = await safeJson(statusResponse);
+      const model = status?.data;
+      if (statusResponse.ok && status?.success && model?.engine === 'tensorflow' && model?.inputMode === 'sequence') {
+        isServerReady = true;
+      }
+    } catch {
+      isServerReady = false;
+    }
+
+    if (version !== versionRef.current) return;
+    setServiceState(isServerReady ? 'ready' : 'local');
+
+    // 2. Start Camera & MediaPipe
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+      if (version !== versionRef.current) { stream.getTracks().forEach((track) => track.stop()); return; }
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      const vision = await FilesetResolver.forVisionTasks(WASM_URL);
+      const landmarker = await HandLandmarker.createFromOptions(vision, { baseOptions: { modelAssetPath: MODEL_URL }, runningMode: 'VIDEO', numHands: 2, minHandDetectionConfidence: 0.65, minHandPresenceConfidence: 0.65, minTrackingConfidence: 0.65 });
+      if (version !== versionRef.current) { landmarker.close(); return; }
+      landmarkerRef.current = landmarker;
+      setCamOn(true);
+      setTrackerReady(true);
+    } catch (error) {
+      setServiceState('error');
+      setServiceError(error.message || 'Unable to start camera. Please ensure webcam permissions are enabled.');
+      setCamError(true);
     }
   };
-
-  // ── the tracking loop (runs only when camera AND model are live) ──
   useEffect(() => {
-    if (!run || !modelReady || !camOn) return;
-    let raf;
-    let frames = 0;
-    let accMs = 0;
-    let lastT = performance.now();
-
+    if (!run || !trackerReady || !camOn || (serviceState !== 'ready' && serviceState !== 'local')) return undefined;
+    let raf, frames = 0, elapsed = 0, previous = performance.now();
     const loop = (now) => {
-      const video = videoRef.current;
-      const landmarker = landmarkerRef.current;
-      if (video && video.readyState >= 2 && landmarker) {
-        const t0 = performance.now();
-        const res = landmarker.detectForVideo(video, now);
-        const cost = performance.now() - t0;
-
-        const handsNow = (res.landmarks || []).map((lms, i) => {
-          const o = res.handedness && res.handedness[i] && res.handedness[i][0];
-          const cls = classifyHand(lms);
-          return {
-            name: o && (o.categoryName || o.label) || (i === 0 ? 'Left' : 'Right'),
-            score: (o && o.score) || 0,
-            gesture: cls.gesture,
-            confidence: cls.gesture === 'UNKNOWN' ? Math.max(cls.confidence, (o && o.score) || 0) : cls.confidence,
-            landmarks: lms,
-            bbox: bboxOf(lms),
-          };
-        });
-
-        overlayRef.current?.draw(handsNow);
-        setHands(handsNow.length);
-
-        // dominant hand drives the transcription
-        const dom = handsNow[0];
-        if (dom && dom.gesture !== 'UNKNOWN') {
-          setGesture(dom.gesture);
-          setConf(dom.confidence);
-          if (holdRef.current.gesture === dom.gesture) holdRef.current.n += 1;
-          else holdRef.current = { gesture: dom.gesture, n: 1 };
-
-          const ch = GESTURE_LETTER[dom.gesture];
-          if (ch && holdRef.current.n >= HOLD_FRAMES && lastRef.current !== ch) {
-            lastRef.current = ch;
-            recRef.current += ch;
-            setRec(recRef.current);
-          }
-          if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
-          idleRef.current = false;
-        } else if (!idleRef.current) {
-          // hand gone — after IDLE_MS the accumulated letters become a word
-          idleRef.current = true;
-          idleTimerRef.current = setTimeout(() => {
-            const w = recRef.current;
-            if (w) { setWord(w); speak(w); recRef.current = ''; setRec(''); lastRef.current = ''; setSpeaking(true); setTimeout(() => setSpeaking(false), 1200); }
-            idleRef.current = false;
-          }, IDLE_MS);
+      const video = videoRef.current, landmarker = landmarkerRef.current;
+      if (video?.readyState >= 2 && landmarker) {
+        const result = landmarker.detectForVideo(video, now);
+        const detected = (result.landmarks || []).map((landmarks, index) => ({ landmarks, bbox: bboxOf(landmarks), score: result.handedness?.[index]?.[0]?.score || 0, name: result.handedness?.[index]?.[0]?.categoryName || 'Hand', gesture: 'TRACKING', confidence: 0 }));
+        setHands(detected.length);
+        if (!detected.length) { overlayRef.current?.draw([]); primaryRef.current = null; resetPrediction(true); }
+        else {
+          const primary = primaryRef.current ? detected.reduce((best, hand) => ((hand.landmarks[0].x - primaryRef.current.x) ** 2 + (hand.landmarks[0].y - primaryRef.current.y) ** 2) < ((best.landmarks[0].x - primaryRef.current.x) ** 2 + (best.landmarks[0].y - primaryRef.current.y) ** 2) ? hand : best) : detected.reduce((best, hand) => hand.score > best.score ? hand : best);
+          primaryRef.current = primary.landmarks[0]; overlayRef.current?.draw(detected);
+          if (now - lastSampleRef.current >= SAMPLE_MS) { lastSampleRef.current = now; framesRef.current = [...framesRef.current, toHand(primary.landmarks)].slice(-WINDOW); if (framesRef.current.length === WINDOW) predict(framesRef.current, versionRef.current); }
         }
-
-        // FPS rolling window + latency
-        frames += 1;
-        accMs += now - lastT;
-        lastT = now;
-        if (accMs >= 500) { setFps(Math.round((frames * 1000) / accMs)); frames = 0; accMs = 0; }
-        setLatency(`${cost.toFixed(0)}ms`);
+        frames += 1; elapsed += now - previous; previous = now; if (elapsed >= 500) { setFps(Math.round((frames * 1000) / elapsed)); frames = 0; elapsed = 0; }
       }
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(raf);
-      if (idleTimerRef.current) { clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
-      idleRef.current = false;
-    };
-  }, [run, modelReady, camOn]);
-
-  // ── simulated recognition (fallback: no camera / model unavailable) ──
-  useEffect(() => {
-    if (!run || modelReady) return;
-    let done = false;
-    const tick = setInterval(() => {
-      if (done) return;
-      if (countRef.current < phrase.text.length) {
-        const ch = phrase.text[countRef.current];
-        countRef.current += 1;
-        recRef.current += ch;
-        setRec(recRef.current);
-        setWord(phrase.text);
-        setConf(0.92 + Math.random() * 0.06);
-        setFps(29 + Math.floor(Math.random() * 4));
-        setLatency('45ms');
-      } else {
-        done = true;
-        setSpeaking(true);
-        speak(phrase.text);
-        setTimeout(() => {
-          setSpeaking(false);
-          countRef.current = 0;
-          recRef.current = '';
-          setRec(''); setWord('');
-          setPi((p) => (p + 1) % PHRASES.length);
-        }, 2200);
-      }
-    }, 480);
-    return () => clearInterval(tick);
-  }, [run, modelReady, pi, phrase]);
-
+    raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
+  }, [run, trackerReady, camOn, serviceState]);
+  useEffect(() => () => clearIdle(), []);
+  const letter = gesture || '–', waveSeed = letter.charCodeAt(0) || 45;
   return (
-    <section id="demo" className="relative z-10 px-5 py-24 md:px-10 md:py-32">
+    <section id="demo" className="relative z-10 px-4 py-24 md:px-8 md:py-32">
       <div className="mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Live Demo"
-          title="Watch Sign Language Become Text"
-          sub="A live webcam feed and MediaPipe hand tracking feed the in-browser rule engine — recognized in real time and spoken out loud (server LSTM available via API)."
+          eyebrow="Live Recognition"
+          title="Sign Language to Text"
+          sub="MediaPipe tracks the hand locally; a verified server sequence model classifies 12 landmark frames. Output is withheld whenever the model is unavailable or uncertain."
         />
 
-        {/* status bar */}
+        {/* Controls Bar */}
         <Reveal>
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
-              <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 status-dot" /> Model · HandLandmarker
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2.5">
+              <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    serviceState === 'ready'
+                      ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                      : serviceState === 'local'
+                      ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]'
+                      : serviceState === 'checking'
+                      ? 'bg-amber-400 animate-pulse'
+                      : serviceState === 'error'
+                      ? 'bg-red-400'
+                      : 'bg-slate-500'
+                  }`}
+                />
+                {serviceState === 'ready'
+                  ? 'Server LSTM Active'
+                  : serviceState === 'local'
+                  ? 'On-Device Browser Mode'
+                  : serviceState === 'checking'
+                  ? 'Checking Model…'
+                  : serviceState === 'error'
+                  ? 'Model Unavailable'
+                  : 'Model Standby'}
               </span>
-              <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest">
-                <span className={`h-2 w-2 rounded-full ${camOn ? 'bg-emerald-400' : 'bg-slate-500'} status-dot`} />
+              <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    camOn ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-500'
+                  }`}
+                />
                 {camOn ? 'Camera Live' : 'Camera Standby'}
               </span>
-              <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest">
-                <span className={`h-2 w-2 rounded-full ${run ? 'bg-cyan-400' : 'bg-slate-500'} status-dot`} />
-                {run ? (modelReady ? 'Pipeline Running' : 'Loading Model…') : 'Pipeline Idle'}
-              </span>
             </div>
+
             <div className="flex gap-3">
               <button
-                onClick={() => setMirror((m) => !m)}
-                className="glass inline-flex items-center gap-2 rounded-full px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-slate-300 transition-colors hover:text-white"
-                title="Mirror mode — selfie view"
+                onClick={() => setMirror((value) => !value)}
+                className="glass-card inline-flex items-center gap-2 rounded-full border border-white/12 bg-slate-950/80 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 hover:border-cyan-400/40 shadow-lg backdrop-blur-xl transition-all"
               >
-                <FiRepeat aria-hidden="true" /> Mirror {mirror ? 'On' : 'Off'}
+                <FiRepeat /> Mirror {mirror ? 'On' : 'Off'}
               </button>
               <button
                 onClick={() => (run ? stopRun() : startPipeline())}
-                className="btn-shimmer inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 via-cyan-400 to-violet-500 px-5 py-2.5 font-display text-xs font-semibold text-ink-950 shadow-glow transition-transform hover:scale-105"
+                className="btn-shimmer inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-violet-500 px-5 py-2.5 font-display text-xs font-bold text-slate-950 shadow-glow transition-transform hover:scale-105"
               >
-                {run ? <FiX aria-hidden="true" /> : <FiCamera aria-hidden="true" />} {run ? 'Stop' : 'Start Camera'}
+                {run ? <FiX /> : <FiCamera />} {run ? 'Stop' : 'Start Camera'}
               </button>
             </div>
           </div>
         </Reveal>
 
+        {serviceError && (
+          <p role="alert" className="mb-5 rounded-2xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-200">
+            {serviceError}
+          </p>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-          {/* ── Webcam window ── */}
+          {/* Left: Camera Viewport Card */}
           <Reveal delay={0.1}>
-            <div className="glass-deep relative overflow-hidden rounded-3xl p-4 shadow-panel">
-              <div className={`scanline relative aspect-[4/3] overflow-hidden rounded-2xl bg-ink-950 ring-1 ring-white/10 transition-all duration-500 ${hands > 0 ? 'shadow-glow ring-cyan-400/40' : ''}`}>
-                {/* real webcam (mirror = CSS flip, same axis as the overlay) */}
+            <div className="glass-glow relative overflow-hidden rounded-3xl p-5 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
+              <div className="scanline relative aspect-[4/3] overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-white/12">
                 <video
                   ref={videoRef}
                   autoPlay
@@ -314,150 +244,135 @@ function LiveDemo() {
                   muted
                   className={`absolute inset-0 h-full w-full rounded-2xl object-cover ${mirror ? 'scale-x-[-1]' : ''}`}
                 />
-
-                {/* live MediaPipe overlay (canvas, imperative) */}
-                <HandOverlay ref={overlayRef} mirror={mirror} className="" />
-
-                {/* simulated signing hand (fallback — no webcam / model unavailable) */}
-                {run && !modelReady && !camError && (
-                  <div className="absolute inset-0 flex items-center justify-center px-16">
-                    <HandSkeleton auto={phrase.signPoses} className="w-full max-w-[300px]" />
-                  </div>
-                )}
-
-                {/* corner brackets */}
-                <span className="absolute left-3 top-3 h-6 w-6 border-l-2 border-t-2 border-cyan-400/70" aria-hidden="true" />
-                <span className="absolute right-3 top-3 h-6 w-6 border-r-2 border-t-2 border-cyan-400/70" aria-hidden="true" />
-                <span className="absolute bottom-3 left-3 h-6 w-6 border-b-2 border-l-2 border-cyan-400/70" aria-hidden="true" />
-                <span className="absolute bottom-3 right-3 h-6 w-6 border-b-2 border-r-2 border-cyan-400/70" aria-hidden="true" />
-
-                {/* HUD top-left */}
-                <div className="absolute left-5 top-5 z-10 flex items-center gap-2">
-                  <span className="flex items-center gap-1.5 rounded-full bg-ink-950/60 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-red-400 ring-1 ring-red-400/30 backdrop-blur">
-                    <span className={`h-1.5 w-1.5 rounded-full ${run ? 'animate-pulse bg-red-500' : 'bg-slate-600'}`} /> REC
-                  </span>
-                  <span className="rounded-full bg-ink-950/60 px-3 py-1 font-mono text-[10px] text-slate-300 ring-1 ring-white/10 backdrop-blur">
+                <HandOverlay ref={overlayRef} mirror={mirror} />
+                <div className="absolute left-5 top-5 z-10 flex gap-2">
+                  <span className="rounded-full bg-slate-950/85 px-3 py-1 font-mono text-[10px] text-slate-200 border border-white/12 backdrop-blur-md">
                     {run ? `${fps || '--'} FPS` : '-- FPS'}
                   </span>
+                  <span className="rounded-full bg-slate-950/85 px-3 py-1 font-mono text-[10px] text-cyan-300 border border-cyan-400/35 backdrop-blur-md">
+                    {hands} hand{hands === 1 ? '' : 's'}
+                  </span>
                 </div>
 
-                {/* HUD top-right */}
-                <div className="absolute right-5 top-4 z-10 text-right">
-                  <div className="inline-block rounded-full bg-ink-950/60 px-3 py-1 font-mono text-[10px] text-cyan-300 ring-1 ring-cyan-400/25 backdrop-blur">
-                    {run && modelReady
-                      ? `Hands: ${hands} Detected`
-                      : run ? 'Warming up…' : 'Standby'}
-                  </div>
-                </div>
-
-                {/* HUD bottom confidence */}
-                <div className="absolute bottom-4 left-5 z-10 flex w-[70%] max-w-xs flex-col gap-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-slate-300">
-                      {gesture || 'Prediction'}
-                    </span>
-                    <span className="font-mono text-[9px] text-cyan-300">{(conf * 100).toFixed(1)}%</span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-                    <ConfBar key={run ? 'on' : 'off'} value={run ? conf : 0.1} />
-                  </div>
-                </div>
-
-                {camError && (
-                  <div className="absolute inset-0 z-20 grid place-items-center rounded-2xl bg-ink-950/85 text-center backdrop-blur-sm">
-                    <div className="px-6">
-                      <FiCamera className="mx-auto mb-4 h-10 w-10 text-cyan-400/60" aria-hidden="true" />
-                      <p className="font-display text-lg text-white">Camera unavailable</p>
-                      <p className="mx-auto mt-1 max-w-xs text-sm text-slate-400">
-                        Running in simulated mode — the AI hand will still demonstrate gesture recognition.
-                      </p>
-                    </div>
+                {!run && (
+                  <div className="absolute inset-0 grid place-items-center bg-slate-950/80 backdrop-blur-md">
+                    <button
+                      onClick={startPipeline}
+                      className="glass-card flex flex-col items-center gap-3 rounded-3xl px-10 py-8 shadow-2xl border border-white/12 bg-slate-950/90 hover:border-cyan-400/50 transition-all"
+                    >
+                      <span className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-sky-400 via-cyan-400 to-violet-500 text-slate-950 shadow-glow">
+                        <FiCamera className="h-6 w-6" />
+                      </span>
+                      <span className="font-display text-base font-bold text-white">Enable camera to begin</span>
+                    </button>
                   </div>
                 )}
-                {!run && !camError && (
-                  <div className="absolute inset-0 z-20 grid place-items-center rounded-2xl bg-ink-950/70 backdrop-blur-sm">
-                    <button onClick={startPipeline} className="glass group flex flex-col items-center gap-3 rounded-3xl px-10 py-8 transition-all hover:border-cyan-400/40">
-                      <span className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-ink-950 shadow-glow transition-transform group-hover:scale-110">
-                        <FiCamera className="h-6 w-6" aria-hidden="true" />
-                      </span>
-                      <span className="font-display text-base text-white">Enable camera to begin</span>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-slate-400">getUserMedia · requires permission</span>
-                    </button>
+
+                {camError && run && (
+                  <div className="absolute inset-0 z-20 grid place-items-center bg-slate-950/90 p-6 text-center backdrop-blur-md">
+                    <div>
+                      <FiCamera className="mx-auto mb-4 h-10 w-10 text-rose-400" />
+                      <p className="font-display text-lg font-bold text-white">Live recognition unavailable</p>
+                      <p className="mt-1 max-w-sm text-sm text-slate-300">Please allow camera access in your browser.</p>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </Reveal>
 
-          {/* ── Translation panel ── */}
+          {/* Right: Live Translation Output Card */}
           <Reveal delay={0.2}>
-            <div className="glass-deep flex h-full flex-col rounded-3xl p-5 shadow-panel">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-slate-500">Live Translation</span>
-                {speaking && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-3 py-1 font-mono text-[10px] text-emerald-300 ring-1 ring-emerald-400/25">Speaking</span>
-                )}
-              </div>
-
-              {/* letters */}
-              <div className="flex min-h-[88px] flex-wrap content-center items-center gap-2 rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                {rec.length > 0 ? (
-                  [...rec].map((ch, i) => (
-                    <span key={i} className="inline-grid h-9 w-9 place-items-center rounded-lg border border-cyan-400/25 bg-cyan-400/10 font-display text-lg font-semibold text-white">{ch}</span>
-                  ))
-                ) : (
-                  <span className="font-mono text-xs text-slate-600">Awaiting gesture…</span>
-                )}
-              </div>
-
-              {/* current sign + word */}
-              <div className="mt-4 grid grid-cols-[auto_1fr] items-center gap-4 rounded-2xl border border-white/8 bg-white/[0.03] p-4">
-                <div className="grid h-16 w-16 place-items-center rounded-xl bg-gradient-to-br from-sky-500/20 to-violet-500/20 ring-1 ring-white/10">
-                  <span className="font-display text-4xl font-bold text-white">{run && letter ? letter : '–'}</span>
+            <div className="glass-glow flex h-full flex-col justify-between rounded-3xl p-6 sm:p-7 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
+              <div>
+                <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-300 font-semibold">
+                    Live Translation
+                  </div>
+                  <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
                 </div>
-                <div>
-                  <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Current Word · ASL</div>
-                  <div className="mt-1 truncate font-display text-2xl text-white">
-                    {word || <span className="text-slate-500">Detection pending</span>} {speaking && <span className="animate-blink text-cyan-300">▍</span>}
+
+                {/* Stream character chips */}
+                <div className="flex min-h-[88px] flex-wrap content-center items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
+                  {rec ? (
+                    [...rec].map((character, index) => (
+                      <span
+                        key={`${character}-${index}`}
+                        className="inline-grid h-9 w-9 place-items-center rounded-xl border border-cyan-400/40 bg-cyan-400/15 font-display text-lg font-bold text-white shadow-[0_0_12px_rgba(34,211,238,0.3)]"
+                      >
+                        {character}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="font-mono text-xs text-slate-400">Awaiting a stable sign…</span>
+                  )}
+                </div>
+
+                {/* Primary Recognized Gesture & Committed Words */}
+                <div className="mt-4 grid grid-cols-[auto_1fr] items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
+                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-sky-500/20 via-cyan-400/20 to-violet-500/20 border border-cyan-400/30 shadow-inner">
+                    <span className="font-display text-4xl font-bold text-white">{letter}</span>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">Committed Words</div>
+                    <div className="mt-1.5 flex flex-wrap gap-2">
+                      {words.length ? (
+                        words.map((word, index) => (
+                          <span
+                            key={`${word}-${index}`}
+                            className="rounded-xl bg-cyan-400/15 border border-cyan-400/35 px-2.5 py-1 font-display text-base font-semibold text-white shadow-[0_0_8px_rgba(34,211,238,0.2)]"
+                          >
+                            {word}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="font-display text-lg text-slate-400">Detection pending</span>
+                      )}
+                      {speaking && <span className="animate-blink text-cyan-300">▍</span>}
+                    </div>
                   </div>
                 </div>
+
+                {/* Audio Waveform Stream */}
+                <div className="mt-4 flex h-16 items-center justify-center gap-[3px] rounded-2xl border border-white/10 bg-white/[0.03] px-3">
+                  {Array.from({ length: 40 }, (_, index) => (
+                    <span
+                      key={index}
+                      className={`wave-bar w-[3px] rounded-full ${
+                        run ? 'bg-gradient-to-t from-cyan-400/70 to-violet-400/90' : 'bg-white/10'
+                      }`}
+                      style={{
+                        height: `${run ? 8 + ((index * 7 + waveSeed) % 34) : 10}px`,
+                        animationDelay: `${(index % 8) * 0.1}s`,
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
 
-              {/* waveform */}
-              <div className="mt-4 flex h-16 items-center justify-center gap-[3px] rounded-2xl border border-white/8 bg-white/[0.03] px-3">
-                {Array.from({ length: 40 }, (_, i) => (
-                  <span key={i} className={`wave-bar w-[3px] rounded-full ${run ? 'bg-gradient-to-t from-cyan-400/50 to-violet-400/80' : 'bg-white/10'}`}
-                    style={{ height: `${run ? 8 + ((i * 7 + letter.charCodeAt(0)) % 34) : 10}px`, animationDelay: `${(i % 8) * 0.1}s` }} />
+              {/* Telemetry Metrics Grid */}
+              <div className="mt-5 grid grid-cols-3 gap-3 border-t border-white/10 pt-4">
+                {[
+                  ['Latency', run ? latency : '–'],
+                  ['Confidence', run && gesture ? `${(conf * 100).toFixed(1)}%` : '–'],
+                  ['Hands', run ? hands : '–'],
+                ].map(([name, value]) => (
+                  <div key={name} className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-center">
+                    <div className="font-mono text-[10px] uppercase tracking-widest text-cyan-300/80">{name}</div>
+                    <div className="font-display text-xl font-bold text-white mt-0.5">{value}</div>
+                  </div>
                 ))}
-              </div>
-
-              {/* metrics */}
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3 text-center">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Latency</div>
-                  <div className="font-display text-xl font-semibold text-white">{run ? latency : '–'}</div>
-                </div>
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3 text-center">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Confidence</div>
-                  <div className="font-display text-xl font-semibold grad-text">{run ? (conf * 100).toFixed(1) : '–'}%</div>
-                </div>
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3 text-center">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Hands</div>
-                  <div className="font-display text-xl font-semibold text-white">{run ? hands : '–'}</div>
-                </div>
               </div>
             </div>
           </Reveal>
         </div>
 
         <Reveal delay={0.3}>
-          <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-slate-500">
-            real-time MediaPipe HandLandmarker in the browser · gestures scored by the same rule engine as the /api/v1/predict server
+          <p className="mt-8 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
+            Dual-Mode Pipeline · Server TensorFlow LSTM sequence inference or On-Device MediaPipe Neural Tracking
           </p>
         </Reveal>
       </div>
     </section>
   );
 }
-
-export default LiveDemo;

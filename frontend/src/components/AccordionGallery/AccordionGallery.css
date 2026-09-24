@@ -1,0 +1,206 @@
+.accordion-gallery {
+  --ag-accent: #22d3ee;
+  --ag-overlay: #060010;
+  --ag-text: #ffffff;
+  --ag-gap: 14px;
+  --ag-radius: 24px;
+  --ag-media-size: 380px;
+
+  display: flex;
+  flex-direction: row;
+  gap: var(--ag-gap);
+  width: 100%;
+  max-width: 100%;
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+}
+
+.accordion-gallery--vertical {
+  flex-direction: column;
+}
+
+.ag-panel {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--ag-radius);
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  outline: none;
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  background: #080511;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  will-change: flex-grow, transform;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.ag-panel:hover {
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+.ag-panel--active {
+  border-color: rgba(34, 211, 238, 0.6);
+  box-shadow: 0 25px 60px -15px rgba(34, 211, 238, 0.25), 0 0 0 1px rgba(34, 211, 238, 0.3);
+}
+
+/* Mohammed Owais Alam — Main Character / Leader styling */
+.ag-panel--leader {
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.ag-panel--leader.ag-panel--active {
+  border-color: rgba(56, 189, 248, 0.85);
+  box-shadow:
+    0 25px 65px -10px rgba(56, 189, 248, 0.35),
+    0 0 35px -5px rgba(139, 92, 246, 0.3),
+    0 0 0 1.5px rgba(56, 189, 248, 0.6);
+}
+
+.ag-panel:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--ag-accent),
+    0 10px 30px -18px rgba(0, 0, 0, 0.8);
+}
+
+.ag-panel__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.ag-panel__media {
+  --ag-gray: 1;
+  --ag-dim: 0.35;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--ag-media-size);
+  height: 100%;
+  filter: grayscale(var(--ag-gray));
+  will-change: transform, filter;
+}
+
+.accordion-gallery--vertical .ag-panel__media {
+  width: 100%;
+  height: var(--ag-media-size);
+}
+
+.ag-panel__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.ag-panel__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 35%, rgba(6, 0, 16, 0.85) 75%, rgba(6, 0, 16, 0.98) 100%),
+    color-mix(in srgb, var(--ag-overlay) calc(var(--ag-dim, 0.35) * 100%), transparent);
+}
+
+/* Leader Ribbon Badge */
+.ag-panel__leader-badge {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 3;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(14, 165, 233, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #38bdf8;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+}
+
+.ag-panel__label {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ag-panel__bar {
+  flex: 0 0 auto;
+  width: 4px;
+  height: 48px;
+  border-radius: 4px;
+  background: var(--ag-accent);
+  opacity: 0;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--ag-accent) 80%, transparent);
+}
+
+.ag-panel__text {
+  color: var(--ag-text);
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .accordion-gallery {
+    --ag-gap: 10px;
+    --ag-radius: 20px;
+  }
+}
+
+@media (max-width: 580px) {
+  .accordion-gallery {
+    flex-direction: column;
+    perspective: none;
+    height: auto !important;
+  }
+  .ag-panel {
+    min-height: 120px;
+    height: 140px;
+    transform: none !important;
+  }
+  .ag-panel--active {
+    height: 240px;
+  }
+  .accordion-gallery .ag-panel__media {
+    width: 100%;
+    height: var(--ag-media-size);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-panel,
+  .ag-panel__media {
+    will-change: auto;
+  }
+}

@@ -69,8 +69,8 @@ export default function Navbar() {
         }`}
       >
         <nav
-          className={`glass flex items-center justify-between rounded-2xl px-4 py-3 transition-shadow duration-500 md:px-6 ${
-            scrolled ? 'shadow-panel' : ''
+          className={`flex items-center justify-between rounded-2xl px-4 py-3 transition-all duration-500 md:px-6 shadow-[0_20px_50px_rgba(0,0,0,0.7)] backdrop-blur-2xl border border-white/12 bg-slate-950/85 ${
+            scrolled ? 'border-cyan-400/30 shadow-[0_15px_40px_rgba(0,0,0,0.9)] bg-slate-950/95' : ''
           }`}
           aria-label="Main navigation"
         >
@@ -82,15 +82,15 @@ export default function Navbar() {
             aria-label="SignSpeak AI home"
           >
             <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-sky-400 via-cyan-400 to-violet-500 shadow-glow transition-transform duration-500 group-hover:rotate-[10deg]">
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-ink-950" fill="currentColor" aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-950" fill="currentColor" aria-hidden="true">
                 <path d="M12 2 L15.5 9.5 L23 12 L15.5 14.5 L12 22 L8.5 14.5 L1 12 L8.5 9.5 Z" />
               </svg>
             </span>
-            <span className="flex flex-col leading-none">
-              <span className="font-display text-[15px] font-semibold tracking-tight text-white">
+            <span className="flex flex-col justify-center">
+              <span className="font-display text-[15px] font-bold tracking-tight text-white leading-tight">
                 SignSpeak <span className="grad-text">AI</span>
               </span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.28em] text-slate-500">
+              <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.22em] text-cyan-300/80 font-medium leading-none">
                 v1.0 · BCA
               </span>
             </span>
@@ -106,16 +106,16 @@ export default function Navbar() {
                   <a
                     href={`#${l.id}`}
                     onClick={(e) => { e.preventDefault(); scrollTo(l.id); }}
-                    className={`relative block rounded-full px-4 py-2 text-[13px] font-medium transition-colors duration-300 ${
-                      isActive ? 'text-white' : 'text-slate-400 hover:text-slate-100'
+                    className={`relative block rounded-full px-4 py-2 font-sans text-[13px] font-medium transition-colors duration-300 ${
+                      isActive ? 'text-white' : 'text-slate-300 hover:text-white'
                     }`}
                   >
                     {isActive && (
-                      <span className="absolute inset-0 rounded-full bg-white/8 ring-1 ring-white/10" aria-hidden="true" />
+                      <span className="absolute inset-0 rounded-full bg-white/10 ring-1 ring-white/15" aria-hidden="true" />
                     )}
                     <span className="relative z-10">{l.label}</span>
                     {isActive && (
-                      <span className="absolute -bottom-[3px] left-1/2 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 transition-all"
+                      <span className="absolute -bottom-[3px] left-1/2 h-[2px] -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500 transition-all shadow-[0_0_8px_rgba(34,211,238,0.6)]"
                         style={{ width: `${Math.max(18, pct * 36)}px`, opacity: 0.5 + pct * 0.5 }}
                         aria-hidden="true" />
                     )}
@@ -130,7 +130,7 @@ export default function Navbar() {
               href="https://github.com"
               target="_blank"
               rel="noreferrer"
-              className="glass hidden rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-slate-300 transition-all duration-300 hover:border-cyan-400/40 hover:text-white hover:shadow-glow md:inline-block"
+              className="glass-card hidden rounded-full border border-white/12 bg-slate-950/80 px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-slate-300 transition-all duration-300 hover:border-cyan-400/50 hover:text-cyan-300 hover:shadow-[0_0_15px_rgba(34,211,238,0.25)] md:inline-block backdrop-blur-xl"
             >
               GitHub ↗
             </a>
@@ -138,7 +138,7 @@ export default function Navbar() {
             {/* Hamburger */}
             <button
               onClick={() => setOpen(!open)}
-              className="glass grid h-10 w-10 place-items-center rounded-xl lg:hidden"
+              className="glass-card grid h-10 w-10 place-items-center rounded-xl border border-white/12 bg-slate-950/80 lg:hidden text-white hover:border-cyan-400/40"
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
             >
@@ -154,7 +154,7 @@ export default function Navbar() {
 
       {/* Mobile drawer */}
       <div
-        className={`fixed inset-0 z-[79] bg-ink-950/80 backdrop-blur-xl transition-opacity duration-400 lg:hidden ${
+        className={`fixed inset-0 z-[79] bg-slate-950/95 backdrop-blur-2xl transition-opacity duration-400 lg:hidden ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-hidden={!open}
@@ -177,7 +177,7 @@ export default function Navbar() {
             href="https://github.com"
             target="_blank"
             rel="noreferrer"
-            className={`glass mt-6 rounded-full px-6 py-3 font-mono text-xs uppercase tracking-widest text-slate-200 transition-all duration-500 ${open ? 'opacity-100' : 'opacity-0'}`}
+            className={`glass-card mt-6 rounded-full border border-white/12 bg-slate-950/80 px-6 py-3 font-mono text-xs uppercase tracking-widest text-slate-200 transition-all duration-500 hover:border-cyan-400/50 hover:text-cyan-300 ${open ? 'opacity-100' : 'opacity-0'}`}
             style={{ transitionDelay: '420ms' }}
           >
             GitHub ↗

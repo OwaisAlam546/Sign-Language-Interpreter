@@ -18,7 +18,7 @@ export default function SectionHeading({ eyebrow, title, sub, align = 'center' }
       />
       {sub && (
         <Reveal delay={0.15}>
-          <p className={`max-w-2xl text-base leading-relaxed text-slate-400 md:text-lg ${align === 'center' ? 'mx-auto' : ''}`}>
+          <p className={`max-w-2xl text-base leading-relaxed text-slate-300 md:text-lg ${align === 'center' ? 'mx-auto' : ''}`}>
             {sub}
           </p>
         </Reveal>

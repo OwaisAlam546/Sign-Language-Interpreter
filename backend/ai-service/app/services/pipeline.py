@@ -18,7 +18,9 @@ from __future__ import annotations
 
 import base64
 import logging
+import math
 import time
+from numbers import Real
 from typing import Any, Optional
 
 from app.utils.envelope import ApiError
@@ -45,11 +47,13 @@ def _normalize_hand(hand: Any) -> list[list[float]]:
     ok = (
         isinstance(hand, list)
         and len(hand) == _HAND_POINTS
-        and all(isinstance(p, list) and len(p) == _POINT_N for p in hand)
+        and all(isinstance(p, list) and len(p) == _POINT_N
+                and all(isinstance(v, Real) and math.isfinite(float(v)) for v in p)
+                for p in hand)
     )
     if not ok:
         raise ApiError(400, 'INVALID_LANDMARKS',
-                       'each hand must be 21 points of [x, y, z]')
+                       'each hand must be 21 finite numeric points of [x, y, z]')
     return hand
 
 

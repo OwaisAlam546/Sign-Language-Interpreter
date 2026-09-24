@@ -14,6 +14,8 @@
 from __future__ import annotations
 
 import time
+import math
+from numbers import Real
 from collections import Counter
 from typing import Any, Optional
 
@@ -31,11 +33,13 @@ def _validate_hand(hand: Any) -> list[list[float]]:
     ok = (
         isinstance(hand, list)
         and len(hand) == _HAND_POINTS
-        and all(isinstance(p, list) and len(p) == _POINT_N for p in hand)
+        and all(isinstance(p, list) and len(p) == _POINT_N
+                and all(isinstance(v, Real) and math.isfinite(float(v)) for v in p)
+                for p in hand)
     )
     if not ok:
         raise ApiError(400, 'INVALID_LANDMARKS',
-                       'hand landmarks must be 21 points of [x, y, z]')
+                       'hand landmarks must be 21 finite numeric points of [x, y, z]')
     return hand
 
 

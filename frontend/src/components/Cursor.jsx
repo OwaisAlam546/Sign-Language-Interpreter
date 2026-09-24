@@ -66,7 +66,7 @@ export default function Cursor() {
       <div
         ref={dotRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[100] h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.95)] ring-2 ring-ink-950/80"
+        className="pointer-events-none fixed left-0 top-0 z-[100] h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.95)] ring-2 ring-slate-950/80"
       />
       {/* ring — trailing glow ring, expands over interactive elements */}
       <div

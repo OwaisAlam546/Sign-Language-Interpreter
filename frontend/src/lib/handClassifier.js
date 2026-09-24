@@ -34,20 +34,52 @@ export function classifyHand(lms) {
   const nExt = angles.filter((a) => a <= STRAIGHT).length;
   const thumb = angleAt(lms[2], lms[3], lms[4]) <= THUMB_STRAIGHT;
 
-  // made-a-circle (O) wins first: fingertips almost touch
-  if (dist(lms[4], lms[8]) < 0.28 * (dist(lms[0], lms[9]) || 1e-9)) {
+  // made-a-circle (O) or (F)
+  const okTouch = dist(lms[4], lms[8]) < 0.28 * (dist(lms[0], lms[9]) || 1e-9);
+  if (okTouch && angles[1] <= STRAIGHT && angles[2] <= STRAIGHT && angles[3] <= STRAIGHT) {
+    return { gesture: 'F', confidence: 0.95 };
+  }
+  if (okTouch) {
     return { gesture: 'O', confidence: 0.94 };
   }
+
+  // Y: thumb and pinky extended, index/middle/ring curled
+  if (thumb && nExt === 1 && angles[3] <= STRAIGHT) return { gesture: 'Y', confidence: 0.95 };
+
+  // I: pinky extended straight up, others curled
+  if (!thumb && nExt === 1 && angles[3] <= STRAIGHT) return { gesture: 'I', confidence: 0.94 };
+
+  // A: tight fist, thumb alongside
   if (!thumb && nExt === 0) return { gesture: 'A', confidence: 0.96 };
+
+  // D: index upright, thumb touching curled middle
   if (!thumb && nExt === 1 && angles[0] <= STRAIGHT) return { gesture: 'D', confidence: 0.93 };
+
+  // V: peace sign / V
   if (!thumb && nExt === 2 && angles[0] <= STRAIGHT && angles[1] <= STRAIGHT) {
-    return { gesture: 'PEACE', confidence: 0.94 };
+    return { gesture: 'V', confidence: 0.95 };
   }
-  if (!thumb && nExt === 3) return { gesture: 'THREE', confidence: 0.93 };
-  if (!thumb && nExt === 4) return { gesture: 'FOUR', confidence: 0.94 };
-  if (thumb && nExt === 4) return { gesture: 'B', confidence: 0.97 };
+
+  // W: three fingers / W
+  if (!thumb && nExt === 3 && angles[0] <= STRAIGHT && angles[1] <= STRAIGHT && angles[2] <= STRAIGHT) {
+    return { gesture: 'W', confidence: 0.94 };
+  }
+
+  // B: 4 upright fingers, thumb folded flat
+  if (nExt === 4) return { gesture: 'B', confidence: 0.97 };
+
+  // THUMBS_UP
   if (thumb && nExt === 0) return { gesture: 'THUMBS_UP', confidence: 0.95 };
+
+  // L: right-angle thumb and index
   if (thumb && nExt === 1 && angles[0] <= STRAIGHT) return { gesture: 'L', confidence: 0.94 };
+
+  // C: all fingers curved in open C shape
+  const allCurved = angles.every((a) => a > STRAIGHT && a < 115);
+  if (allCurved && dist(lms[4], lms[8]) > 0.35 * (dist(lms[0], lms[9]) || 1e-9)) {
+    return { gesture: 'C', confidence: 0.91 };
+  }
+
   return { gesture: 'UNKNOWN', confidence: 0.5 };
 }
 

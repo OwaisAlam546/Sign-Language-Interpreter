@@ -29,7 +29,7 @@ router.post('/predict', asyncHandler(async (req, res) => {
 
 // POST /api/v1/ai/predict-sequence — a frame window → letter or word
 router.post('/predict-sequence', asyncHandler(async (req, res) => {
-  res.json(await ai.predictSequence(req.body.frames));
+  res.json(await ai.predictSequence(req.body.frames, req.body.strategy));
 }));
 
 // POST /api/v1/ai/process-frame — MediaPipe pipeline for one frame

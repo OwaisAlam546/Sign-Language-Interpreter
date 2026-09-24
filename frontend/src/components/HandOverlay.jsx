@@ -52,6 +52,8 @@ const HandOverlay = forwardRef(function HandOverlay(
         ctx.scale(-1, 1);
       }
 
+      const labelRects = [];
+      const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
       hands.forEach((hand, i) => {
         const color = HAND_COLORS[i % HAND_COLORS.length];
         const lms = hand.landmarks;
@@ -99,15 +101,22 @@ const HandOverlay = forwardRef(function HandOverlay(
         const pad = 8;
         const tw = ctx.measureText(label).width;
         const chipH = 20;
-        const chipX = Math.min(Math.max(x * w, 6), w - tw - pad * 2 - 6);
-        const chipY = Math.max(y * h - chipH - pad, 6);
+        const chipW = tw + pad * 2;
+        const chipX = Math.min(Math.max(x * w, 6), w - chipW - 6);
+        // Prefer directly above the box, then move the chip down in its own
+        // column until it no longer covers another hand's label.
+        let chipY = Math.max(y * h - chipH - pad, 6);
+        while (labelRects.some((rect) => overlaps({ x: chipX, y: chipY, w: chipW, h: chipH }, rect)) && chipY + chipH + 6 < h) {
+          chipY += chipH + 6;
+        }
+        labelRects.push({ x: chipX, y: chipY, w: chipW, h: chipH });
 
         ctx.fillStyle = 'rgba(2, 6, 23, 0.72)';
         ctx.strokeStyle = color;
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.95;
         ctx.beginPath();
-        ctx.roundRect(chipX, chipY, tw + pad * 2, chipH, 6);
+        ctx.roundRect(chipX, chipY, chipW, chipH, 6);
         ctx.fill();
         ctx.stroke();
         ctx.fillStyle = '#E2E8F0';

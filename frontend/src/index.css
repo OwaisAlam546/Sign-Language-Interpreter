@@ -53,18 +53,135 @@ body {
   color: transparent;
 }
 
+/* ── Modern Multi-Layer Glassmorphism (Obsidian & Cyan-Violet Theme) ── */
 .glass {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: linear-gradient(145deg, rgba(8, 12, 22, 0.85) 0%, rgba(3, 6, 14, 0.92) 100%);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 20px 45px -15px rgba(0, 0, 0, 0.75);
+}
+
+.glass-frosted {
+  background: linear-gradient(145deg, rgba(6, 10, 20, 0.92) 0%, rgba(2, 4, 10, 0.96) 100%);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.22), inset 0 0 20px 0 rgba(34, 211, 238, 0.05), 0 24px 60px -12px rgba(0, 0, 0, 0.8);
+}
+
+.glass-card {
+  background: linear-gradient(145deg, rgba(8, 13, 24, 0.94) 0%, rgba(3, 5, 12, 0.98) 100%);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.25), inset 0 0 25px 0 rgba(34, 211, 238, 0.06), 0 24px 60px -12px rgba(0, 0, 0, 0.85);
+}
+
+/* High-DPI, crisp rendering for cards without compositor blur or forced rasterization */
+.card-3d-crisp {
+  background: linear-gradient(145deg, rgba(8, 12, 22, 0.95) 0%, rgba(2, 5, 12, 0.98) 100%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+.card-3d-crisp.is-hovered,
+.card-3d-crisp:hover {
+  transform-style: flat;
+  -webkit-transform-style: flat;
+  backface-visibility: visible !important;
+  -webkit-backface-visibility: visible !important;
+}
+
+/* Card hover luminous border highlight matching other sections */
+.card-border-glow {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 20px 45px -12px rgba(0, 0, 0, 0.75);
+  transition: border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-border-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.85), rgba(139, 92, 246, 0.55), rgba(255, 255, 255, 0.25));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 1;
+}
+
+.card-border-glow:hover,
+.card-border-glow.is-hovered {
+  border-color: rgba(34, 211, 238, 0.85) !important;
+  box-shadow: 0 0 28px rgba(34, 211, 238, 0.3),
+              0 16px 36px rgba(0, 0, 0, 0.75),
+              inset 0 0 15px rgba(34, 211, 238, 0.15) !important;
+}
+
+.card-border-glow:hover::before,
+.card-border-glow.is-hovered::before {
+  opacity: 1;
 }
 
 .glass-deep {
-  background: linear-gradient(160deg, rgba(17, 24, 39, 0.72), rgba(11, 15, 25, 0.85));
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(160deg, rgba(6, 10, 20, 0.94) 0%, rgba(2, 4, 10, 0.98) 100%);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 28px 60px -16px rgba(0, 0, 0, 0.88);
+}
+
+.glass-interactive {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              box-shadow 0.35s ease,
+              background 0.35s ease;
+}
+
+.glass-interactive:hover {
+  transform: translateY(-5px) scale(1.01);
+  border-color: rgba(34, 211, 238, 0.45);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+              0 0 35px -6px rgba(34, 211, 238, 0.35),
+              0 30px 60px -12px rgba(0, 0, 0, 0.88);
+}
+
+.glass-glow {
+  position: relative;
+}
+
+.glass-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.4), rgba(139, 92, 246, 0.4), rgba(255, 255, 255, 0.1));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ── 3D Scene Utilities ── */
+.preserve-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .hairline {

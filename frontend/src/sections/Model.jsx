@@ -53,7 +53,7 @@ function Gauge({ value }) {
       </svg>
       <div className="absolute text-center">
         <div className="font-display text-6xl font-bold tracking-tight">
-          <span className="grad-text"><Counter to={MODEL.accuracy} decimals={1} suffix="%" /></span>
+          <span className="grad-text">{MODEL.accuracy === null ? '—' : <Counter to={MODEL.accuracy} decimals={1} suffix="%" />}</span>
         </div>
         <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.26em] text-slate-500">Overall Accuracy</div>
       </div>
@@ -63,11 +63,11 @@ function Gauge({ value }) {
 
 function MetricTile({ label, value, decimals = 1, suffix = '%' }) {
   return (
-    <div className="glass sheen rounded-2xl p-5 transition-all duration-500 hover:border-cyan-400/30 hover:shadow-glow">
-      <div className="font-display text-4xl font-semibold tracking-tight text-white">
-        <Counter to={value} decimals={decimals} suffix={suffix} />
+    <div className="glass-card group relative rounded-2xl border border-white/12 bg-slate-950/90 p-6 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.65)] hover:border-cyan-400/50 hover:shadow-[0_0_25px_rgba(34,211,238,0.2)] transition-all">
+      <div className="font-display text-4xl font-bold tracking-tight text-white">
+        {value === null ? 'Pending' : <Counter to={value} decimals={decimals} suffix={suffix} />}
       </div>
-      <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">{label}</div>
+      <div className="mt-2 font-mono text-[11px] uppercase tracking-[0.22em] text-cyan-300/80 font-medium">{label}</div>
     </div>
   );
 }
@@ -79,12 +79,13 @@ export default function Model() {
         <SectionHeading
           eyebrow="Model Performance"
           title="Numbers That Speak"
-          sub="Trained on the Kaggle ASL Alphabet dataset plus self-recorded word gestures."
+          sub="The bundled model covers A–Z plus synthetic HELLO. Independent signer/video accuracy evaluation is required before performance can be claimed."
         />
 
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.2fr]">
           <Reveal>
-            <div className="glass-deep grid place-items-center rounded-3xl p-8">
+            <div className="glass-card relative grid place-items-center rounded-3xl border border-white/12 bg-slate-950/90 p-10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.65)] overflow-hidden">
+              <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-48 w-48 rounded-full bg-cyan-500/15 blur-3xl" />
               <Gauge value={MODEL.accuracy} />
             </div>
           </Reveal>
@@ -94,25 +95,20 @@ export default function Model() {
             <Reveal delay={0.1}><MetricTile label="Recall" value={MODEL.recall} /></Reveal>
             <Reveal delay={0.15}><MetricTile label="F1 Score" value={MODEL.f1} /></Reveal>
             <Reveal delay={0.2}>
-              <div className="glass sheen rounded-2xl p-5 transition-all duration-500 hover:border-cyan-400/30 hover:shadow-glow">
-                <div className="font-display text-4xl font-semibold tracking-tight text-white">
-                  <Counter to={MODEL.latencyMs} suffix="ms" />
-                </div>
-                <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">Inference Latency</div>
-              </div>
+              <MetricTile label="Inference Latency" value={MODEL.latencyMs} decimals={0} suffix="ms" />
             </Reveal>
           </div>
         </div>
 
         <Reveal delay={0.1}>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-500">
-            <span>{MODEL.classes} classes</span>
-            <span className="h-3 w-px bg-white/10" />
-            <span>{MODEL.samples.toLocaleString()} samples</span>
-            <span className="h-3 w-px bg-white/10" />
-            <span>{MODEL.epochs} epochs</span>
-            <span className="h-3 w-px bg-white/10" />
-            <span>{MODEL.dataset}</span>
+          <div className="glass-card mx-auto mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 rounded-full border border-white/12 bg-slate-950/80 px-8 py-3 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400 backdrop-blur-xl shadow-lg max-w-3xl">
+            <span className="text-slate-300"><span className="text-cyan-300 font-semibold">{MODEL.classes}</span> classes</span>
+            <span className="h-3 w-px bg-white/15" />
+            <span className="text-slate-300"><span className="text-cyan-300 font-semibold">{MODEL.samples}</span> samples</span>
+            <span className="h-3 w-px bg-white/15" />
+            <span className="text-slate-300"><span className="text-cyan-300 font-semibold">{MODEL.epochs}</span> epochs</span>
+            <span className="h-3 w-px bg-white/15" />
+            <span className="text-violet-300 font-medium">{MODEL.dataset}</span>
           </div>
         </Reveal>
       </div>

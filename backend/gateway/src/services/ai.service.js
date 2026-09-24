@@ -18,7 +18,7 @@ module.exports = {
   predict: (hand) => client.call('post', '/api/v1/predict', { landmarks: hand }),
 
   // A window of frames → LSTM prediction with threshold/unknown gates
-  predictSequence: (frames) => client.call('post', '/api/v1/predict-sequence', { frames }),
+  predictSequence: (frames, strategy = 'majority') => client.call('post', '/api/v1/predict-sequence', { frames, strategy }),
 
   // Phase 7: full MediaPipe hand pipeline for one frame
   processFrame: (payload) => client.call('post', '/api/v1/process-frame', payload),
