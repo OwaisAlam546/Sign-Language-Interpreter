@@ -426,7 +426,8 @@ export default function HowItWorks() {
       const viewportHeight = window.innerHeight;
       const scrollableDistance = containerHeight - viewportHeight;
 
-      if (scrollableDistance <= 0) return;
+      // Only scrub through steps when the section is expanded in pinned scroll mode
+      if (scrollableDistance < viewportHeight * 0.5) return;
 
       const scrolled = -rect.top;
       const progress = Math.max(0, Math.min(1, scrolled / scrollableDistance));
@@ -460,7 +461,8 @@ export default function HowItWorks() {
     const viewportHeight = window.innerHeight;
     const scrollableDistance = containerHeight - viewportHeight;
 
-    if (scrollableDistance > 0) {
+    // Only scroll the window to step offset if in pinned scroll mode
+    if (scrollableDistance >= viewportHeight * 0.5) {
       const targetY = containerTop + (idx / 5) * scrollableDistance;
       if (window.__lenis) {
         window.__lenis.scrollTo(targetY, { duration: 0.6 });
@@ -712,11 +714,10 @@ export default function HowItWorks() {
     <section
       id="how"
       ref={containerRef}
-      className="relative z-10 px-4 py-12 md:px-8 md:py-16"
-      style={{ minHeight: '220vh' }}
+      className="pipeline-section relative z-10 px-4 py-12 md:px-8 md:py-16"
     >
-      {/* Sticky container pins comfortably as user scrolls through the 220vh section */}
-      <div className="sticky top-14 md:top-20 mx-auto max-w-6xl">
+      {/* Container pins on tall viewports, flows naturally on compact laptop viewports */}
+      <div className="pipeline-container mx-auto max-w-6xl">
         {/* Compact Section Header (scaled +12%) */}
         <div className="relative z-10 mb-4 sm:mb-6 flex flex-col items-center gap-2 text-center">
           <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[11px] sm:text-xs uppercase tracking-[0.22em] text-cyan-300">

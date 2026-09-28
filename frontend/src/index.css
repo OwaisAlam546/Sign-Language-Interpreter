@@ -375,3 +375,25 @@ body {
   from { background-position: 0 0; }
   to { background-position: 0 48px; }
 }
+
+/* ─────────────────────────── Pipeline Section Responsive Height ─────────────────────────── */
+/* Natural flow & auto height on compact / laptop viewports so content scrolls naturally */
+.pipeline-section {
+  min-height: auto;
+}
+
+.pipeline-container {
+  position: relative;
+  top: auto;
+}
+
+/* Multi-viewport sticky presentation on tall desktop PC displays (height >= 900px, width >= 1024px) */
+@media (min-height: 900px) and (min-width: 1024px) {
+  .pipeline-section {
+    min-height: 220vh;
+  }
+  .pipeline-container {
+    position: sticky;
+    top: 5rem;
+  }
+}
