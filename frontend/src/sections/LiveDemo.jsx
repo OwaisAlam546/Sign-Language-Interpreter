@@ -7,11 +7,27 @@ import HandOverlay from '../components/HandOverlay.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
 import { bboxOf, classifyHand } from '../lib/handClassifier.js';
+import { LETTERS, WORDS } from '../lib/data.js';
 
 const WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm';
 const MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
 const API_BASE = import.meta.env.VITE_AI_API_BASE || '/api/v1/ai';
 const WINDOW = 12, SAMPLE_MS = 125, MIN_CONFIDENCE = 0.78, STABLE_PREDICTIONS = 4, NEUTRAL_PREDICTIONS = 3, WORD_PAUSE_MS = 1200;
+
+// Whitelist only gestures present in the Gesture Library (A–Z letters and defined library words)
+const GESTURE_WHITELIST = new Set([
+  ...LETTERS.map(([letter]) => letter),
+  ...WORDS.map((w) => w.name),
+]);
+
+function getValidGesture(label) {
+  if (!label || typeof label !== 'string') return null;
+  const trimmed = label.trim();
+  if (GESTURE_WHITELIST.has(trimmed)) return trimmed;
+  const upper = trimmed.toUpperCase();
+  if (GESTURE_WHITELIST.has(upper)) return upper;
+  return null;
+}
 
 async function safeJson(res) {
   try {
@@ -43,14 +59,21 @@ export default function LiveDemo() {
     if (noHand) finishWord();
   };
   const acceptPrediction = (data) => {
-    const label = data.gesture;
-    const valid = data.displayed !== false && label && label !== 'UNKNOWN' && label !== 'NONE' && data.confidence >= MIN_CONFIDENCE;
+    const label = getValidGesture(data?.gesture);
+    const valid = data?.displayed !== false && Boolean(label) && data?.confidence >= MIN_CONFIDENCE;
     if (!valid) { resetPrediction(); return; }
     clearIdle(); setGesture(label); setConf(data.confidence); setLatency(`${Math.round(data.latencyMs || 0)}ms`);
     const state = stateRef.current; state.neutral = 0;
     if (state.candidate === label) state.count += 1;
     else { state.candidate = label; state.count = 1; if (label !== state.last) state.armed = true; }
-    if (state.armed && state.count >= STABLE_PREDICTIONS) { recRef.current += label; setRec(recRef.current); state.last = label; state.armed = false; }
+    if (state.armed && state.count >= STABLE_PREDICTIONS) {
+      if (GESTURE_WHITELIST.has(label)) {
+        recRef.current += label;
+        setRec(recRef.current);
+      }
+      state.last = label;
+      state.armed = false;
+    }
   };
   const predict = async (frames, version) => {
     if (busyRef.current) return; busyRef.current = true;

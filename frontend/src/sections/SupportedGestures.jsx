@@ -4,7 +4,7 @@
 // Uniform, calibrated rotational velocity for both Letters & Words with zero card overlap.
 import { useState, useMemo, useRef, useEffect, useCallback, memo } from 'react';
 import { FiSearch, FiChevronLeft, FiChevronRight, FiGrid, FiRotateCw, FiMove, FiX, FiArrowRight } from 'react-icons/fi';
-import HandSkeleton, { TwoHandWordSign, isTwoHandedWord } from '../components/HandSkeleton.jsx';
+import HandSkeleton, { TwoHandWordSign, isTwoHandedWord, evaluateWordSign, BONES, OPEN_LANDMARKS } from '../components/HandSkeleton.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
 import { LETTERS, WORDS } from '../lib/data.js';
@@ -16,6 +16,137 @@ const getWordTitleClass = (text) => {
   if (text.length <= 9) return 'text-base sm:text-lg font-bold tracking-tight';
   return 'text-sm sm:text-base font-bold tracking-tight';
 };
+
+// Direct SVG Landmark Applier (hardware-accelerated DOM mutation, zero React re-render lag)
+function applyWordLandmarks(pts, circleRefs, lineRefs) {
+  if (!pts || pts.length < 21) return;
+  for (let i = 0; i < 21; i++) {
+    const c = circleRefs.current[i];
+    if (c && pts[i]) {
+      c.setAttribute('cx', (pts[i][0] * 100).toFixed(2));
+      c.setAttribute('cy', (pts[i][1] * 100).toFixed(2));
+    }
+  }
+  for (let i = 0; i < BONES.length; i++) {
+    const [a, b] = BONES[i];
+    const l = lineRefs.current[i];
+    if (l && pts[a] && pts[b]) {
+      l.setAttribute('x1', (pts[a][0] * 100).toFixed(2));
+      l.setAttribute('y1', (pts[a][1] * 100).toFixed(2));
+      l.setAttribute('x2', (pts[b][0] * 100).toFixed(2));
+      l.setAttribute('y2', (pts[b][1] * 100).toFixed(2));
+    }
+  }
+}
+
+// Word Hand SVG shell with direct refs and authentic MediaPipe styling
+function WordHandSvg({
+  hand = 'dominant',
+  className = '',
+  glow = true,
+  initialPoints,
+  circleRefs,
+  lineRefs,
+}) {
+  const isHand2 = hand === 'non-dominant';
+  const lineGradId = isHand2 ? 'hand-line-h2' : 'hand-line-h1';
+  const dotGradId = isHand2 ? 'hand-dot-h2' : 'hand-dot-h1';
+  const pts = initialPoints || OPEN_LANDMARKS;
+
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      className={className}
+      role="img"
+      aria-label="ASL sign language word hand gesture"
+      shapeRendering="geometricPrecision"
+      textRendering="geometricPrecision"
+    >
+      <defs>
+        <radialGradient id="hand-glow-h1" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#22D3EE" stopOpacity="0.25" />
+          <stop offset="45%" stopColor="#8B5CF6" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="hand-glow-h2" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#E879F9" stopOpacity="0.25" />
+          <stop offset="45%" stopColor="#DB2777" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="#DB2777" stopOpacity="0" />
+        </radialGradient>
+        {isHand2 ? (
+          <>
+            <linearGradient id={lineGradId} gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="90" y2="90">
+              <stop offset="0%" stopColor="#C084FC" />
+              <stop offset="100%" stopColor="#F472B6" />
+            </linearGradient>
+            <radialGradient id={dotGradId}>
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="35%" stopColor="#E879F9" />
+              <stop offset="100%" stopColor="#DB2777" />
+            </radialGradient>
+          </>
+        ) : (
+          <>
+            <linearGradient id={lineGradId} gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="90" y2="90">
+              <stop offset="0%" stopColor="#38BDF8" />
+              <stop offset="100%" stopColor="#8B5CF6" />
+            </linearGradient>
+            <radialGradient id={dotGradId}>
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="35%" stopColor="#22D3EE" />
+              <stop offset="100%" stopColor="#7C3AED" />
+            </radialGradient>
+          </>
+        )}
+      </defs>
+      {glow && (
+        <ellipse
+          cx="50"
+          cy="50"
+          rx="44"
+          ry="44"
+          fill={isHand2 ? 'url(#hand-glow-h2)' : 'url(#hand-glow-h1)'}
+        />
+      )}
+      <g>
+        {BONES.map(([a, b], i) => (
+          <line
+            key={`b-${a}-${b}`}
+            ref={(el) => {
+              if (lineRefs?.current) lineRefs.current[i] = el;
+            }}
+            x1={(pts[a][0] * 100).toFixed(2)}
+            y1={(pts[a][1] * 100).toFixed(2)}
+            x2={(pts[b][0] * 100).toFixed(2)}
+            y2={(pts[b][1] * 100).toFixed(2)}
+            stroke={`url(#${lineGradId})`}
+            strokeWidth={isHand2 ? '1.3' : '1.4'}
+            strokeLinecap="round"
+            opacity={isHand2 ? '0.80' : '0.85'}
+            shapeRendering="geometricPrecision"
+          />
+        ))}
+      </g>
+      <g>
+        {Array.from({ length: 21 }, (_, i) => (
+          <circle
+            key={`pt-${i}`}
+            ref={(el) => {
+              if (circleRefs?.current) circleRefs.current[i] = el;
+            }}
+            cx={(pts[i][0] * 100).toFixed(2)}
+            cy={(pts[i][1] * 100).toFixed(2)}
+            r={i === 0 ? 2.4 : 2.0}
+            fill={`url(#${dotGradId})`}
+            stroke="#0B0F19"
+            strokeWidth="0.6"
+            shapeRendering="geometricPrecision"
+          />
+        ))}
+      </g>
+    </svg>
+  );
+}
 
 // Synchronizes Word HandSkeleton with the exact palm heel connection node & topology as Letters.
 function syncHandSvg(svg) {
@@ -129,47 +260,107 @@ function syncHandSvg(svg) {
   palmLineB.style.display = '';
 }
 
-// Wrapper for Words in 3D Wheel ensuring exact same palm/connection node rendering as Letters
-function WordWheelHandSkeleton({ word, className = '', glow = true }) {
+// Authentic Word Animation Controller enforcing exact Letters-like lifecycle:
+// HOVER ENTER -> reset landmarks to START pose -> play COMPLETE sign from progress 0 -> 1 -> reset to START pose -> repeat while hovered
+function WordWheelHandSkeleton({ word, isHovered = true, className = '', glow = true }) {
   const containerRef = useRef(null);
+  const h1Circles = useRef([]);
+  const h1Lines = useRef([]);
+  const h2Circles = useRef([]);
+  const h2Lines = useRef([]);
+
+  const is2H = isTwoHandedWord(word);
+  const startPose = useMemo(() => evaluateWordSign(word, 0), [word]);
+
+  const p1Start = startPose.hand1 || OPEN_LANDMARKS;
+  const p2Start = (is2H && startPose.hand2) ? startPose.hand2 : OPEN_LANDMARKS;
 
   useEffect(() => {
-    let animId;
-    const sync = () => {
-      if (containerRef.current) {
-        const svgs = containerRef.current.querySelectorAll('svg');
-        svgs.forEach((svg) => syncHandSvg(svg));
+    // If not hovered, immediately reset landmarks to the defined START pose and stop
+    if (!isHovered) {
+      applyWordLandmarks(p1Start, h1Circles, h1Lines);
+      if (is2H) {
+        applyWordLandmarks(p2Start, h2Circles, h2Lines);
       }
-      animId = requestAnimationFrame(sync);
+      if (containerRef.current) {
+        containerRef.current.querySelectorAll('svg').forEach((s) => syncHandSvg(s));
+      }
+      return;
+    }
+
+    let animId;
+    // HOVER ENTER: Set startTime to now so progress begins strictly at 0
+    const startTime = performance.now();
+
+    // FIRST FRAME: Synchronously reset BOTH hands to the exact defined START pose before animation begins
+    applyWordLandmarks(p1Start, h1Circles, h1Lines);
+    if (is2H) {
+      applyWordLandmarks(p2Start, h2Circles, h2Lines);
+    }
+    if (containerRef.current) {
+      containerRef.current.querySelectorAll('svg').forEach((s) => syncHandSvg(s));
+    }
+
+    const tick = (time) => {
+      const now = time || performance.now();
+      const elapsed = now - startTime;
+
+      // Pure continuous progress: evaluateWordSign computes (elapsed % duration) / duration
+      // Progress 0: exact defined START pose
+      // Progress 0 -> 1: complete sign motion
+      // Progress 1 (elapsed = duration): returns to exact START pose, resets, and loops infinitely
+      const current = evaluateWordSign(word, elapsed);
+      const currentH1 = current.hand1 || p1Start;
+      const currentH2 = current.hand2 || p2Start;
+
+      applyWordLandmarks(currentH1, h1Circles, h1Lines);
+      if (is2H) {
+        applyWordLandmarks(currentH2, h2Circles, h2Lines);
+      }
+
+      if (containerRef.current) {
+        containerRef.current.querySelectorAll('svg').forEach((s) => syncHandSvg(s));
+      }
+
+      animId = requestAnimationFrame(tick);
     };
-    sync();
+
+    animId = requestAnimationFrame(tick);
     return () => {
       if (animId) cancelAnimationFrame(animId);
+      // Clean mouse leave reset
+      applyWordLandmarks(p1Start, h1Circles, h1Lines);
+      if (is2H) {
+        applyWordLandmarks(p2Start, h2Circles, h2Lines);
+      }
     };
-  }, [word]);
+  }, [word, is2H, isHovered, p1Start, p2Start]);
 
   return (
-    <div ref={containerRef} className="contents">
-      {isTwoHandedWord(word) ? (
-        <TwoHandWordSign
-          key={word}
-          word={word}
-          className={className}
-          glow={glow}
-        />
-      ) : (
-        <HandSkeleton
-          key={word}
-          word={word}
-          className={className}
-          glow={glow}
+    <div ref={containerRef} className={`relative flex items-center justify-center ${className}`}>
+      {is2H && (
+        <WordHandSvg
+          hand="non-dominant"
+          className="absolute inset-0 h-full w-full"
+          glow={false}
+          initialPoints={p2Start}
+          circleRefs={h2Circles}
+          lineRefs={h2Lines}
         />
       )}
+      <WordHandSvg
+        hand="dominant"
+        className={is2H ? 'absolute inset-0 h-full w-full' : className}
+        glow={glow}
+        initialPoints={p1Start}
+        circleRefs={h1Circles}
+        lineRefs={h1Lines}
+      />
     </div>
   );
 }
 
-// Unified interactive Gesture Card Content with coordinated 600ms hover transition, scale-up & delayed sign animation
+// Unified interactive Gesture Card Content with coordinated 600ms hover transition, scale-up & sign animation
 const GestureCardContent = memo(function GestureCardContent({
   item,
   isHovered,
@@ -177,21 +368,16 @@ const GestureCardContent = memo(function GestureCardContent({
   isActive = false,
 }) {
   const [isMounted, setIsMounted] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [hoverSession, setHoverSession] = useState(0);
 
-  // Manage mount lifecycle and delayed animation start (~600ms coordinated transition)
+  // Manage mount lifecycle matching Words (~600ms coordinated transition)
   useEffect(() => {
     let unmountTimer;
-    let animTimer;
 
     if (isHovered) {
+      setHoverSession((s) => s + 1);
       setIsMounted(true);
-      // Start live animation only after the 600ms coordinated hover transition finishes
-      animTimer = setTimeout(() => {
-        setIsAnimating(true);
-      }, 550);
     } else {
-      setIsAnimating(false);
       // Hide/unmount HandSkeleton completely once reverse transition finishes (600ms)
       unmountTimer = setTimeout(() => {
         setIsMounted(false);
@@ -200,7 +386,6 @@ const GestureCardContent = memo(function GestureCardContent({
 
     return () => {
       clearTimeout(unmountTimer);
-      clearTimeout(animTimer);
     };
   }, [isHovered]);
 
@@ -217,44 +402,22 @@ const GestureCardContent = memo(function GestureCardContent({
         }}
       >
         <div className="flex flex-col items-center justify-center">
-          {!item.isWord ? (
-            <span
-              className={`font-display font-bold tracking-tight ${
-                isHovered
-                  ? 'text-xs sm:text-[12px] font-mono uppercase tracking-widest text-cyan-300 font-semibold flex items-center justify-center gap-1.5'
-                  : `text-white ${getWordTitleClass(item.title)}`
-              } ${
-                isSearchMatch && !isHovered
-                  ? 'text-cyan-300 drop-shadow-[0_0_15px_rgba(34,211,238,0.85)]'
-                  : ''
-              }`}
-              style={{
-                transition: 'all 600ms cubic-bezier(0.16, 1, 0.3, 1)',
-              }}
-            >
-              {isHovered && (
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shrink-0" />
-              )}
-              <span>{isHovered ? `SIGN · ${item.title}` : item.title}</span>
-            </span>
-          ) : (
-            <span
-              className={`font-display font-bold tracking-tight inline-block ${getWordTitleClass(item.title)} ${
-                isHovered
-                  ? 'text-cyan-300'
-                  : isSearchMatch
-                  ? 'text-cyan-300 drop-shadow-[0_0_15px_rgba(34,211,238,0.85)]'
-                  : 'text-white'
-              }`}
-              style={{
-                transform: isHovered ? 'scale(0.70)' : 'scale(1.0)',
-                transformOrigin: 'center center',
-                transition: 'transform 600ms cubic-bezier(0.16, 1, 0.3, 1), color 600ms cubic-bezier(0.16, 1, 0.3, 1)',
-              }}
-            >
-              {item.title}
-            </span>
-          )}
+          <span
+            className={`font-display font-bold tracking-tight inline-block ${getWordTitleClass(item.title)} ${
+              isHovered
+                ? 'text-cyan-300'
+                : isSearchMatch
+                ? 'text-cyan-300 drop-shadow-[0_0_15px_rgba(34,211,238,0.85)]'
+                : 'text-white'
+            }`}
+            style={{
+              transform: isHovered ? 'scale(0.70)' : 'scale(1.0)',
+              transformOrigin: 'center center',
+              transition: 'transform 600ms cubic-bezier(0.16, 1, 0.3, 1), color 600ms cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+          >
+            {item.title}
+          </span>
 
           {/* "Hover to sign" badge — smoothly fades & collapses on hover */}
           <span
@@ -266,9 +429,8 @@ const GestureCardContent = memo(function GestureCardContent({
               transform: `translate3d(0, ${isHovered ? '-6px' : '0px'}, 0)`,
               pointerEvents: isHovered ? 'none' : 'auto',
               overflow: 'hidden',
-              transition: item.isWord
-                ? 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), max-height 600ms cubic-bezier(0.16, 1, 0.3, 1), margin 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1)'
-                : 'opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), max-height 500ms cubic-bezier(0.16, 1, 0.3, 1), margin 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1)',
+              transition:
+                'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), max-height 600ms cubic-bezier(0.16, 1, 0.3, 1), margin 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             <span
@@ -288,8 +450,7 @@ const GestureCardContent = memo(function GestureCardContent({
       <div
         className="relative flex-1 w-full flex items-center justify-center my-auto"
         style={{
-          minHeight: item.isWord ? '112px' : isHovered ? '136px' : '96px',
-          transition: item.isWord ? 'none' : 'min-height 600ms cubic-bezier(0.16, 1, 0.3, 1)',
+          minHeight: '112px',
         }}
       >
         <div
@@ -302,15 +463,16 @@ const GestureCardContent = memo(function GestureCardContent({
               : 'scale(0.78) translate3d(0, 0, 0)',
             opacity: isHovered ? 1 : 0,
             pointerEvents: isHovered ? 'auto' : 'none',
-            transition: item.isWord
-              ? 'transform 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)'
-              : 'transform 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 550ms cubic-bezier(0.16, 1, 0.3, 1)',
+            transition:
+              'transform 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
           {isMounted && (
             item.isWord ? (
               <WordWheelHandSkeleton
+                key={`${item.title}-${hoverSession}`}
                 word={item.title}
+                isHovered={isHovered}
                 className={
                   isTwoHandedWord(item.title)
                     ? 'h-[96px] w-[130px] sm:h-[104px] sm:w-[138px]'
@@ -320,9 +482,8 @@ const GestureCardContent = memo(function GestureCardContent({
               />
             ) : (
               <HandSkeleton
-                key={isAnimating ? `${item.pose}-active` : `${item.pose}-static`}
+                key={item.pose}
                 pose={item.pose}
-                loop={isAnimating}
                 className="h-[96px] w-[96px] sm:h-[104px] sm:w-[104px]"
                 glow={true}
               />
@@ -342,9 +503,8 @@ const GestureCardContent = memo(function GestureCardContent({
           transform: `translate3d(0, ${isHovered ? '10px' : '0px'}, 0)`,
           pointerEvents: isHovered ? 'none' : 'auto',
           overflow: 'hidden',
-          transition: item.isWord
-            ? 'max-height 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), padding 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1), border-color 600ms cubic-bezier(0.16, 1, 0.3, 1)'
-            : 'max-height 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), padding 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1), border-color 400ms ease',
+          transition:
+            'max-height 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), padding 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1), border-color 600ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         <div
@@ -505,6 +665,7 @@ const GridGestureCard = memo(function GridGestureCard({
         />
 
         <GestureCardContent
+          key={item.id}
           item={item}
           isHovered={isHovered}
           isSearchMatch={false}
@@ -1053,21 +1214,15 @@ export default function SupportedGestures() {
                 <div className="flex items-center gap-4">
                   <div className="relative grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-cyan-400/20 to-violet-600/25 border border-cyan-400/40 shadow-inner">
                     {activeSpotlightItem.isWord ? (
-                      isTwoHandedWord(activeSpotlightItem.title) ? (
-                        <TwoHandWordSign
-                          word={activeSpotlightItem.title}
-                          className="h-12 w-12"
-                          glow={true}
-                        />
-                      ) : (
-                        <HandSkeleton
-                          word={activeSpotlightItem.title}
-                          className="h-12 w-12"
-                          glow={true}
-                        />
-                      )
+                      <WordWheelHandSkeleton
+                        key={activeSpotlightItem.title}
+                        word={activeSpotlightItem.title}
+                        className="h-12 w-12"
+                        glow={true}
+                      />
                     ) : (
                       <HandSkeleton
+                        key={activeSpotlightItem.pose}
                         pose={activeSpotlightItem.pose}
                         loop={true}
                         className="h-12 w-12"
@@ -1216,6 +1371,7 @@ export default function SupportedGestures() {
                           />
 
                           <GestureCardContent
+                            key={item.id}
                             item={item}
                             isHovered={isHovered}
                             isSearchMatch={isSearchMatch}
