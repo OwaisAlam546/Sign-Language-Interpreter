@@ -367,6 +367,13 @@ const scalePts = (pts, s, cx = 0.5, cy = 0.5) => {
     cy + (y - cy) * s,
   ]);
 };
+const lerpPts = (ptsA, ptsB, t) => {
+  const clampedT = Math.max(0, Math.min(1, t));
+  return ptsA.map(([ax, ay], i) => {
+    const [bx, by] = ptsB[i] || [ax, ay];
+    return [ax + (bx - ax) * clampedT, ay + (by - ay) * clampedT];
+  });
+};
 
 // 21-point standard MediaPipe letter slices
 const LETTER_21 = {};
@@ -652,8 +659,10 @@ export function evaluateWordSign(signKey, elapsed) {
     }
 
     const startX = 0.22; // Separation: Left Hand at -0.22, Right Hand at +0.22
-    const base1 = scalePts(clonePts(LETTER_21.S), 0.84);
-    const base2 = scalePts(clonePts(LETTER_21.S), 0.84);
+    const openBase = scalePts(clonePts(LETTER_21.OPEN), 0.84);
+    const signBase = scalePts(clonePts(LETTER_21.S), 0.84);
+    const base1 = lerpPts(openBase, signBase, inward);
+    const base2 = lerpPts(openBase, signBase, inward);
     const mirrored2 = base2.map(([x, y]) => [1.0 - x, y]);
 
     // Right Hand (Dominant): starts at right edge, moves inward, crosses to upper-left chest
@@ -704,8 +713,11 @@ export function evaluateWordSign(signKey, elapsed) {
     }
 
     const startX = 0.23;
-    const base1 = scalePts(clonePts(LETTER_21.A), 0.84); // Dominant 'A' fist
-    const base2 = scalePts(clonePts(LETTER_21.B), 0.84); // Non-dominant flat palm
+    const openBase = scalePts(clonePts(LETTER_21.OPEN), 0.84);
+    const signBase1 = scalePts(clonePts(LETTER_21.A), 0.84); // Dominant 'A' fist
+    const signBase2 = scalePts(clonePts(LETTER_21.B), 0.84); // Non-dominant flat palm
+    const base1 = lerpPts(openBase, signBase1, inward);
+    const base2 = lerpPts(openBase, signBase2, inward);
     const mirrored2 = base2.map(([x, y]) => [1.0 - x, y]);
 
     // Right Hand (Dominant 'A' fist): starts at right edge, moves inward, rests on palm, lifts
@@ -759,8 +771,10 @@ export function evaluateWordSign(signKey, elapsed) {
     }
 
     const startX = 0.23;
-    const base1 = scalePts(clonePts(LETTER_21.X), 0.84);
-    const base2 = scalePts(clonePts(LETTER_21.X), 0.84);
+    const openBase = scalePts(clonePts(LETTER_21.OPEN), 0.84);
+    const signBase = scalePts(clonePts(LETTER_21.X), 0.84);
+    const base1 = lerpPts(openBase, signBase, inward);
+    const base2 = lerpPts(openBase, signBase, inward);
     const mirrored2 = base2.map(([x, y]) => [1.0 - x, y]);
 
     // Right Hand (Dominant): starts at right edge, moves inward, clasps
@@ -814,8 +828,10 @@ export function evaluateWordSign(signKey, elapsed) {
     }
 
     const startX = 0.24;
-    const base1 = scalePts(clonePts(LETTER_21.O), 0.84);
-    const base2 = scalePts(clonePts(LETTER_21.O), 0.84);
+    const openBase = scalePts(clonePts(LETTER_21.OPEN), 0.84);
+    const signBase = scalePts(clonePts(LETTER_21.O), 0.84);
+    const base1 = lerpPts(openBase, signBase, inward);
+    const base2 = lerpPts(openBase, signBase, inward);
     const mirrored2 = base2.map(([x, y]) => [1.0 - x, y]);
 
     // Right Hand (Dominant): starts at right edge, moves inward, taps in center

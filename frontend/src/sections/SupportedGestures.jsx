@@ -11,7 +11,6 @@ import { LETTERS, WORDS } from '../lib/data.js';
 
 // Helper for responsive word title typography
 const getWordTitleClass = (text) => {
-  if (text.length <= 3) return 'text-2xl sm:text-3xl font-bold';
   if (text.length <= 6) return 'text-xl sm:text-2xl font-bold';
   if (text.length <= 9) return 'text-base sm:text-lg font-bold tracking-tight';
   return 'text-sm sm:text-base font-bold tracking-tight';
@@ -260,9 +259,47 @@ function syncHandSvg(svg) {
   palmLineB.style.display = '';
 }
 
-// Authentic Word Animation Controller enforcing exact Letters-like lifecycle:
-// HOVER ENTER -> reset landmarks to START pose -> play COMPLETE sign from progress 0 -> 1 -> reset to START pose -> repeat while hovered
-function WordWheelHandSkeleton({ word, isHovered = true, className = '', glow = true }) {
+// Smooth coordinate interpolation between two 21-landmark poses
+function interpolateLandmarks(ptsA, ptsB, t) {
+  const clampedT = Math.max(0, Math.min(1, t));
+  const res = new Array(21);
+  for (let i = 0; i < 21; i++) {
+    const a = ptsA[i] || OPEN_LANDMARKS[i];
+    const b = ptsB[i] || OPEN_LANDMARKS[i];
+    res[i] = [
+      a[0] + (b[0] - a[0]) * clampedT,
+      a[1] + (b[1] - a[1]) * clampedT,
+    ];
+  }
+  return res;
+}
+
+// Two-handed word base durations (matching evaluateWordSign)
+function getTwoHandWordBaseDuration(word) {
+  const w = String(word || '').trim().toUpperCase();
+  if (w === 'FRIEND') return 2600;
+  if (w === 'MORE') return 2400;
+  return 2500; // LOVE, HELP
+}
+
+// Single-hand sign execution durations (matching evaluateWordSign)
+function getSingleHandWordDuration(word) {
+  const w = String(word || '').trim().toUpperCase();
+  if (w === 'WELCOME') return 2000;
+  if (w === 'NO') return 1600;
+  return 1800;
+}
+
+// Authentic Word Animation Controller enforcing exact Letters-like continuous lifecycle:
+// SINGLE-HAND: OPEN PALM -> smooth transition into sign start pose -> perform lexical sign -> smooth transition to OPEN PALM -> repeat infinitely
+// TWO-HANDED: LEFT CORNER + RIGHT CORNER -> smooth inward motion -> perform two-handed sign -> smooth return to corners -> repeat infinitely
+function WordWheelHandSkeleton({
+  word,
+  isHovered = true,
+  className = '',
+  glow = true,
+  isGrid = false,
+}) {
   const containerRef = useRef(null);
   const h1Circles = useRef([]);
   const h1Lines = useRef([]);
@@ -270,17 +307,56 @@ function WordWheelHandSkeleton({ word, isHovered = true, className = '', glow = 
   const h2Lines = useRef([]);
 
   const is2H = isTwoHandedWord(word);
+  const isGridYes = isGrid && word === 'YES';
+  const isGridNo = isGrid && word === 'NO';
   const startPose = useMemo(() => evaluateWordSign(word, 0), [word]);
 
-  const p1Start = startPose.hand1 || OPEN_LANDMARKS;
-  const p2Start = (is2H && startPose.hand2) ? startPose.hand2 : OPEN_LANDMARKS;
+  // Neutral resting pose:
+  // - Single-hand words: relaxed OPEN PALM (OPEN_LANDMARKS)
+  // - Two-hand words: existing corner starting positions (startPose.hand1, startPose.hand2)
+  const p1Neutral = useMemo(() => {
+    return is2H ? (startPose.hand1 || OPEN_LANDMARKS) : OPEN_LANDMARKS;
+  }, [is2H, startPose]);
+
+  const p2Neutral = useMemo(() => {
+    return is2H ? (startPose.hand2 || OPEN_LANDMARKS) : OPEN_LANDMARKS;
+  }, [is2H, startPose]);
+
+  const signStartPose = useMemo(() => {
+    return startPose.hand1 || OPEN_LANDMARKS;
+  }, [startPose]);
+
+  const singleHandDuration = useMemo(() => {
+    if (isGridYes) return 1400;
+    if (isGridNo) return 1100;
+    return getSingleHandWordDuration(word);
+  }, [word, isGridYes, isGridNo]);
+
+  const signEndPose = useMemo(() => {
+    if (isGridYes || isGridNo) {
+      return signStartPose;
+    }
+    const end = evaluateWordSign(word, singleHandDuration * 0.999);
+    return end.hand1 || signStartPose;
+  }, [word, singleHandDuration, signStartPose, isGridYes, isGridNo]);
+
+  const twoHandBaseDuration = useMemo(() => {
+    return getTwoHandWordBaseDuration(word);
+  }, [word]);
+
+  // Active two-handed cycle duration:
+  // Runs from 0.10 * T_base to 1.00 * T_base (0.90 of base duration),
+  // starting at the existing corner positions and returning to them with zero static freeze at the corners.
+  const twoHandActiveDuration = useMemo(() => {
+    return twoHandBaseDuration * 0.90;
+  }, [twoHandBaseDuration]);
 
   useEffect(() => {
-    // If not hovered, immediately reset landmarks to the defined START pose and stop
+    // If not hovered, immediately reset landmarks to the neutral state and stop
     if (!isHovered) {
-      applyWordLandmarks(p1Start, h1Circles, h1Lines);
+      applyWordLandmarks(p1Neutral, h1Circles, h1Lines);
       if (is2H) {
-        applyWordLandmarks(p2Start, h2Circles, h2Lines);
+        applyWordLandmarks(p2Neutral, h2Circles, h2Lines);
       }
       if (containerRef.current) {
         containerRef.current.querySelectorAll('svg').forEach((s) => syncHandSvg(s));
@@ -289,32 +365,77 @@ function WordWheelHandSkeleton({ word, isHovered = true, className = '', glow = 
     }
 
     let animId;
-    // HOVER ENTER: Set startTime to now so progress begins strictly at 0
-    const startTime = performance.now();
+    const hoverStartTime = performance.now();
 
-    // FIRST FRAME: Synchronously reset BOTH hands to the exact defined START pose before animation begins
-    applyWordLandmarks(p1Start, h1Circles, h1Lines);
+    // FIRST FRAME: Synchronously set BOTH hands to the exact neutral state
+    applyWordLandmarks(p1Neutral, h1Circles, h1Lines);
     if (is2H) {
-      applyWordLandmarks(p2Start, h2Circles, h2Lines);
+      applyWordLandmarks(p2Neutral, h2Circles, h2Lines);
     }
     if (containerRef.current) {
       containerRef.current.querySelectorAll('svg').forEach((s) => syncHandSvg(s));
     }
 
+    // Single-hand transition timings matching Letters model (~550ms enter/exit)
+    const T_ENTER = 550;
+    const T_SIGN = singleHandDuration;
+    const T_EXIT = 550;
+    const T_CYCLE = T_ENTER + T_SIGN + T_EXIT;
+
     const tick = (time) => {
       const now = time || performance.now();
-      const elapsed = now - startTime;
+      const elapsed = Math.max(0, now - hoverStartTime);
 
-      // Pure continuous progress: evaluateWordSign computes (elapsed % duration) / duration
-      // Progress 0: exact defined START pose
-      // Progress 0 -> 1: complete sign motion
-      // Progress 1 (elapsed = duration): returns to exact START pose, resets, and loops infinitely
-      const current = evaluateWordSign(word, elapsed);
-      const currentH1 = current.hand1 || p1Start;
-      const currentH2 = current.hand2 || p2Start;
+      let currentH1, currentH2;
+
+      if (is2H) {
+        // TWO-HANDED SIGNS (LOVE, HELP, FRIEND, MORE):
+        // Starts at existing corner coordinates, moves inward together, performs sign, returns to corners, loops continuously without pause.
+        const cycleTime = (elapsed % twoHandActiveDuration + twoHandActiveDuration) % twoHandActiveDuration;
+        const evalTime = 0.10 * twoHandBaseDuration + cycleTime;
+        const current = evaluateWordSign(word, evalTime);
+        currentH1 = current.hand1 || p1Neutral;
+        currentH2 = current.hand2 || p2Neutral;
+      } else {
+        // SINGLE-HANDED SIGNS:
+        // OPEN PALM -> smooth transition into sign start pose -> complete lexical sign -> smooth transition to OPEN PALM -> repeat infinitely
+        const cycleTime = (elapsed % T_CYCLE + T_CYCLE) % T_CYCLE;
+
+        if (cycleTime < T_ENTER) {
+          // ENTER: Smooth animated transition from OPEN PALM into the sign's start pose
+          const p = cycleTime / T_ENTER;
+          const blend = 0.5 - 0.5 * Math.cos(p * Math.PI);
+          currentH1 = interpolateLandmarks(p1Neutral, signStartPose, blend);
+        } else if (cycleTime < T_ENTER + T_SIGN) {
+          // SIGN: Perform complete authentic lexical ASL sign
+          const signElapsed = cycleTime - T_ENTER;
+          let current;
+          if (isGridYes) {
+            // YES in Words Grid: smooth continuous rhythmic nodding (2 nods over 1400ms, zero dead freeze)
+            const T_NOD = 700;
+            const nodProgress = (((signElapsed % T_NOD) + T_NOD) % T_NOD) / T_NOD;
+            const evalTime = nodProgress * 382.5;
+            current = evaluateWordSign('YES', evalTime);
+          } else if (isGridNo) {
+            // NO in Words Grid: crisp rhythmic double-snap (2 snaps over 1100ms, zero sluggish drag or dead pause)
+            const T_SNAP = 550;
+            const snapProgress = (((signElapsed % T_SNAP) + T_SNAP) % T_SNAP) / T_SNAP;
+            const evalTime = snapProgress * 640;
+            current = evaluateWordSign('NO', evalTime);
+          } else {
+            current = evaluateWordSign(word, signElapsed);
+          }
+          currentH1 = current.hand1 || signStartPose;
+        } else {
+          // EXIT: Smooth animated transition from sign end pose back to OPEN PALM
+          const p = (cycleTime - (T_ENTER + T_SIGN)) / T_EXIT;
+          const blend = 0.5 - 0.5 * Math.cos(p * Math.PI);
+          currentH1 = interpolateLandmarks(signEndPose, p1Neutral, blend);
+        }
+      }
 
       applyWordLandmarks(currentH1, h1Circles, h1Lines);
-      if (is2H) {
+      if (is2H && currentH2) {
         applyWordLandmarks(currentH2, h2Circles, h2Lines);
       }
 
@@ -329,12 +450,25 @@ function WordWheelHandSkeleton({ word, isHovered = true, className = '', glow = 
     return () => {
       if (animId) cancelAnimationFrame(animId);
       // Clean mouse leave reset
-      applyWordLandmarks(p1Start, h1Circles, h1Lines);
+      applyWordLandmarks(p1Neutral, h1Circles, h1Lines);
       if (is2H) {
-        applyWordLandmarks(p2Start, h2Circles, h2Lines);
+        applyWordLandmarks(p2Neutral, h2Circles, h2Lines);
       }
     };
-  }, [word, is2H, isHovered, p1Start, p2Start]);
+  }, [
+    word,
+    is2H,
+    isHovered,
+    isGridYes,
+    isGridNo,
+    p1Neutral,
+    p2Neutral,
+    signStartPose,
+    signEndPose,
+    singleHandDuration,
+    twoHandBaseDuration,
+    twoHandActiveDuration,
+  ]);
 
   return (
     <div ref={containerRef} className={`relative flex items-center justify-center ${className}`}>
@@ -343,7 +477,7 @@ function WordWheelHandSkeleton({ word, isHovered = true, className = '', glow = 
           hand="non-dominant"
           className="absolute inset-0 h-full w-full"
           glow={false}
-          initialPoints={p2Start}
+          initialPoints={p2Neutral}
           circleRefs={h2Circles}
           lineRefs={h2Lines}
         />
@@ -352,7 +486,7 @@ function WordWheelHandSkeleton({ word, isHovered = true, className = '', glow = 
         hand="dominant"
         className={is2H ? 'absolute inset-0 h-full w-full' : className}
         glow={glow}
-        initialPoints={p1Start}
+        initialPoints={p1Neutral}
         circleRefs={h1Circles}
         lineRefs={h1Lines}
       />
@@ -366,6 +500,7 @@ const GestureCardContent = memo(function GestureCardContent({
   isHovered,
   isSearchMatch,
   isActive = false,
+  isGrid = false,
 }) {
   const [isMounted, setIsMounted] = useState(false);
   const [hoverSession, setHoverSession] = useState(0);
@@ -473,6 +608,7 @@ const GestureCardContent = memo(function GestureCardContent({
                 key={`${item.title}-${hoverSession}`}
                 word={item.title}
                 isHovered={isHovered}
+                isGrid={isGrid}
                 className={
                   isTwoHandedWord(item.title)
                     ? 'h-[96px] w-[130px] sm:h-[104px] sm:w-[138px]'
@@ -640,7 +776,7 @@ const GridGestureCard = memo(function GridGestureCard({
     >
       <div
         ref={cardRef}
-        className={`card-3d-crisp card-border-glow group relative flex h-full min-h-[220px] sm:min-h-[245px] flex-col justify-between overflow-hidden rounded-2xl px-4 py-3.5 sm:px-5 sm:py-4 text-center transition-all duration-300 cursor-pointer ${
+        className={`card-3d-crisp card-border-glow group relative flex h-full min-h-[255px] sm:min-h-[262px] flex-col justify-between overflow-hidden rounded-2xl px-4 py-3.5 sm:px-5 sm:py-4 text-center transition-all duration-300 cursor-pointer ${
           isHovered
             ? 'is-hovered bg-slate-900/95 -translate-y-1'
             : 'bg-slate-950/90 shadow-2xl'
@@ -669,6 +805,7 @@ const GridGestureCard = memo(function GridGestureCard({
           item={item}
           isHovered={isHovered}
           isSearchMatch={false}
+          isGrid={true}
         />
       </div>
     </div>
@@ -1217,6 +1354,7 @@ export default function SupportedGestures() {
                       <WordWheelHandSkeleton
                         key={activeSpotlightItem.title}
                         word={activeSpotlightItem.title}
+                        isGrid={viewMode === 'grid'}
                         className="h-12 w-12"
                         glow={true}
                       />
@@ -1456,7 +1594,7 @@ export default function SupportedGestures() {
 
         {/* ── MODE 2: RESPONSIVE GRID VIEW (Search & Full Table) ── */}
         {viewMode === 'grid' && (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 auto-rows-fr">
             {filteredGridItems.map((item) => (
               <Reveal key={item.id} delay={item.index * 0.02} className="h-full">
                 <GridGestureCard
