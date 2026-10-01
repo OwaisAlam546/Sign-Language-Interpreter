@@ -41,7 +41,7 @@ function Gauge({ value }) {
             <stop offset="100%" stopColor="#168BFF" />
           </linearGradient>
         </defs>
-        <circle cx="100" cy="100" r={R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="11" />
+        <circle cx="100" cy="100" r={R} fill="none" stroke="currentColor" className="text-white/10" strokeWidth="11" />
         <circle
           ref={circleRef}
           cx="100" cy="100" r={R} fill="none"

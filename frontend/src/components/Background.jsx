@@ -346,17 +346,29 @@ export default function Background() {
 
       {/* Horizon delicate accent lines */}
       <div
-        className={`absolute bottom-0 left-1/2 h-px w-[120%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[var(--accent-cyan)]/15 to-transparent transition-colors duration-500`}
+        className={`absolute bottom-0 left-1/2 h-px w-[120%] -translate-x-1/2 bg-gradient-to-r from-transparent ${
+          isDark ? 'via-[#00D9FF]/20' : 'via-[#087F9B]/20'
+        } to-transparent transition-colors duration-500`}
       />
       <div
-        className={`absolute top-0 left-1/2 h-px w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[var(--border-subtle)]/40 to-transparent transition-colors duration-500`}
+        className={`absolute top-0 left-1/2 h-px w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent ${
+          isDark ? 'via-[#00D9FF]/10' : 'via-[#087F9B]/10'
+        } to-transparent transition-colors duration-500`}
       />
 
       {/* Floating technical geometric accents */}
-      <div className="absolute left-[8%] top-[64%] hidden h-16 w-16 rotate-12 rounded-2xl border border-[var(--border-subtle)]/60 animate-float-slow lg:block shadow-[0_0_12px_rgba(0,217,255,0.08)]" />
-      <div className="absolute right-[10%] top-[16%] hidden h-10 w-10 -rotate-6 rounded-full border border-[var(--border-subtle)]/60 animate-float lg:block shadow-[0_0_12px_rgba(0,217,255,0.08)]" />
-      <div className="absolute left-[45%] top-[8%] hidden h-4 w-4 rounded-full bg-[var(--accent-cyan)]/12 blur-[1px] animate-float-slow lg:block" />
-      <div className="absolute right-[22%] bottom-[22%] hidden h-8 w-8 rotate-45 rounded-md border border-[var(--border-subtle)]/60 animate-float lg:block [animation-delay:-3s]" />
+      <div className={`absolute left-[8%] top-[64%] hidden h-16 w-16 rotate-12 rounded-2xl border ${
+        isDark ? 'border-[#00D9FF]/20 shadow-[0_0_12px_rgba(0,217,255,0.08)]' : 'border-[#087F9B]/25 shadow-[0_0_12px_rgba(8,127,155,0.06)]'
+      } animate-float-slow lg:block`} />
+      <div className={`absolute right-[10%] top-[16%] hidden h-10 w-10 -rotate-6 rounded-full border ${
+        isDark ? 'border-[#00D9FF]/20 shadow-[0_0_12px_rgba(0,217,255,0.08)]' : 'border-[#087F9B]/25 shadow-[0_0_12px_rgba(8,127,155,0.06)]'
+      } animate-float lg:block`} />
+      <div className={`absolute left-[45%] top-[8%] hidden h-4 w-4 rounded-full ${
+        isDark ? 'bg-[#00D9FF]/15' : 'bg-[#087F9B]/15'
+      } blur-[1px] animate-float-slow lg:block`} />
+      <div className={`absolute right-[22%] bottom-[22%] hidden h-8 w-8 rotate-45 rounded-md border ${
+        isDark ? 'border-[#00D9FF]/20' : 'border-[#087F9B]/25'
+      } animate-float lg:block [animation-delay:-3s]`} />
 
       {/* Vignette preserving depth and contrast */}
       <div

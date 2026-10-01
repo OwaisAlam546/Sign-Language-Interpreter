@@ -633,7 +633,7 @@ const GestureCardContent = memo(function GestureCardContent({
           maxHeight: isHovered ? '0px' : '90px',
           opacity: isHovered ? 0 : 1,
           paddingTop: isHovered ? '0px' : '10px',
-          borderTop: isHovered ? '1px solid transparent' : '1px solid rgba(255,255,255,0.08)',
+          borderTop: isHovered ? '1px solid transparent' : '1px solid var(--border-subtle, rgba(255,255,255,0.08))',
           transform: `translate3d(0, ${isHovered ? '10px' : '0px'}, 0)`,
           pointerEvents: isHovered ? 'none' : 'auto',
           overflow: 'hidden',
