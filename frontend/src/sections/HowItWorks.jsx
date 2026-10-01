@@ -112,8 +112,8 @@ const STEPS = [
     headline: 'Hysteresis Debouncing & Token Assembly',
     desc: 'High-confidence predictions must remain stable across consecutive frames before commitment. A neutral hand pose re-arms repetition, and a natural pause commits word tokens.',
     icon: FiType,
-    color: 'from-cyan-400 to-violet-500',
-    accent: '#8b5cf6',
+    color: 'from-[#00D9FF] to-[#168BFF]',
+    accent: '#168BFF',
     meta: 'Debounce State Machine',
     metrics: [
       { label: 'Threshold', value: '> 0.85 Conf' },
@@ -128,8 +128,8 @@ const STEPS = [
     headline: 'Acoustic Synthesis & Transcription',
     desc: 'Committed words trigger instant audio synthesis through the browser Web Speech API. The UI renders synchronized wrapping word chips with zero character overlap.',
     icon: FiVolume2,
-    color: 'from-violet-400 to-rose-400',
-    accent: '#f43f5e',
+    color: 'from-[#168BFF] to-[#00D9FF]',
+    accent: '#00D9FF',
     meta: 'Audio Synthesis Engine',
     metrics: [
       { label: 'Engine', value: 'Web Speech API' },
@@ -172,15 +172,14 @@ function Phase2Visual() {
     <div className="relative w-full h-full flex flex-col justify-between p-2.5 font-mono select-none overflow-hidden">
       {/* Dynamic Hand Detection Bounding Box */}
       <div
-        className={`absolute inset-5 sm:inset-6 rounded-2xl border transition-all duration-500 flex items-center justify-center overflow-hidden ${
-          phase === 0
+        className={`absolute inset-5 sm:inset-6 rounded-2xl border transition-all duration-500 flex items-center justify-center overflow-hidden ${phase === 0
             ? 'border-dashed border-teal-400/35 bg-teal-400/[0.02]'
             : phase === 1
-            ? 'border-solid border-teal-400/70 bg-teal-400/[0.06] shadow-[0_0_20px_rgba(45,212,191,0.25)]'
-            : phase === 2
-            ? 'border-solid border-teal-400/50 bg-teal-400/[0.04]'
-            : 'border-dashed border-teal-400/20 bg-transparent'
-        }`}
+              ? 'border-solid border-teal-400/70 bg-teal-400/[0.06] shadow-[0_0_20px_rgba(45,212,191,0.25)]'
+              : phase === 2
+                ? 'border-solid border-teal-400/50 bg-teal-400/[0.04]'
+                : 'border-dashed border-teal-400/20 bg-transparent'
+          }`}
       >
         {/* Soft vertical scan line during scanning stage */}
         {phase === 0 && (
@@ -194,24 +193,20 @@ function Phase2Visual() {
 
         {/* Corner brackets with responsive tracking feel */}
         <div
-          className={`absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 transition-all duration-300 ${
-            phase > 0 ? 'border-teal-300 scale-105' : 'border-teal-400/60'
-          }`}
+          className={`absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 transition-all duration-300 ${phase > 0 ? 'border-teal-300 scale-105' : 'border-teal-400/60'
+            }`}
         />
         <div
-          className={`absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 transition-all duration-300 ${
-            phase > 0 ? 'border-teal-300 scale-105' : 'border-teal-400/60'
-          }`}
+          className={`absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 transition-all duration-300 ${phase > 0 ? 'border-teal-300 scale-105' : 'border-teal-400/60'
+            }`}
         />
         <div
-          className={`absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 transition-all duration-300 ${
-            phase > 0 ? 'border-teal-300 scale-105' : 'border-teal-400/60'
-          }`}
+          className={`absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 transition-all duration-300 ${phase > 0 ? 'border-teal-300 scale-105' : 'border-teal-400/60'
+            }`}
         />
         <div
-          className={`absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 transition-all duration-300 ${
-            phase > 0 ? 'border-teal-300 scale-105' : 'border-teal-400/60'
-          }`}
+          className={`absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 transition-all duration-300 ${phase > 0 ? 'border-teal-300 scale-105' : 'border-teal-400/60'
+            }`}
         />
 
         {/* Exact existing HandSkeleton component */}
@@ -227,15 +222,14 @@ function Phase2Visual() {
         `}</style>
         <HandSkeleton
           pose="OPEN"
-          className={`h-full max-h-[195px] sm:max-h-[220px] w-auto mx-auto p2-skeleton pointer-events-none transition-all duration-500 ${
-            phase === 0
+          className={`h-full max-h-[195px] sm:max-h-[220px] w-auto mx-auto p2-skeleton pointer-events-none transition-all duration-500 ${phase === 0
               ? 'opacity-35 filter brightness-75'
               : phase === 1
-              ? 'opacity-90 filter brightness-110 drop-shadow-[0_0_12px_rgba(45,212,191,0.5)]'
-              : phase === 2
-              ? 'opacity-70'
-              : 'opacity-25'
-          }`}
+                ? 'opacity-90 filter brightness-110 drop-shadow-[0_0_12px_rgba(45,212,191,0.5)]'
+                : phase === 2
+                  ? 'opacity-70'
+                  : 'opacity-25'
+            }`}
           glow={false}
         />
       </div>
@@ -244,18 +238,16 @@ function Phase2Visual() {
       <div className="flex items-center justify-between text-xs text-slate-400 px-3.5 pt-1 z-10">
         <span className="flex items-center gap-1.5 text-teal-300 font-medium">
           <span
-            className={`h-2 w-2 rounded-full ${
-              phase === 0 ? 'bg-amber-400 animate-pulse' : 'bg-teal-400 status-dot'
-            }`}
+            className={`h-2 w-2 rounded-full ${phase === 0 ? 'bg-amber-400 animate-pulse' : 'bg-teal-400 status-dot'
+              }`}
           />
           {phase === 0 ? 'SCANNING PALM ROI...' : phase === 1 ? 'TARGET LOCKED: HAND_0' : 'PALM DETECTED: HAND_0'}
         </span>
         <span
-          className={`rounded px-2.5 py-0.5 text-xs font-semibold border transition-all ${
-            phase === 0
+          className={`rounded px-2.5 py-0.5 text-xs font-semibold border transition-all ${phase === 0
               ? 'bg-amber-400/10 text-amber-300 border-amber-400/30'
               : 'bg-teal-400/15 text-teal-300 border-teal-400/40 shadow-[0_0_8px_rgba(45,212,191,0.3)]'
-          }`}
+            }`}
         >
           CONFIDENCE: {conf}%
         </span>
@@ -265,27 +257,24 @@ function Phase2Visual() {
       <div className="relative flex flex-col items-center justify-center my-auto z-10 pointer-events-none">
         <div className="relative grid h-24 w-24 sm:h-28 sm:w-28 place-items-center">
           <div
-            className={`absolute inset-0 rounded-full border transition-all duration-500 ${
-              phase === 0
+            className={`absolute inset-0 rounded-full border transition-all duration-500 ${phase === 0
                 ? 'border-teal-400/30 animate-spin-slow scale-110'
                 : phase === 1
-                ? 'border-teal-300/80 scale-95 shadow-[0_0_12px_#2dd4bf]'
-                : 'border-teal-400/40 scale-100'
-            }`}
+                  ? 'border-teal-300/80 scale-95 shadow-[0_0_12px_#2dd4bf]'
+                  : 'border-teal-400/40 scale-100'
+              }`}
           />
           <div
-            className={`h-4.5 w-4.5 rounded-full border-2 transition-all duration-300 ${
-              phase > 0
+            className={`h-4.5 w-4.5 rounded-full border-2 transition-all duration-300 ${phase > 0
                 ? 'border-teal-200 bg-teal-400/60 shadow-[0_0_14px_#2dd4bf] scale-110'
                 : 'border-teal-400/60 bg-teal-400/20'
-            }`}
+              }`}
           />
           <div
-            className={`absolute text-[10px] -bottom-4 px-2 py-0.5 rounded border font-semibold transition-all ${
-              phase > 0
+            className={`absolute text-[10px] -bottom-4 px-2 py-0.5 rounded border font-semibold transition-all ${phase > 0
                 ? 'text-teal-300 bg-slate-900/95 border-teal-400/50 shadow-[0_0_8px_rgba(45,212,191,0.2)]'
                 : 'text-slate-400 bg-slate-900/80 border-slate-700'
-            }`}
+              }`}
           >
             {phase === 0 ? 'SEARCHING...' : 'X: 0.482 · Y: 0.614'}
           </div>
@@ -341,8 +330,8 @@ function Phase3Visual() {
     pointCount === 0
       ? 'INITIALIZING...'
       : pointCount <= 21
-      ? LANDMARK_NAMES[pointCount - 1] || '21 CANONICAL LANDMARKS'
-      : '21 CANONICAL LANDMARKS';
+        ? LANDMARK_NAMES[pointCount - 1] || '21 CANONICAL LANDMARKS'
+        : '21 CANONICAL LANDMARKS';
 
   return (
     <div className="relative w-full h-full flex flex-col justify-between p-2.5 font-mono select-none overflow-hidden">
@@ -350,15 +339,14 @@ function Phase3Visual() {
       <div className="flex items-center justify-between text-xs text-slate-400 px-3.5 pt-1 z-10">
         <span className="text-emerald-300 flex items-center gap-1.5 font-medium">
           <span
-            className={`h-2 w-2 rounded-full ${
-              stage === 'complete' ? 'bg-emerald-400 status-dot' : 'bg-emerald-400 animate-pulse'
-            }`}
+            className={`h-2 w-2 rounded-full ${stage === 'complete' ? 'bg-emerald-400 status-dot' : 'bg-emerald-400 animate-pulse'
+              }`}
           />
           {stage === 'points'
             ? `EXTRACTING 3D LANDMARKS (${pointCount}/21)`
             : stage === 'bones'
-            ? 'CONNECTING BONE TOPOLOGY (21 SEGMENTS)'
-            : '21 3D LANDMARKS EXTRACTED'}
+              ? 'CONNECTING BONE TOPOLOGY (21 SEGMENTS)'
+              : '21 3D LANDMARKS EXTRACTED'}
         </span>
         <span className="text-emerald-400/90 text-xs font-semibold">
           {stage === 'points' ? `PTS: ${pointCount}/21` : 'TOPOLOGY: 21 BONES'}
@@ -387,9 +375,8 @@ function Phase3Visual() {
         `}</style>
         <HandSkeleton
           pose="OPEN"
-          className={`h-full max-h-[210px] sm:max-h-[235px] md:max-h-[250px] w-auto mx-auto p3-skeleton transition-opacity duration-500 ${
-            stage === 'reset' ? 'opacity-20' : 'opacity-100'
-          }`}
+          className={`h-full max-h-[210px] sm:max-h-[235px] md:max-h-[250px] w-auto mx-auto p3-skeleton transition-opacity duration-500 ${stage === 'reset' ? 'opacity-20' : 'opacity-100'
+            }`}
           glow={true}
         />
       </div>
@@ -401,8 +388,8 @@ function Phase3Visual() {
           {stage === 'complete'
             ? 'VECTOR TOPOLOGY LOCKED'
             : stage === 'bones'
-            ? 'DRAWING KINEMATICS'
-            : 'SAMPLING COORD VECTORS'}
+              ? 'DRAWING KINEMATICS'
+              : 'SAMPLING COORD VECTORS'}
         </span>
         <span>WRIST-NORMALIZED</span>
       </div>
@@ -555,13 +542,12 @@ export default function HowItWorks() {
               {[...Array(12)].map((_, fi) => (
                 <div
                   key={fi}
-                  className={`flex-1 py-1 sm:py-1.5 rounded text-center text-[9px] sm:text-[10px] border transition-all ${
-                    fi === 11
+                  className={`flex-1 py-1 sm:py-1.5 rounded text-center text-[9px] sm:text-[10px] border transition-all ${fi === 11
                       ? 'bg-cyan-400 text-slate-950 font-bold border-cyan-300 shadow-[0_0_10px_#22d3ee]'
                       : fi >= 8
-                      ? 'bg-cyan-950/40 text-cyan-300 border-cyan-500/40'
-                      : 'bg-white/5 text-slate-500 border-white/10'
-                  }`}
+                        ? 'bg-cyan-950/40 text-cyan-300 border-cyan-500/40'
+                        : 'bg-white/5 text-slate-500 border-white/10'
+                    }`}
                 >
                   {String(fi + 1).padStart(2, '0')}
                 </div>
@@ -582,18 +568,16 @@ export default function HowItWorks() {
                   </span>
                   <div className="flex-1 h-3.5 rounded-full bg-white/5 overflow-hidden p-0.5 border border-white/5">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        item.active
+                      className={`h-full rounded-full transition-all duration-500 ${item.active
                           ? 'bg-gradient-to-r from-teal-400 via-cyan-400 to-sky-400 shadow-[0_0_10px_#22d3ee]'
                           : 'bg-slate-700/60'
-                      }`}
+                        }`}
                       style={{ width: `${item.conf}%` }}
                     />
                   </div>
                   <span
-                    className={`w-14 text-right font-mono text-xs ${
-                      item.active ? 'text-cyan-300 font-semibold' : 'text-slate-500'
-                    }`}
+                    className={`w-14 text-right font-mono text-xs ${item.active ? 'text-cyan-300 font-semibold' : 'text-slate-500'
+                      }`}
                   >
                     {item.conf}%
                   </span>
@@ -615,7 +599,7 @@ export default function HowItWorks() {
           <div className="relative w-full h-full flex flex-col justify-between p-2.5 font-mono select-none">
             {/* Top HUD */}
             <div className="flex items-center justify-between text-xs text-slate-400 px-3.5 pt-1">
-              <span className="text-violet-300 font-medium">HYSTERESIS DEBOUNCING &amp; ASSEMBLY</span>
+              <span className="text-cyan-300 font-medium">HYSTERESIS DEBOUNCING &amp; ASSEMBLY</span>
               <span className="text-emerald-400 font-semibold">GATE: LOCKED</span>
             </div>
 
@@ -625,7 +609,7 @@ export default function HowItWorks() {
               <div className="flex items-center gap-2 sm:gap-2.5">
                 {['H', 'E', 'L', 'L', 'O'].map((ch, idx) => (
                   <div key={idx} className="flex items-center gap-2 sm:gap-2.5">
-                    <div className="grid h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 place-items-center rounded-xl bg-slate-900 border border-violet-400/40 text-violet-200 font-bold text-sm sm:text-base shadow-[0_0_10px_rgba(139,92,246,0.35)]">
+                    <div className="grid h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 place-items-center rounded-xl bg-slate-900 border border-cyan-400/40 text-cyan-200 font-bold text-sm sm:text-base shadow-[0_0_10px_rgba(0,217,255,0.35)]">
                       {ch}
                     </div>
                     {idx < 4 && <span className="text-slate-600 text-xs sm:text-sm">→</span>}
@@ -634,7 +618,7 @@ export default function HowItWorks() {
               </div>
 
               {/* Committed Word Token */}
-              <div className="flex items-center gap-3 rounded-2xl bg-violet-950/60 border border-violet-400/60 px-5 py-2.5 shadow-[0_0_24px_rgba(139,92,246,0.35)]">
+              <div className="flex items-center gap-3 rounded-2xl bg-slate-900/80 border border-cyan-400/50 px-5 py-2.5 shadow-[0_0_24px_rgba(0,217,255,0.25)]">
                 <span className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/40">
                   <FiCheck className="h-3.5 w-3.5" />
                 </span>
@@ -642,7 +626,7 @@ export default function HowItWorks() {
                   <div className="text-[10px] uppercase tracking-widest text-slate-400">Word Token Committed</div>
                   <div className="text-lg sm:text-xl font-display font-bold text-white tracking-wide">"HELLO"</div>
                 </div>
-                <span className="ml-2 rounded bg-violet-400/20 px-2.5 py-0.5 text-[10px] text-violet-300 font-mono hidden sm:inline">
+                <span className="ml-2 rounded bg-cyan-400/20 px-2.5 py-0.5 text-[10px] text-cyan-300 font-mono hidden sm:inline">
                   PAUSE: 800ms
                 </span>
               </div>
@@ -651,7 +635,7 @@ export default function HowItWorks() {
             {/* Bottom HUD */}
             <div className="flex items-center justify-between text-[10px] text-slate-500 px-3.5 pb-1">
               <span>NEUTRAL POSE: ARMED</span>
-              <span className="text-violet-400">HYSTERESIS: 3 FRAMES</span>
+              <span className="text-cyan-400">HYSTERESIS: 3 FRAMES</span>
               <span>TOKEN: COMMITTED</span>
             </div>
           </div>
@@ -662,7 +646,7 @@ export default function HowItWorks() {
           <div className="relative w-full h-full flex flex-col justify-between p-2.5 font-mono select-none">
             {/* Top HUD */}
             <div className="flex items-center justify-between text-xs text-slate-400 px-3.5 pt-1">
-              <span className="text-rose-300 font-medium">WEB SPEECH AUDIO SYNTHESIS</span>
+              <span className="text-cyan-300 font-medium">WEB SPEECH AUDIO SYNTHESIS</span>
               <span className="text-cyan-400 font-semibold">TTS ENGINE: READY</span>
             </div>
 
@@ -673,7 +657,7 @@ export default function HowItWorks() {
                 {[35, 60, 45, 90, 75, 40, 85, 100, 70, 50, 95, 60, 40, 80, 55, 30].map((h, i) => (
                   <div
                     key={i}
-                    className="flex-1 rounded-full bg-gradient-to-t from-violet-500 to-rose-400 transition-all duration-300"
+                    className="flex-1 rounded-full bg-gradient-to-t from-[#168BFF] to-[#00D9FF] transition-all duration-300"
                     style={{
                       height: isSpeaking ? `${Math.min(100, h * 1.25)}%` : `${h * 0.7}%`,
                       opacity: isSpeaking ? 1 : 0.75,
@@ -687,9 +671,9 @@ export default function HowItWorks() {
                 <button
                   type="button"
                   onClick={handleSpeakSample}
-                  className="flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-rose-500/20 to-violet-500/20 hover:from-rose-500/30 hover:to-violet-500/30 border border-rose-400/40 px-5 py-2.5 text-white font-sans text-xs sm:text-sm font-semibold transition-all duration-300 shadow-[0_0_18px_rgba(244,63,94,0.3)] hover:scale-105 cursor-pointer"
+                  className="flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#168BFF]/20 to-[#00D9FF]/20 hover:from-[#168BFF]/30 hover:to-[#00D9FF]/30 border border-cyan-400/40 px-5 py-2.5 text-white font-sans text-xs sm:text-sm font-semibold transition-all duration-300 shadow-[0_0_18px_rgba(0,217,255,0.3)] hover:scale-105 cursor-pointer"
                 >
-                  <FiVolume2 className={`h-4.5 w-4.5 text-rose-300 ${isSpeaking ? 'animate-bounce' : ''}`} />
+                  <FiVolume2 className={`h-4.5 w-4.5 text-cyan-300 ${isSpeaking ? 'animate-bounce' : ''}`} />
                   <span>Speak: "HELLO"</span>
                 </button>
                 <span className="text-xs text-slate-400">Click to test browser TTS</span>
@@ -699,7 +683,7 @@ export default function HowItWorks() {
             {/* Bottom HUD */}
             <div className="flex items-center justify-between text-[10px] text-slate-500 px-3.5 pb-1">
               <span>SAMPLING: 48kHz</span>
-              <span className="text-rose-400">LATENCY: &lt; 12ms</span>
+              <span className="text-cyan-400">LATENCY: &lt; 12ms</span>
               <span>SYNTHESIS: EN-US</span>
             </div>
           </div>
@@ -745,23 +729,21 @@ export default function HowItWorks() {
                   <button
                     type="button"
                     onClick={() => handleStepClick(idx)}
-                    className={`group relative flex-1 flex flex-col sm:flex-row items-center gap-1 sm:gap-2.5 px-2 py-2 sm:px-3 sm:py-2.5 md:py-3 rounded-xl transition-all duration-300 cursor-pointer text-center sm:text-left min-w-0 ${
-                      isActive
+                    className={`group relative flex-1 flex flex-col sm:flex-row items-center gap-1 sm:gap-2.5 px-2 py-2 sm:px-3 sm:py-2.5 md:py-3 rounded-xl transition-all duration-300 cursor-pointer text-center sm:text-left min-w-0 ${isActive
                         ? 'bg-cyan-950/80 border border-cyan-400/80 shadow-[0_0_22px_rgba(34,211,238,0.38)]'
                         : isPast
-                        ? 'bg-slate-900/60 border border-cyan-500/30 hover:border-cyan-400/50'
-                        : 'bg-slate-950/40 border border-white/5 hover:border-white/20'
-                    }`}
+                          ? 'bg-slate-900/60 border border-cyan-500/30 hover:border-cyan-400/50'
+                          : 'bg-slate-950/40 border border-white/5 hover:border-white/20'
+                      }`}
                   >
                     {/* Step Icon Badge */}
                     <div
-                      className={`grid h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 shrink-0 place-items-center rounded-lg font-mono text-xs sm:text-sm transition-transform duration-300 ${
-                        isActive
+                      className={`grid h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 shrink-0 place-items-center rounded-lg font-mono text-xs sm:text-sm transition-transform duration-300 ${isActive
                           ? 'bg-cyan-400 text-slate-950 shadow-[0_0_14px_#22d3ee] scale-105'
                           : isPast
-                          ? 'bg-cyan-950/60 text-cyan-300 border border-cyan-500/40'
-                          : 'bg-white/5 text-slate-400 border border-white/10 group-hover:text-slate-200'
-                      }`}
+                            ? 'bg-cyan-950/60 text-cyan-300 border border-cyan-500/40'
+                            : 'bg-white/5 text-slate-400 border border-white/10 group-hover:text-slate-200'
+                        }`}
                     >
                       <Icon className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" aria-hidden="true" />
                     </div>
@@ -770,24 +752,21 @@ export default function HowItWorks() {
                     <div className="flex flex-col min-w-0 overflow-hidden">
                       <div className="flex items-center justify-center sm:justify-start gap-1">
                         <span
-                          className={`font-mono text-[10px] sm:text-xs font-semibold tracking-wider ${
-                            isActive ? 'text-cyan-300' : isPast ? 'text-cyan-400/80' : 'text-slate-500'
-                          }`}
+                          className={`font-mono text-[10px] sm:text-xs font-semibold tracking-wider ${isActive ? 'text-cyan-300' : isPast ? 'text-cyan-400/80' : 'text-slate-500'
+                            }`}
                         >
                           {step.n}
                         </span>
                         <span
-                          className={`text-xs sm:text-sm md:text-[15px] font-semibold truncate ${
-                            isActive ? 'text-white' : isPast ? 'text-slate-200' : 'text-slate-400'
-                          }`}
+                          className={`text-xs sm:text-sm md:text-[15px] font-semibold truncate ${isActive ? 'text-white' : isPast ? 'text-slate-200' : 'text-slate-400'
+                            }`}
                         >
                           {step.shortTitle}
                         </span>
                       </div>
                       <span
-                        className={`hidden lg:block text-[11px] truncate max-w-[130px] ${
-                          isActive ? 'text-cyan-300/90 font-medium' : isPast ? 'text-slate-400' : 'text-slate-600'
-                        }`}
+                        className={`hidden lg:block text-[11px] truncate max-w-[130px] ${isActive ? 'text-cyan-300/90 font-medium' : isPast ? 'text-slate-400' : 'text-slate-600'
+                          }`}
                       >
                         {step.tag}
                       </span>
@@ -804,13 +783,12 @@ export default function HowItWorks() {
                     <div className="hidden xs:flex flex-shrink-0 items-center justify-center w-2 sm:w-3 md:w-5 mx-0.5">
                       <div className="h-[2px] w-full bg-white/10 rounded-full overflow-hidden relative">
                         <div
-                          className={`h-full transition-all duration-500 ${
-                            idx < activeStep
+                          className={`h-full transition-all duration-500 ${idx < activeStep
                               ? 'w-full bg-gradient-to-r from-cyan-400 to-teal-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]'
                               : idx === activeStep
-                              ? 'w-1/2 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]'
-                              : 'w-0'
-                          }`}
+                                ? 'w-1/2 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]'
+                                : 'w-0'
+                            }`}
                         />
                       </div>
                     </div>
@@ -883,11 +861,10 @@ export default function HowItWorks() {
                   type="button"
                   onClick={() => handleStepClick(Math.max(0, activeStep - 1))}
                   disabled={activeStep === 0}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-mono transition-all ${
-                    activeStep === 0
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-mono transition-all ${activeStep === 0
                       ? 'text-slate-600 cursor-not-allowed'
                       : 'text-slate-300 hover:text-cyan-300 hover:bg-white/5 cursor-pointer'
-                  }`}
+                    }`}
                 >
                   <FiArrowLeft className="h-3.5 w-3.5" />
                   <span>PREV</span>
@@ -900,13 +877,12 @@ export default function HowItWorks() {
                       key={i}
                       type="button"
                       onClick={() => handleStepClick(i)}
-                      className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                        i === activeStep
+                      className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 cursor-pointer ${i === activeStep
                           ? 'w-6 bg-cyan-400 shadow-[0_0_10px_#22d3ee]'
                           : i < activeStep
-                          ? 'w-2 bg-cyan-400/50'
-                          : 'w-2 bg-white/20'
-                      }`}
+                            ? 'w-2 bg-cyan-400/50'
+                            : 'w-2 bg-white/20'
+                        }`}
                       aria-label={`Jump to step ${i + 1}`}
                     />
                   ))}
@@ -916,11 +892,10 @@ export default function HowItWorks() {
                   type="button"
                   onClick={() => handleStepClick(Math.min(5, activeStep + 1))}
                   disabled={activeStep === 5}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-mono transition-all ${
-                    activeStep === 5
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-mono transition-all ${activeStep === 5
                       ? 'text-slate-600 cursor-not-allowed'
                       : 'text-slate-300 hover:text-cyan-300 hover:bg-white/5 cursor-pointer'
-                  }`}
+                    }`}
                 >
                   <span>NEXT</span>
                   <FiArrowRight className="h-3.5 w-3.5" />

@@ -935,7 +935,7 @@ function evaluateLandmark(basePt, i, poseKey, now, elapsed, morphBlend = 1) {
 
   // Subtle living breathing motion & fingertip tremor
   const isTipOrDIP = i === 4 || i === 8 || i === 12 || i === 16 || i === 20 ||
-                     i === 3 || i === 7 || i === 11 || i === 15 || i === 19;
+    i === 3 || i === 7 || i === 11 || i === 15 || i === 19;
   const breath = Math.sin(now * 0.0018) * 0.005;
   const microTremor = isTipOrDIP ? Math.sin(now * 0.0042 + i * 0.8) * 0.0018 : 0;
   y += breath + microTremor;

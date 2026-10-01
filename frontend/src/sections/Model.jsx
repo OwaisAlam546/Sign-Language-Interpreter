@@ -36,9 +36,9 @@ function Gauge({ value }) {
       <svg viewBox="0 0 200 200" className="w-52 md:w-56" role="img" aria-label={`Overall accuracy ${value} percent`}>
         <defs>
           <linearGradient id="gauge-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38BDF8" />
-            <stop offset="55%" stopColor="#22D3EE" />
-            <stop offset="100%" stopColor="#8B5CF6" />
+            <stop offset="0%" stopColor="#00D9FF" />
+            <stop offset="55%" stopColor="#83E8F5" />
+            <stop offset="100%" stopColor="#168BFF" />
           </linearGradient>
         </defs>
         <circle cx="100" cy="100" r={R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="11" />
@@ -108,7 +108,7 @@ export default function Model() {
             <span className="h-3 w-px bg-white/15" />
             <span className="text-slate-300"><span className="text-cyan-300 font-semibold">{MODEL.epochs}</span> epochs</span>
             <span className="h-3 w-px bg-white/15" />
-            <span className="text-violet-300 font-medium">{MODEL.dataset}</span>
+            <span className="text-cyan-300 font-medium">{MODEL.dataset}</span>
           </div>
         </Reveal>
       </div>

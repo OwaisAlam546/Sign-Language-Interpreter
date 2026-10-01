@@ -538,13 +538,12 @@ const GestureCardContent = memo(function GestureCardContent({
       >
         <div className="flex flex-col items-center justify-center">
           <span
-            className={`font-display font-bold tracking-tight inline-block ${getWordTitleClass(item.title)} ${
-              isHovered
+            className={`font-display font-bold tracking-tight inline-block ${getWordTitleClass(item.title)} ${isHovered
                 ? 'text-cyan-300'
                 : isSearchMatch
-                ? 'text-cyan-300 drop-shadow-[0_0_15px_rgba(34,211,238,0.85)]'
-                : 'text-white'
-            }`}
+                  ? 'text-cyan-300 drop-shadow-[0_0_15px_rgba(34,211,238,0.85)]'
+                  : 'text-white'
+              }`}
             style={{
               transform: isHovered ? 'scale(0.70)' : 'scale(1.0)',
               transformOrigin: 'center center',
@@ -569,11 +568,10 @@ const GestureCardContent = memo(function GestureCardContent({
             }}
           >
             <span
-              className={`px-2.5 py-0.5 rounded-full transition-colors duration-200 ${
-                isSearchMatch
+              className={`px-2.5 py-0.5 rounded-full transition-colors duration-200 ${isSearchMatch
                   ? 'bg-cyan-400/25 border border-cyan-400/60 text-cyan-300 font-semibold shadow-[0_0_10px_rgba(34,211,238,0.3)]'
                   : 'bg-white/[0.06] border border-white/12 text-slate-300'
-              }`}
+                }`}
             >
               {isSearchMatch ? 'Matched' : 'Hover to sign'}
             </span>
@@ -644,9 +642,8 @@ const GestureCardContent = memo(function GestureCardContent({
         }}
       >
         <div
-          className={`font-mono text-[9px] uppercase tracking-[0.18em] font-semibold leading-none transition-colors duration-300 ${
-            isSearchMatch ? 'text-cyan-300' : 'text-cyan-300/90'
-          }`}
+          className={`font-mono text-[9px] uppercase tracking-[0.18em] font-semibold leading-none transition-colors duration-300 ${isSearchMatch ? 'text-cyan-300' : 'text-cyan-300/90'
+            }`}
         >
           {item.subtitle}
         </div>
@@ -679,10 +676,10 @@ const GridGestureCard = memo(function GridGestureCard({
   // Detect touch / reduced motion once
   const isTouchOrReduced = useRef(
     typeof window !== 'undefined' &&
-      (('ontouchstart' in window) ||
-        (navigator.maxTouchPoints > 0) ||
-        window.matchMedia('(pointer: coarse)').matches ||
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    (('ontouchstart' in window) ||
+      (navigator.maxTouchPoints > 0) ||
+      window.matchMedia('(pointer: coarse)').matches ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   );
 
   // Smooth rAF loop for micro-tilt & light interpolation
@@ -776,11 +773,10 @@ const GridGestureCard = memo(function GridGestureCard({
     >
       <div
         ref={cardRef}
-        className={`card-3d-crisp card-border-glow group relative flex h-full min-h-[255px] sm:min-h-[262px] flex-col justify-between overflow-hidden rounded-2xl px-4 py-3.5 sm:px-5 sm:py-4 text-center transition-all duration-300 cursor-pointer ${
-          isHovered
+        className={`card-3d-crisp card-border-glow group relative flex h-full min-h-[255px] sm:min-h-[262px] flex-col justify-between overflow-hidden rounded-2xl px-4 py-3.5 sm:px-5 sm:py-4 text-center transition-all duration-300 cursor-pointer ${isHovered
             ? 'is-hovered bg-slate-900/95 -translate-y-1'
             : 'bg-slate-950/90 shadow-2xl'
-        }`}
+          }`}
       >
         {/* Subtle frosted glass specular light following cursor */}
         <div
@@ -793,11 +789,10 @@ const GridGestureCard = memo(function GridGestureCard({
 
         {/* Specular top rim border line light */}
         <div
-          className={`pointer-events-none absolute inset-x-0 top-0 h-[1.5px] transition-all duration-300 z-10 ${
-            isHovered
+          className={`pointer-events-none absolute inset-x-0 top-0 h-[1.5px] transition-all duration-300 z-10 ${isHovered
               ? 'bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-100 shadow-[0_0_12px_rgba(34,211,238,0.9)]'
               : 'bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-40 group-hover:via-cyan-400 group-hover:opacity-100'
-          }`}
+            }`}
         />
 
         <GestureCardContent
@@ -1151,7 +1146,7 @@ export default function SupportedGestures() {
 
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
-    } catch (_) {}
+    } catch (_) { }
 
     isDraggingRef.current = true;
     hasDraggedRef.current = false;
@@ -1171,7 +1166,7 @@ export default function SupportedGestures() {
       if (e && e.currentTarget && e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget.releasePointerCapture(e.pointerId);
       }
-    } catch (_) {}
+    } catch (_) { }
 
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
@@ -1259,11 +1254,10 @@ export default function SupportedGestures() {
                     setHoveredId(null);
                     hoveredCardRef.current = null;
                   }}
-                  className={`rounded-full px-5 py-2 font-display text-xs sm:text-sm font-medium transition-all duration-300 ${
-                    tab === k
-                      ? 'bg-gradient-to-r from-sky-400 via-cyan-400 to-violet-500 text-slate-950 shadow-glow font-bold'
+                  className={`rounded-full px-5 py-2 font-display text-xs sm:text-sm font-medium transition-all duration-300 ${tab === k
+                      ? 'bg-gradient-to-r from-[#00D9FF] via-[#83E8F5] to-[#168BFF] text-slate-950 shadow-glow font-bold'
                       : 'text-slate-400 hover:text-white'
-                  }`}
+                    }`}
                   aria-pressed={tab === k}
                 >
                   {label}
@@ -1275,11 +1269,10 @@ export default function SupportedGestures() {
             <div className="glass-card flex items-center rounded-full p-1.5 shadow-2xl border border-white/12 bg-slate-950/80 backdrop-blur-xl">
               <button
                 onClick={() => setViewMode('carousel')}
-                className={`flex items-center gap-1.5 rounded-full px-3.5 sm:px-4 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-300 ${
-                  viewMode === 'carousel'
+                className={`flex items-center gap-1.5 rounded-full px-3.5 sm:px-4 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-300 ${viewMode === 'carousel'
                     ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_15px_rgba(34,211,238,0.25)] font-semibold'
                     : 'text-slate-400 hover:text-white'
-                }`}
+                  }`}
                 aria-pressed={viewMode === 'carousel'}
                 title="3D Rotating Circular Carousel"
               >
@@ -1288,11 +1281,10 @@ export default function SupportedGestures() {
               </button>
               <button
                 onClick={() => setViewMode('grid')}
-                className={`flex items-center gap-1.5 rounded-full px-3.5 sm:px-4 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-300 ${
-                  viewMode === 'grid'
+                className={`flex items-center gap-1.5 rounded-full px-3.5 sm:px-4 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-300 ${viewMode === 'grid'
                     ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_15px_rgba(34,211,238,0.25)] font-semibold'
                     : 'text-slate-400 hover:text-white'
-                }`}
+                  }`}
                 aria-pressed={viewMode === 'grid'}
                 title="Table Grid View"
               >
@@ -1333,7 +1325,7 @@ export default function SupportedGestures() {
             {otherTabMatches > 0 && (
               <button
                 onClick={() => setTab(tab === 'letters' ? 'words' : 'letters')}
-                className="flex items-center gap-1.5 font-mono text-[11px] text-violet-300 hover:text-white bg-violet-500/15 border border-violet-500/30 px-3 py-1 rounded-full transition-all shadow-sm"
+                className="flex items-center gap-1.5 font-mono text-[11px] text-cyan-300 hover:text-white bg-cyan-500/15 border border-cyan-500/30 px-3 py-1 rounded-full transition-all shadow-sm"
               >
                 <span>Found {otherTabMatches} in {tab === 'letters' ? 'Words' : 'Letters'}</span>
                 <FiArrowRight className="h-3 w-3" />
@@ -1349,7 +1341,7 @@ export default function SupportedGestures() {
             {activeSpotlightItem && (
               <div className="glass-card mx-auto mb-6 flex max-w-2xl items-center justify-between rounded-2xl border border-white/12 bg-slate-950/90 p-4 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.65)]">
                 <div className="flex items-center gap-4">
-                  <div className="relative grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-cyan-400/20 to-violet-600/25 border border-cyan-400/40 shadow-inner">
+                  <div className="relative grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#00D9FF]/20 to-[#168BFF]/25 border border-cyan-400/40 shadow-inner">
                     {activeSpotlightItem.isWord ? (
                       <WordWheelHandSkeleton
                         key={activeSpotlightItem.title}
@@ -1408,9 +1400,8 @@ export default function SupportedGestures() {
 
               {/* Directional Hover Indicators */}
               <div
-                className={`pointer-events-none absolute left-4 sm:left-8 top-1/2 z-20 -translate-y-1/2 flex flex-col items-center gap-1.5 transition-all duration-300 ${
-                  hoverDirection === 'left' ? 'opacity-100 scale-110' : 'opacity-40'
-                }`}
+                className={`pointer-events-none absolute left-4 sm:left-8 top-1/2 z-20 -translate-y-1/2 flex flex-col items-center gap-1.5 transition-all duration-300 ${hoverDirection === 'left' ? 'opacity-100 scale-110' : 'opacity-40'
+                  }`}
               >
                 <div className="grid h-9 w-9 place-items-center rounded-full bg-cyan-400/20 border border-cyan-400/50 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
                   <FiChevronLeft className="h-5 w-5 animate-pulse" />
@@ -1419,14 +1410,13 @@ export default function SupportedGestures() {
               </div>
 
               <div
-                className={`pointer-events-none absolute right-4 sm:right-8 top-1/2 z-20 -translate-y-1/2 flex flex-col items-center gap-1.5 transition-all duration-300 ${
-                  hoverDirection === 'right' ? 'opacity-100 scale-110' : 'opacity-40'
-                }`}
+                className={`pointer-events-none absolute right-4 sm:right-8 top-1/2 z-20 -translate-y-1/2 flex flex-col items-center gap-1.5 transition-all duration-300 ${hoverDirection === 'right' ? 'opacity-100 scale-110' : 'opacity-40'
+                  }`}
               >
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-violet-400/20 border border-violet-400/50 text-violet-300 shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                <div className="grid h-9 w-9 place-items-center rounded-full bg-[#168BFF]/20 border border-[#168BFF]/50 text-[#168BFF] shadow-[0_0_15px_rgba(22,139,255,0.3)]">
                   <FiChevronRight className="h-5 w-5 animate-pulse" />
                 </div>
-                <span className="font-mono text-[9px] uppercase tracking-widest text-violet-300 hidden sm:block">Spin Right</span>
+                <span className="font-mono text-[9px] uppercase tracking-widest text-[#168BFF] hidden sm:block">Spin Right</span>
               </div>
 
               {/* 3D Rotating Cylinder Pivot */}
@@ -1485,27 +1475,24 @@ export default function SupportedGestures() {
                         }}
                       >
                         <div
-                          className={`card-3d-crisp card-border-glow group relative h-full w-full rounded-2xl px-4 py-3.5 sm:px-4.5 sm:py-4 text-center transition-all duration-200 cursor-pointer flex flex-col shadow-2xl ${
-                            isHovered ? 'overflow-visible' : 'overflow-hidden'
-                          } ${
-                            isSearchMatch
+                          className={`card-3d-crisp card-border-glow group relative h-full w-full rounded-2xl px-4 py-3.5 sm:px-4.5 sm:py-4 text-center transition-all duration-200 cursor-pointer flex flex-col shadow-2xl ${isHovered ? 'overflow-visible' : 'overflow-hidden'
+                            } ${isSearchMatch
                               ? 'border-cyan-400 ring-2 ring-cyan-400/80 shadow-[0_0_35px_rgba(34,211,238,0.5)] bg-slate-900/95 brightness-110 z-30 is-hovered'
                               : isHovered
-                              ? 'border-cyan-400/80 ring-1 ring-cyan-400/40 shadow-[0_0_25px_rgba(34,211,238,0.25)] z-20 is-hovered'
-                              : isActive
-                              ? 'border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.15)] border-white/12'
-                              : 'border-white/12 bg-slate-950/90'
-                          }`}
+                                ? 'border-cyan-400/80 ring-1 ring-cyan-400/40 shadow-[0_0_25px_rgba(34,211,238,0.25)] z-20 is-hovered'
+                                : isActive
+                                  ? 'border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.15)] border-white/12'
+                                  : 'border-white/12 bg-slate-950/90'
+                            }`}
                         >
                           {/* Specular top rim reflection */}
                           <div
-                            className={`absolute inset-x-4 top-0 h-px transition-opacity duration-200 ${
-                              isSearchMatch
+                            className={`absolute inset-x-4 top-0 h-px transition-opacity duration-200 ${isSearchMatch
                                 ? 'bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-100'
                                 : isHovered
-                                ? 'bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent opacity-100'
-                                : 'bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-60'
-                            }`}
+                                  ? 'bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent opacity-100'
+                                  : 'bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-60'
+                              }`}
                           />
 
                           <GestureCardContent
@@ -1540,7 +1527,7 @@ export default function SupportedGestures() {
                   aria-label="Next gesture"
                 >
                   <span>Next</span>
-                  <FiChevronRight className="h-4 w-4 text-violet-300" />
+                  <FiChevronRight className="h-4 w-4 text-[#168BFF]" />
                 </button>
               </div>
 
@@ -1574,13 +1561,12 @@ export default function SupportedGestures() {
                         setQ('');
                         rotateToIndex(idx);
                       }}
-                      className={`h-7 w-7 shrink-0 rounded-lg font-mono text-xs transition-all duration-200 border ${
-                        isSearched
+                      className={`h-7 w-7 shrink-0 rounded-lg font-mono text-xs transition-all duration-200 border ${isSearched
                           ? 'bg-cyan-400 text-slate-950 font-bold shadow-[0_0_15px_rgba(34,211,238,0.9)] scale-110 border-cyan-300'
                           : isActive
-                          ? 'bg-gradient-to-br from-cyan-400 to-violet-500 text-slate-950 font-bold shadow-[0_0_12px_rgba(34,211,238,0.5)] scale-110 border-cyan-400'
-                          : 'bg-slate-950/80 border-white/10 text-slate-400 hover:border-cyan-400/40 hover:bg-white/10 hover:text-white'
-                      }`}
+                            ? 'bg-gradient-to-br from-[#00D9FF] to-[#168BFF] text-slate-950 font-bold shadow-[0_0_12px_rgba(0,217,255,0.5)] scale-110 border-[#00D9FF]'
+                            : 'bg-slate-950/80 border-white/10 text-slate-400 hover:border-cyan-400/40 hover:bg-white/10 hover:text-white'
+                        }`}
                       aria-label={`Jump to letter ${letter}`}
                     >
                       {letter}
@@ -1620,7 +1606,7 @@ export default function SupportedGestures() {
               {otherTabMatches > 0 && (
                 <button
                   onClick={() => setTab(tab === 'letters' ? 'words' : 'letters')}
-                  className="rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-violet-500 px-6 py-2.5 font-mono text-xs font-bold text-slate-950 shadow-glow hover:scale-105 transition-transform"
+                  className="rounded-full bg-gradient-to-r from-[#00D9FF] via-[#83E8F5] to-[#168BFF] px-6 py-2.5 font-mono text-xs font-bold text-slate-950 shadow-glow hover:scale-105 transition-transform"
                 >
                   Switch to {tab === 'letters' ? 'Words' : 'Letters'}
                 </button>

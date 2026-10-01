@@ -62,17 +62,17 @@ export default function Cursor() {
   if (!enabled) return null;
   return (
     <>
-      {/* dot — solid bright cyan + glow so it's always visible on dark bg */}
+      {/* dot — solid bright cyan + glow */}
       <div
         ref={dotRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[100] h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.95)] ring-2 ring-slate-950/80"
+        className="pointer-events-none fixed left-0 top-0 z-[100] h-2.5 w-2.5 rounded-full bg-[var(--accent-cyan)] shadow-[0_0_14px_var(--glow-cyan)] ring-1 ring-black/40"
       />
       {/* ring — trailing glow ring, expands over interactive elements */}
       <div
         ref={ringRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[99] h-[38px] w-[38px] rounded-full border border-cyan-300/80 mix-blend-difference transition-[width,height] duration-200 ease-out"
+        className="pointer-events-none fixed left-0 top-0 z-[99] h-[38px] w-[38px] rounded-full border border-[var(--accent-cyan)] mix-blend-difference transition-[width,height] duration-200 ease-out"
       />
     </>
   );

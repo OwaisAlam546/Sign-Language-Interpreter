@@ -15,8 +15,8 @@ const TEAM_MEMBERS = [
     subtitle: 'Client Experience & WebRTC',
     image: '/team/niranjan.jpg',
     initials: 'NM',
-    gradient: 'from-violet-400 to-fuchsia-400',
-    accentColor: '#a855f7',
+    gradient: 'from-[#00D9FF] to-[#168BFF]',
+    accentColor: '#168BFF',
     isLeader: false,
     icon: FiLayout,
     points: [
@@ -36,8 +36,8 @@ const TEAM_MEMBERS = [
     subtitle: 'Lead Developer & Neural Sequence Modeling',
     image: '/team/owais.jpg',
     initials: 'MO',
-    gradient: 'from-sky-400 via-cyan-400 to-violet-500',
-    accentColor: '#38bdf8',
+    gradient: 'from-[#00D9FF] via-[#83E8F5] to-[#168BFF]',
+    accentColor: '#00D9FF',
     isLeader: true,
     badge: '★ Project Lead',
     icon: FiAward,
@@ -118,9 +118,8 @@ export default function Team() {
           <div className="relative mt-8 sm:mt-12 overflow-hidden rounded-3xl p-2 sm:p-4 bg-slate-950/60 border border-white/10 backdrop-blur-xl shadow-2xl">
             {/* Ambient Background Glow for Lead */}
             <div
-              className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 h-96 w-full max-w-2xl rounded-full bg-gradient-to-r from-sky-500/20 via-cyan-400/25 to-violet-500/20 blur-3xl transition-opacity duration-700 ${
-                activeIdx === 1 ? 'opacity-70' : 'opacity-40'
-              }`}
+              className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 h-80 w-full max-w-lg rounded-full bg-gradient-to-r from-[#00D9FF]/10 via-[#168BFF]/08 to-transparent blur-3xl transition-opacity duration-700 ${activeIdx === 1 ? 'opacity-25' : 'opacity-10'
+                }`}
               aria-hidden="true"
             />
 
@@ -132,8 +131,8 @@ export default function Team() {
               height={480}
               radius={20}
               gap={12}
-              accentColor="#22d3ee"
-              overlayColor="#060010"
+              accentColor="#00D9FF"
+              overlayColor="#05080D"
               textColor="#ffffff"
               tilt={6}
               parallax={0.4}
@@ -147,11 +146,10 @@ export default function Team() {
         <Reveal delay={0.15}>
           <div className="relative mt-8">
             <div
-              className={`glass-glow relative overflow-hidden rounded-3xl p-6 sm:p-8 md:p-10 bg-slate-950/90 border transition-all duration-500 backdrop-blur-2xl shadow-2xl ${
-                activeMember.isLeader
+              className={`glass-glow relative overflow-hidden rounded-3xl p-6 sm:p-8 md:p-10 bg-slate-950/90 border transition-all duration-500 backdrop-blur-2xl shadow-2xl ${activeMember.isLeader
                   ? 'border-cyan-400/50 shadow-[0_20px_60px_rgba(34,211,238,0.2)]'
                   : 'border-white/12'
-              }`}
+                }`}
             >
               {/* Header Bar: ID, Role, and Lead Badge with proper flow margin — eliminating overlap */}
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
@@ -161,11 +159,10 @@ export default function Team() {
                   </span>
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
                   <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${
-                      activeMember.isLeader
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${activeMember.isLeader
                         ? 'bg-cyan-400/20 text-cyan-200 border border-cyan-400/40 shadow-glow'
                         : 'bg-white/10 text-slate-300 border border-white/10'
-                    }`}
+                      }`}
                   >
                     {activeMember.role}
                   </span>
@@ -173,7 +170,7 @@ export default function Team() {
 
                 {/* Leader Ribbon Badge — seamlessly in document flow so it never overlaps the contributions card */}
                 {activeMember.isLeader && (
-                  <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500/20 via-cyan-400/20 to-violet-500/20 border border-cyan-400/40 px-4 py-1.5 font-mono text-[11px] font-bold tracking-widest text-cyan-300 shadow-glow">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#00D9FF]/20 via-[#83E8F5]/20 to-[#168BFF]/20 border border-cyan-400/40 px-4 py-1.5 font-mono text-[11px] font-bold tracking-widest text-cyan-300 shadow-glow">
                     <FiAward className="h-4 w-4 text-cyan-300" />
                     <span>PROJECT LEAD · CORE ARCHITECT</span>
                   </div>
@@ -283,7 +280,7 @@ export default function Team() {
                           Next Stage
                         </span>
                       </div>
-                      <span className="rounded-full bg-violet-500/15 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-violet-300 border border-violet-500/35 font-semibold shrink-0">
+                      <span className="rounded-full bg-cyan-500/15 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-cyan-300 border border-cyan-500/35 font-semibold shrink-0">
                         {f.tag}
                       </span>
                     </div>

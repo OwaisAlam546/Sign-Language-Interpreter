@@ -107,7 +107,7 @@ export default function Hero() {
               onClick={() => scrollTo('demo')}
               className="group"
             >
-              <span className="btn-shimmer inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-violet-500 px-7 py-3.5 font-display text-sm font-bold text-slate-950 shadow-glow-lg transition-shadow duration-300 hover:shadow-glow">
+              <span className="btn-shimmer inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#00D9FF] via-[#83E8F5] to-[#168BFF] px-7 py-3.5 font-display text-sm font-bold text-slate-950 shadow-glow transition-all duration-300 hover:shadow-lg hover:scale-105">
                 <FiPlay className="transition-transform duration-300 group-hover:scale-125" aria-hidden="true" />
                 Start Translation
               </span>
@@ -145,7 +145,7 @@ export default function Hero() {
         >
           <motion.div style={{ x: sx, y: sy }} className="relative w-full max-w-md">
             {/* glow behind panel */}
-            <div className="absolute inset-0 -z-10 scale-110 rounded-[2.5rem] bg-gradient-to-br from-cyan-500/25 via-sky-500/15 to-violet-600/25 blur-3xl" aria-hidden="true" />
+            <div className="absolute inset-0 -z-10 scale-105 rounded-[2.5rem] bg-gradient-to-br from-[#00D9FF]/12 via-[#168BFF]/08 to-transparent blur-2xl" aria-hidden="true" />
 
             <div className="glass-card relative overflow-hidden rounded-3xl p-6 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
               {/* header */}
@@ -191,12 +191,12 @@ export default function Hero() {
 
               {/* speech bar */}
               <div className="mt-3 flex items-center gap-3 rounded-2xl border border-white/12 bg-slate-950/80 px-5 py-3 backdrop-blur-xl">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-sky-400 via-cyan-400 to-violet-500 text-slate-950 shadow-glow" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[#00D9FF] via-[#83E8F5] to-[#168BFF] text-slate-950 shadow-glow" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z" /></svg>
                 </span>
                 <div className="flex h-8 flex-1 items-center justify-between gap-0.5 px-1" aria-hidden="true">
                   {Array.from({ length: 24 }, (_, i) => (
-                    <span key={i} className="wave-bar w-[3px] rounded-full bg-gradient-to-t from-cyan-400/60 to-violet-400/80"
+                    <span key={i} className="wave-bar w-[3px] rounded-full bg-gradient-to-t from-[#00D9FF]/75 to-[#168BFF]/95"
                       style={{ height: `${6 + ((i * 13 + letter.charCodeAt(0)) % 18)}px`, animationDelay: `${(i % 6) * 0.12}s` }} />
                   ))}
                 </div>

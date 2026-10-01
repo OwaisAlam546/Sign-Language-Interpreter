@@ -40,7 +40,7 @@ export default function Footer() {
             {/* brand */}
             <div>
               <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-sky-400 via-cyan-400 to-violet-500 shadow-glow">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-[#00D9FF] via-[#83E8F5] to-[#168BFF] shadow-glow">
                   <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-950" fill="currentColor" aria-hidden="true"><path d="M12 2 L15.5 9.5 L23 12 L15.5 14.5 L12 22 L8.5 14.5 L1 12 L8.5 9.5 Z" /></svg>
                 </span>
                 <span className="font-display text-lg font-bold text-white tracking-tight">SignSpeak <span className="grad-text">AI</span></span>
@@ -88,19 +88,17 @@ export default function Footer() {
                       target="_blank"
                       rel="noreferrer"
                       onMouseEnter={() => setHoveredSocial(i)}
-                      className={`glass-card grid h-12 w-12 place-items-center rounded-2xl border transition-all duration-300 origin-center ${
-                        isHovered
+                      className={`glass-card grid h-12 w-12 place-items-center rounded-2xl border transition-all duration-300 origin-center ${isHovered
                           ? 'scale-125 z-20 border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.55)] ring-2 ring-cyan-400/40 -translate-y-1'
                           : isOtherHovered
-                          ? 'scale-90 opacity-35 border-white/8 bg-slate-950/60 text-slate-500 blur-[0.2px]'
-                          : 'scale-100 border-white/12 bg-slate-950/80 text-slate-300 shadow-md'
-                      }`}
+                            ? 'scale-90 opacity-35 border-white/8 bg-slate-950/60 text-slate-500 blur-[0.2px]'
+                            : 'scale-100 border-white/12 bg-slate-950/80 text-slate-300 shadow-md'
+                        }`}
                       aria-label={item.label}
                     >
                       <item.icon
-                        className={`transition-all duration-300 ${
-                          isHovered ? 'h-6 w-6 stroke-[2.2]' : 'h-5 w-5'
-                        }`}
+                        className={`transition-all duration-300 ${isHovered ? 'h-6 w-6 stroke-[2.2]' : 'h-5 w-5'
+                          }`}
                         aria-hidden="true"
                       />
                     </a>

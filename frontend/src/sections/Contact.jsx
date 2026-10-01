@@ -16,24 +16,22 @@ function Field({ label, name, type = 'text', value, onChange, textarea }) {
         onChange={(e) => onChange(e.target.value)}
         rows={textarea ? 4 : undefined}
         required
-        className={`peer w-full rounded-2xl border border-white/12 bg-slate-950/80 px-4 text-white placeholder-transparent transition-all backdrop-blur-xl focus:border-cyan-400/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/20 shadow-inner ${
-          textarea ? 'min-h-[130px] resize-none pt-6 pb-3' : 'h-14 pt-5 pb-1'
-        }`}
+        className={`peer w-full rounded-2xl border border-white/12 bg-slate-950/80 px-4 text-white placeholder-transparent transition-all backdrop-blur-xl focus:border-cyan-400/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/20 shadow-inner ${textarea ? 'min-h-[130px] resize-none pt-6 pb-3' : 'h-14 pt-5 pb-1'
+          }`}
         placeholder=" "
         aria-label={label}
         aria-invalid={false}
       />
       <label
         htmlFor={name}
-        className={`pointer-events-none absolute left-4 transition-all duration-300 ${
-          filled
+        className={`pointer-events-none absolute left-4 transition-all duration-300 ${filled
             ? textarea
               ? 'top-3 font-mono text-[10px] uppercase tracking-widest text-cyan-300 font-medium'
               : 'top-1.5 font-mono text-[10px] uppercase tracking-widest text-cyan-300 font-medium'
             : textarea
               ? 'top-6 font-sans text-sm text-slate-400'
               : 'top-1/2 -translate-y-1/2 font-sans text-sm text-slate-400'
-        }`}
+          }`}
       >
         {label}
       </label>
@@ -86,10 +84,10 @@ export default function Contact() {
                   <div className="text-sm text-white font-medium">mohdowaisalam177@gmail.com</div>
                 </div>
               </div>
-              <div className="glass-card flex items-center gap-4 rounded-2xl border border-white/12 bg-slate-950/90 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.65)] backdrop-blur-2xl hover:border-violet-400/40 transition-all">
-                <span className="grid h-12 w-12 place-items-center rounded-xl bg-violet-500/15 border border-violet-500/35"><FiMapPin className="h-5 w-5 text-violet-300" aria-hidden="true" /></span>
+              <div className="glass-card flex items-center gap-4 rounded-2xl border border-white/12 bg-slate-950/90 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.65)] backdrop-blur-2xl hover:border-cyan-400/40 transition-all">
+                <span className="grid h-12 w-12 place-items-center rounded-xl bg-cyan-500/15 border border-cyan-500/35"><FiMapPin className="h-5 w-5 text-cyan-300" aria-hidden="true" /></span>
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-violet-300/80 font-medium">Institution</div>
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-cyan-300/80 font-medium">Institution</div>
                   <div className="text-sm text-slate-200">Ramaiah College · BCA · Bengaluru</div>
                 </div>
               </div>
@@ -114,7 +112,7 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={busy}
-                className="btn-shimmer mt-2 inline-flex items-center justify-center gap-2 self-start rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-violet-500 px-8 py-3.5 font-display text-sm font-bold text-slate-950 shadow-glow transition-transform hover:scale-105 disabled:opacity-70"
+                className="btn-shimmer mt-2 inline-flex items-center justify-center gap-2 self-start rounded-full bg-gradient-to-r from-[#00D9FF] via-[#83E8F5] to-[#168BFF] px-8 py-3.5 font-display text-sm font-bold text-slate-950 shadow-glow transition-transform hover:scale-105 disabled:opacity-70"
               >
                 <FiSend className="h-4 w-4" aria-hidden="true" /> {busy ? 'Sending…' : 'Send Message'}
               </button>

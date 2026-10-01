@@ -38,7 +38,7 @@ async function safeJson(res) {
   }
 }
 
-function ConfBar({ value }) { return <motion.div className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-violet-500" initial={{ width: '0%' }} animate={{ width: `${Math.round(value * 100)}%` }} transition={{ duration: 0.25 }} />; }
+function ConfBar({ value }) { return <motion.div className="h-full rounded-full bg-gradient-to-r from-[#00D9FF] via-[#83E8F5] to-[#168BFF]" initial={{ width: '0%' }} animate={{ width: `${Math.round(value * 100)}%` }} transition={{ duration: 0.25 }} />; }
 const toHand = (landmarks) => landmarks.map(({ x, y, z = 0 }) => [x, y, z]);
 function speak(text) { if (window.speechSynthesis && text) { window.speechSynthesis.cancel(); window.speechSynthesis.speak(new SpeechSynthesisUtterance(text.toLowerCase())); } }
 
@@ -124,7 +124,7 @@ export default function LiveDemo() {
   };
   const startPipeline = async () => {
     const version = versionRef.current + 1; versionRef.current = version; setRun(true); setCamError(false); setServiceError(''); setServiceState('checking');
-    
+
     // 1. Probe Server Model Status safely (never throws Unexpected end of JSON input)
     let isServerReady = false;
     try {
@@ -200,33 +200,31 @@ export default function LiveDemo() {
             <div className="flex flex-wrap gap-2.5">
               <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
                 <span
-                  className={`h-2 w-2 rounded-full ${
-                    serviceState === 'ready'
+                  className={`h-2 w-2 rounded-full ${serviceState === 'ready'
                       ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
                       : serviceState === 'local'
-                      ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]'
-                      : serviceState === 'checking'
-                      ? 'bg-amber-400 animate-pulse'
-                      : serviceState === 'error'
-                      ? 'bg-red-400'
-                      : 'bg-slate-500'
-                  }`}
+                        ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]'
+                        : serviceState === 'checking'
+                          ? 'bg-amber-400 animate-pulse'
+                          : serviceState === 'error'
+                            ? 'bg-red-400'
+                            : 'bg-slate-500'
+                    }`}
                 />
                 {serviceState === 'ready'
                   ? 'Server LSTM Active'
                   : serviceState === 'local'
-                  ? 'On-Device Browser Mode'
-                  : serviceState === 'checking'
-                  ? 'Checking Model…'
-                  : serviceState === 'error'
-                  ? 'Model Unavailable'
-                  : 'Model Standby'}
+                    ? 'On-Device Browser Mode'
+                    : serviceState === 'checking'
+                      ? 'Checking Model…'
+                      : serviceState === 'error'
+                        ? 'Model Unavailable'
+                        : 'Model Standby'}
               </span>
               <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
                 <span
-                  className={`h-2 w-2 rounded-full ${
-                    camOn ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-500'
-                  }`}
+                  className={`h-2 w-2 rounded-full ${camOn ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-500'
+                    }`}
                 />
                 {camOn ? 'Camera Live' : 'Camera Standby'}
               </span>
@@ -241,7 +239,7 @@ export default function LiveDemo() {
               </button>
               <button
                 onClick={() => (run ? stopRun() : startPipeline())}
-                className="btn-shimmer inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-400 via-cyan-400 to-violet-500 px-5 py-2.5 font-display text-xs font-bold text-slate-950 shadow-glow transition-transform hover:scale-105"
+                className="btn-shimmer inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#00D9FF] via-[#83E8F5] to-[#168BFF] px-5 py-2.5 font-display text-xs font-bold text-slate-950 shadow-glow transition-transform hover:scale-105"
               >
                 {run ? <FiX /> : <FiCamera />} {run ? 'Stop' : 'Start Camera'}
               </button>
@@ -283,7 +281,7 @@ export default function LiveDemo() {
                       onClick={startPipeline}
                       className="glass-card flex flex-col items-center gap-3 rounded-3xl px-10 py-8 shadow-2xl border border-white/12 bg-slate-950/90 hover:border-cyan-400/50 transition-all"
                     >
-                      <span className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-sky-400 via-cyan-400 to-violet-500 text-slate-950 shadow-glow">
+                      <span className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-[#00D9FF] via-[#83E8F5] to-[#168BFF] text-slate-950 shadow-glow">
                         <FiCamera className="h-6 w-6" />
                       </span>
                       <span className="font-display text-base font-bold text-white">Enable camera to begin</span>
@@ -333,7 +331,7 @@ export default function LiveDemo() {
 
                 {/* Primary Recognized Gesture & Committed Words */}
                 <div className="mt-4 grid grid-cols-[auto_1fr] items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm">
-                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-sky-500/20 via-cyan-400/20 to-violet-500/20 border border-cyan-400/30 shadow-inner">
+                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-[#00D9FF]/20 via-[#168BFF]/15 to-[#83E8F5]/10 border border-cyan-400/30 shadow-inner">
                     <span className="font-display text-4xl font-bold text-white">{letter}</span>
                   </div>
                   <div>
@@ -361,9 +359,8 @@ export default function LiveDemo() {
                   {Array.from({ length: 40 }, (_, index) => (
                     <span
                       key={index}
-                      className={`wave-bar w-[3px] rounded-full ${
-                        run ? 'bg-gradient-to-t from-cyan-400/70 to-violet-400/90' : 'bg-white/10'
-                      }`}
+                      className={`wave-bar w-[3px] rounded-full ${run ? 'bg-gradient-to-t from-[#00D9FF]/75 to-[#168BFF]/95' : 'bg-white/10'
+                        }`}
                       style={{
                         height: `${run ? 8 + ((index * 7 + waveSeed) % 34) : 10}px`,
                         animationDelay: `${(index % 8) * 0.1}s`,

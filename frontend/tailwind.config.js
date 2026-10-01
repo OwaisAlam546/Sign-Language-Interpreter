@@ -1,19 +1,55 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
-        ink: {
-          950: '#0B0F19',
-          900: '#0F1524',
-          800: '#111827',
-          700: '#1F2937',
+        // Dark Mode exact reference palette
+        deep: '#05080D',
+        midnight: '#081522',
+        teal: {
+          dark: '#0B2634',
         },
-        electric: '#38BDF8',
-        volt: '#22D3EE',
-        violet: '#8B5CF6',
-        magenta: '#C084FC',
+        ice: {
+          cyan: '#00D9FF',
+          light: '#00BBD9',
+        },
+        electric: '#168BFF',
+        soft: {
+          cyan: '#83E8F5',
+        },
+        cool: {
+          white: '#EAF6FA',
+        },
+        slate: {
+          blue: '#8296A8',
+        },
+        // Light Mode palette: Option B — Platinum & Navy
+        platinum: '#F5F7FA',
+        platinumSecondary: '#EDF1F5',
+        platinumTertiary: '#E6EBF1',
+        deepNavy: '#14283D',
+        slateBlue: '#64748B',
+        mutedSlate: '#8291A3',
+        tealAccent: '#087F9B',
+        softAccent: '#E1F5F8',
+        softBorder: '#D9E0E8',
+        strongBorder: '#C3CED9',
+        pure: {
+          white: '#FFFFFF',
+        },
+
+        // Backward compatibility aliases
+        ink: {
+          950: '#05080D',
+          900: '#081522',
+          800: '#0B2634',
+          700: '#172738',
+        },
+        volt: '#00D9FF',
+        violet: '#168BFF',
+        magenta: '#00D9FF',
       },
       fontFamily: {
         sans: ['"Inter"', 'system-ui', 'sans-serif'],
@@ -76,15 +112,14 @@ export default {
         },
       },
       boxShadow: {
-        glow: '0 0 40px -8px rgba(34,211,238,0.45)',
-        'glow-violet': '0 0 44px -8px rgba(139,92,246,0.5)',
-        'glow-lg': '0 0 90px -18px rgba(34,211,238,0.55)',
-        panel: '0 24px 70px -30px rgba(0,0,0,0.8)',
+        glow: '0 0 35px -6px rgba(0,217,255,0.45)',
+        'glow-lg': '0 0 70px -12px rgba(0,217,255,0.55)',
+        'glow-soft': '0 0 25px rgba(131,232,245,0.3)',
+        panel: '0 24px 70px -30px rgba(0,0,0,0.85)',
       },
       backgroundImage: {
-        'grad-text': 'linear-gradient(100deg, #7DD3FC 0%, #22D3EE 35%, #A78BFA 70%, #C084FC 100%)',
-        'grad-text-soft': 'linear-gradient(100deg, #E2E8F0 0%, #7DD3FC 45%, #A78BFA 100%)',
-        'mesh': 'radial-gradient(60% 60% at 20% 15%, rgba(56,189,248,0.14) 0%, transparent 60%), radial-gradient(50% 50% at 85% 25%, rgba(139,92,246,0.14) 0%, transparent 60%), radial-gradient(60% 60% at 50% 90%, rgba(34,211,238,0.10) 0%, transparent 60%)',
+        'grad-text': 'linear-gradient(110deg, #EAF6FA 0%, #00D9FF 45%, #168BFF 100%)',
+        'grad-text-soft': 'linear-gradient(110deg, #EAF6FA 0%, #83E8F5 50%, #00D9FF 100%)',
       },
     },
   },
