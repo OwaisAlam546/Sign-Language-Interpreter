@@ -25,9 +25,9 @@ export default {
         slate: {
           blue: '#8296A8',
         },
-        // Light Mode palette: Platinum & Deep Navy System
-        platinum: '#E6EBF1',
-        platinumSecondary: '#DCE4ED',
+        // Light Mode palette: Platinum × Deep Navy × White Distribution
+        platinum: '#DCE4ED',
+        platinumSecondary: '#E6EBF1',
         platinumElevated: '#F0F3F7',
         deepNavy: '#14283D',
         navySoft: '#203B55',

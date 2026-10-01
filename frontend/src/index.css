@@ -30,21 +30,21 @@
 
 :root[data-theme="light"],
 html.light {
-  /* Final Light Mode: Platinum & Deep Navy System */
+  /* Final Light Mode: Platinum × Deep Navy × White Distribution */
   /* Page canvas */
   --bg-primary: #FFFFFF;
 
   /* Section surfaces */
-  --bg-secondary: #E6EBF1;
-  --bg-tertiary: #DCE4ED;
+  --bg-secondary: #DCE4ED;
+  --bg-tertiary: #E6EBF1;
 
   /* Component surfaces */
-  --surface-primary: #E6EBF1;
-  --surface-secondary: #DCE4ED;
+  --surface-primary: #DCE4ED;
+  --surface-secondary: #E6EBF1;
   --surface-elevated: #F0F3F7;
   --surface-navy: #14283D;
   --surface-navy-soft: #203B55;
-  --surface-glass: rgba(230, 235, 241, 0.90);
+  --surface-glass: rgba(220, 228, 237, 0.92);
 
   /* Typography */
   --text-primary: #14283D;
@@ -66,15 +66,15 @@ html.light {
   --shadow-elevated: 0 12px 32px rgba(20, 40, 61, 0.13);
 
   /* Interactive states */
-  --hover-surface: #DCE4ED;
+  --hover-surface: #E6EBF1;
   --focus-ring: #087F9B;
 
   /* Architecture token mappings */
   --bg-main: var(--bg-primary);          /* #FFFFFF */
-  --bg-section: var(--bg-secondary);     /* #E6EBF1 */
-  --bg-surface: var(--surface-primary);  /* #E6EBF1 */
-  --bg-card: var(--surface-primary);     /* #E6EBF1 */
-  --bg-card-hover: var(--surface-secondary); /* #DCE4ED */
+  --bg-section: var(--bg-secondary);     /* #DCE4ED */
+  --bg-surface: var(--surface-primary);  /* #DCE4ED */
+  --bg-card: var(--surface-primary);     /* #DCE4ED */
+  --bg-card-hover: var(--surface-secondary); /* #E6EBF1 */
   --accent-cyan: var(--accent-primary);  /* #087F9B */
   --accent-blue: var(--accent-secondary);/* #168BFF */
   --text-main: var(--text-primary);      /* #14283D */
@@ -504,7 +504,7 @@ html.light .text-sky-400 {
   color: var(--accent-secondary) !important; /* #168BFF */
 }
 
-/* ── Surfaces and Cards: Platinum #E6EBF1 with Blue-Gray Borders #C8D4E0 ── */
+/* ── Surfaces and Cards: Platinum #DCE4ED with Blue-Gray Borders #C8D4E0 ── */
 html.light .glass,
 html.light .glass-card,
 html.light .glass-glow,
@@ -522,12 +522,12 @@ html.light .bg-slate-900,
 html.light .bg-slate-900\/95,
 html.light .bg-slate-900\/90,
 html.light .bg-slate-900\/80 {
-  background-color: var(--surface-primary) !important; /* Platinum #E6EBF1 */
+  background-color: var(--surface-primary) !important; /* Platinum #DCE4ED */
   border-color: var(--border-default) !important;       /* Blue-Gray #C8D4E0 */
   box-shadow: var(--shadow-card) !important;          /* 0 8px 24px rgba(20, 40, 61, 0.09) */
 }
 
-/* Secondary Surfaces, Sub-cards, and Inner Panels: Darker Platinum #DCE4ED */
+/* Secondary Surfaces, Sub-cards, and Inner Panels: Lighter Platinum #E6EBF1 */
 html.light .bg-slate-950\/40,
 html.light .bg-slate-900\/60,
 html.light .bg-white\/10,
@@ -537,7 +537,7 @@ html.light .bg-white\/\[0\.03\],
 html.light .bg-white\/\[0\.04\],
 html.light .bg-white\/\[0\.05\],
 html.light .bg-white\/\[0\.06\] {
-  background-color: var(--surface-secondary) !important; /* #DCE4ED */
+  background-color: var(--surface-secondary) !important; /* Lighter Platinum #E6EBF1 */
   border-color: var(--border-default) !important;       /* #C8D4E0 */
 }
 
@@ -719,43 +719,161 @@ html.light #gestures .pointer-events-none.bg-gradient-to-l.from-slate-950 {
   background-image: linear-gradient(to left, #FFFFFF 0%, rgba(255, 255, 255, 0.75) 50%, transparent 100%) !important;
 }
 
-/* Front Active Card in 3D Wheel: Platinum #E6EBF1 with Cyan accent border/glow */
+/* Front Active Card in 3D Wheel: Deep Navy #14283D with Platinum/White text and Cyan accent border/glow */
 html.light #gestures .preserve-3d .card-3d-crisp.is-hovered,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400\/40,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400 {
-  background-color: var(--surface-primary) !important; /* #E6EBF1 */
-  border-color: var(--accent-primary) !important;      /* #087F9B */
-  box-shadow: 0 0 24px rgba(8, 127, 155, 0.22), var(--shadow-elevated) !important;
+  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
+  border-color: var(--accent-primary) !important;      /* Cyan border #087F9B */
+  box-shadow: 0 0 28px rgba(8, 127, 155, 0.35), 0 20px 48px rgba(20, 40, 61, 0.32) !important;
+  color: var(--text-inverse) !important;
+}
+html.light #gestures .preserve-3d .card-3d-crisp.is-hovered .font-display,
+html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400\/40 .font-display,
+html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400 .font-display {
+  color: var(--text-inverse) !important; /* #F5F8FC */
+}
+html.light #gestures .preserve-3d .card-3d-crisp.is-hovered p,
+html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400\/40 p,
+html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400 p {
+  color: #AABBCD !important;
+}
+html.light #gestures .preserve-3d .card-3d-crisp.is-hovered .text-cyan-300,
+html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400\/40 .text-cyan-300,
+html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400 .text-cyan-300 {
+  color: #00D9FF !important;
 }
 
-/* Side Resting Cards in 3D Wheel: Slightly darker platinum #DCE4ED with Deep Navy text */
+/* Side Resting Cards in 3D Wheel: Platinum #DCE4ED with Deep Navy text #14283D */
 html.light #gestures .preserve-3d .card-3d-crisp:not(.is-hovered):not(.border-cyan-400\/40) {
-  background-color: var(--surface-secondary) !important; /* #DCE4ED */
+  background-color: var(--surface-primary) !important; /* Platinum #DCE4ED */
   border-color: var(--border-default) !important;       /* #C8D4E0 */
   box-shadow: var(--shadow-card) !important;
+  color: var(--text-primary) !important;              /* Deep Navy #14283D */
+}
+html.light #gestures .preserve-3d .card-3d-crisp:not(.is-hovered):not(.border-cyan-400\/40) .font-display {
+  color: var(--text-primary) !important;              /* Deep Navy #14283D */
+}
+html.light #gestures .preserve-3d .card-3d-crisp:not(.is-hovered):not(.border-cyan-400\/40) p {
+  color: var(--text-secondary) !important;            /* #425B72 */
 }
 
-/* Grid Gesture Cards: Platinum #E6EBF1, Deep Navy text, Blue-gray border */
+/* Active Gesture Spotlight Banner: Deep Navy #14283D Feature Surface */
+html.light #gestures .glass-card.max-w-2xl {
+  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important; /* #203B55 */
+  box-shadow: 0 16px 45px rgba(20, 40, 61, 0.22) !important;
+  color: var(--text-inverse) !important;
+}
+html.light #gestures .glass-card.max-w-2xl .font-display,
+html.light #gestures .glass-card.max-w-2xl .text-white {
+  color: var(--text-inverse) !important; /* #F5F8FC */
+}
+html.light #gestures .glass-card.max-w-2xl p,
+html.light #gestures .glass-card.max-w-2xl .text-slate-300 {
+  color: #AABBCD !important;
+}
+html.light #gestures .glass-card.max-w-2xl .text-cyan-300 {
+  color: #00D9FF !important;
+}
+
+/* Grid Gesture Cards: Platinum #DCE4ED, Deep Navy text, Blue-gray border */
 html.light #gestures .card-3d-crisp {
-  background-color: var(--surface-primary) !important; /* Platinum #E6EBF1 */
+  background-color: var(--surface-primary) !important; /* Platinum #DCE4ED */
   border-color: var(--border-default) !important;       /* #C8D4E0 */
   box-shadow: var(--shadow-card) !important;
 }
-html.light #gestures .card-3d-crisp.is-hovered,
-html.light #gestures .card-3d-crisp:hover {
+html.light #gestures .grid .card-3d-crisp.is-hovered,
+html.light #gestures .grid .card-3d-crisp:hover {
+  background-color: var(--surface-navy) !important;    /* Deep Navy #14283D Feature Card */
   border-color: var(--accent-primary) !important;      /* #087F9B */
-  box-shadow: 0 0 20px rgba(8, 127, 155, 0.20), var(--shadow-elevated) !important;
+  box-shadow: 0 16px 40px rgba(20, 40, 61, 0.25), 0 0 20px rgba(8, 127, 155, 0.20) !important;
+  color: var(--text-inverse) !important;
+}
+html.light #gestures .grid .card-3d-crisp.is-hovered .font-display,
+html.light #gestures .grid .card-3d-crisp:hover .font-display {
+  color: var(--text-inverse) !important;
+}
+html.light #gestures .grid .card-3d-crisp.is-hovered p,
+html.light #gestures .grid .card-3d-crisp:hover p {
+  color: #AABBCD !important;
 }
 
 /* Search and Filter Container in Gesture Library */
 html.light #gestures .glass-card {
-  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  background-color: var(--surface-primary) !important; /* #DCE4ED */
   border-color: var(--border-default) !important;       /* #C8D4E0 */
+}
+
+/* ── Feature Panel: Hero Live Recognition Preview in Deep Navy #14283D ── */
+html.light #hero .max-w-md .glass-card {
+  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important; /* #203B55 */
+  box-shadow: 0 24px 60px rgba(20, 40, 61, 0.28) !important;
+  color: var(--text-inverse) !important;
+}
+html.light #hero .max-w-md .glass-card .font-display,
+html.light #hero .max-w-md .glass-card .text-white {
+  color: var(--text-inverse) !important; /* #F5F8FC */
+}
+html.light #hero .max-w-md .glass-card .text-slate-200,
+html.light #hero .max-w-md .glass-card .text-slate-300 {
+  color: #DCE4ED !important;
+}
+html.light #hero .max-w-md .glass-card .text-slate-400 {
+  color: #AABBCD !important;
+}
+html.light #hero .max-w-md .glass-card .bg-slate-950\/80 {
+  background-color: var(--surface-navy-soft) !important; /* #203B55 */
+  border-color: rgba(200, 212, 224, 0.16) !important;
+}
+html.light #hero .max-w-md .glass-card .bg-white\/10 {
+  background-color: rgba(200, 212, 224, 0.15) !important;
+  color: #83E8F5 !important;
+}
+html.light #hero .max-w-md .glass-card .text-cyan-300,
+html.light #hero .max-w-md .glass-card .text-cyan-300\/80 {
+  color: #00D9FF !important;
+}
+html.light #hero .max-w-md .glass-frosted {
+  background-color: var(--surface-navy-soft) !important; /* #203B55 */
+  border-color: rgba(200, 212, 224, 0.16) !important;
+  color: var(--text-inverse) !important;
+}
+html.light #hero .max-w-md .glass-frosted .text-white {
+  color: var(--text-inverse) !important;
+}
+
+/* ── Feature Panel: Live Interpreter Output Panel in Deep Navy #14283D ── */
+html.light #demo .grid.gap-6 > div:last-child .glass-glow {
+  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important; /* #203B55 */
+  box-shadow: 0 20px 55px rgba(20, 40, 61, 0.25) !important;
+  color: var(--text-inverse) !important;
+}
+html.light #demo .grid.gap-6 > div:last-child .glass-glow .font-display,
+html.light #demo .grid.gap-6 > div:last-child .glass-glow .text-white {
+  color: var(--text-inverse) !important; /* #F5F8FC */
+}
+html.light #demo .grid.gap-6 > div:last-child .glass-glow .text-slate-400 {
+  color: #AABBCD !important;
+}
+html.light #demo .grid.gap-6 > div:last-child .glass-glow .text-cyan-300 {
+  color: #00D9FF !important;
+}
+html.light #demo .grid.gap-6 > div:last-child .glass-glow .bg-white\/\[0\.03\] {
+  background-color: var(--surface-navy-soft) !important; /* #203B55 */
+  border-color: rgba(200, 212, 224, 0.16) !important;
+}
+html.light #demo .grid.gap-6 > div:last-child .glass-glow .bg-cyan-400\/15 {
+  background-color: rgba(0, 217, 255, 0.18) !important;
+  border-color: rgba(0, 217, 255, 0.40) !important;
+  color: #00D9FF !important;
 }
 
 /* ── Feature Section: How It Works Central HUD in Deep Navy #14283D ── */
 html.light #how .pipeline-container .rounded-2xl.bg-slate-950\/75 {
-  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  background-color: var(--surface-primary) !important; /* #DCE4ED */
   border-color: var(--border-default) !important;       /* #C8D4E0 */
 }
 html.light #how button.bg-cyan-950\/80 {
@@ -764,11 +882,11 @@ html.light #how button.bg-cyan-950\/80 {
   box-shadow: 0 4px 16px rgba(8, 127, 155, 0.12) !important;
 }
 html.light #how button.bg-slate-900\/60 {
-  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  background-color: var(--surface-primary) !important; /* #DCE4ED */
   border-color: var(--border-default) !important;       /* #C8D4E0 */
 }
 html.light #how button.bg-slate-950\/40 {
-  background-color: var(--surface-secondary) !important; /* #DCE4ED */
+  background-color: var(--surface-secondary) !important; /* #E6EBF1 */
   border-color: var(--border-default) !important;       /* #C8D4E0 */
 }
 
@@ -800,21 +918,90 @@ html.light #how .glass-card .text-cyan-300 {
 
 /* ── Alternating Section Depth in Light Mode ── */
 html.light #demo {
-  background-color: rgba(230, 235, 241, 0.40);
+  background-color: rgba(220, 228, 237, 0.35);
   border-top: 1px solid var(--border-default);
   border-bottom: 1px solid var(--border-default);
 }
 
 html.light #team {
-  background-color: rgba(230, 235, 241, 0.40);
+  background-color: rgba(220, 228, 237, 0.35);
   border-top: 1px solid var(--border-default);
   border-bottom: 1px solid var(--border-default);
 }
 
 /* Team Accordion Gallery Container in Light Mode */
 html.light #team .bg-slate-950\/60 {
-  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  background-color: var(--surface-primary) !important; /* #DCE4ED */
   border-color: var(--border-default) !important;       /* #C8D4E0 */
+}
+
+/* ── Feature Panel: Team Active Member Spotlight in Deep Navy #14283D ── */
+html.light #team .glass-glow {
+  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important; /* #203B55 */
+  box-shadow: 0 20px 55px rgba(20, 40, 61, 0.25) !important;
+  color: var(--text-inverse) !important;
+}
+html.light #team .glass-glow h3,
+html.light #team .glass-glow .font-display,
+html.light #team .glass-glow .text-white {
+  color: var(--text-inverse) !important; /* #F5F8FC */
+}
+html.light #team .glass-glow p,
+html.light #team .glass-glow .text-slate-300 {
+  color: #DCE4ED !important;
+}
+html.light #team .glass-glow .text-slate-400 {
+  color: #AABBCD !important;
+}
+html.light #team .glass-glow .text-cyan-300 {
+  color: #00D9FF !important;
+}
+html.light #team .glass-glow .bg-white\/\[0\.03\] {
+  background-color: var(--surface-navy-soft) !important; /* #203B55 */
+  border-color: rgba(200, 212, 224, 0.16) !important;
+}
+html.light #team .glass-glow .glass-frosted {
+  background-color: var(--surface-navy-soft) !important; /* #203B55 */
+  border-color: rgba(200, 212, 224, 0.16) !important;
+  color: var(--text-inverse) !important;
+}
+
+/* ── Feature Panel: Contact Form Card in Deep Navy #14283D ── */
+html.light #contact form.glass-card {
+  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important; /* #203B55 */
+  box-shadow: 0 20px 55px rgba(20, 40, 61, 0.25) !important;
+  color: var(--text-inverse) !important;
+}
+html.light #contact form.glass-card .font-sans,
+html.light #contact form.glass-card label {
+  color: #AABBCD !important;
+}
+html.light #contact form.glass-card input,
+html.light #contact form.glass-card textarea {
+  background-color: var(--surface-navy-soft) !important; /* #203B55 */
+  color: #F5F8FC !important;
+  border-color: rgba(200, 212, 224, 0.20) !important;
+}
+html.light #contact form.glass-card input:focus,
+html.light #contact form.glass-card textarea:focus {
+  border-color: #087F9B !important;
+  box-shadow: 0 0 0 3px rgba(8, 127, 155, 0.25) !important;
+  background-color: #14283D !important;
+}
+
+/* Contact Quote Card: Deep Navy Highlight */
+html.light #contact .flex-1.glass-card {
+  background-color: var(--surface-navy) !important;
+  border-color: var(--surface-navy-soft) !important;
+  color: var(--text-inverse) !important;
+}
+html.light #contact .flex-1.glass-card p.font-display {
+  color: var(--text-inverse) !important;
+}
+html.light #contact .flex-1.glass-card p.text-slate-300 {
+  color: #AABBCD !important;
 }
 
 /* ── Model Section Feature Card: Deep Navy Highlight with Cyan Accents ── */
