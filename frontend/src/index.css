@@ -30,61 +30,65 @@
 
 :root[data-theme="light"],
 html.light {
-  /* Final Light Mode: Option B — Platinum & Navy */
-  /* Backgrounds */
-  --bg-primary: #F5F7FA;
-  --bg-secondary: #EDF1F5;
-  --bg-tertiary: #E6EBF1;
+  /* Final Light Mode: Platinum & Deep Navy System */
+  /* Page canvas */
+  --bg-primary: #FFFFFF;
 
-  /* Surfaces */
-  --surface-primary: #FFFFFF;
-  --surface-secondary: #F9FBFD;
-  --surface-elevated: #FFFFFF;
-  --surface-glass: rgba(255, 255, 255, 0.88);
+  /* Section surfaces */
+  --bg-secondary: #E6EBF1;
+  --bg-tertiary: #DCE4ED;
+
+  /* Component surfaces */
+  --surface-primary: #E6EBF1;
+  --surface-secondary: #DCE4ED;
+  --surface-elevated: #F0F3F7;
+  --surface-navy: #14283D;
+  --surface-navy-soft: #203B55;
+  --surface-glass: rgba(230, 235, 241, 0.90);
 
   /* Typography */
   --text-primary: #14283D;
-  --text-secondary: #64748B;
-  --text-muted: #8291A3;
-  --text-inverse: #FFFFFF;
+  --text-secondary: #425B72;
+  --text-muted: #647C91;
+  --text-inverse: #F5F8FC;
 
-  /* Brand accents */
+  /* Accents */
   --accent-primary: #087F9B;
   --accent-secondary: #168BFF;
-  --accent-soft: #E1F5F8;
+  --accent-soft: #D5F2F7;
 
   /* Borders */
-  --border-default: #D9E0E8;
-  --border-strong: #C3CED9;
+  --border-default: #C8D4E0;
+  --border-strong: #AABBCD;
 
-  /* Shadows */
-  --shadow-card: 0 8px 28px rgba(20, 40, 61, 0.06);
-  --shadow-elevated: 0 12px 32px rgba(20, 40, 61, 0.10);
+  /* Elevation */
+  --shadow-card: 0 8px 24px rgba(20, 40, 61, 0.09);
+  --shadow-elevated: 0 12px 32px rgba(20, 40, 61, 0.13);
 
   /* Interactive states */
-  --hover-surface: #EDF1F5;
+  --hover-surface: #DCE4ED;
   --focus-ring: #087F9B;
 
   /* Architecture token mappings */
-  --bg-main: var(--bg-primary);
-  --bg-section: var(--bg-secondary);
-  --bg-surface: var(--surface-secondary);
-  --bg-card: var(--surface-primary);
-  --bg-card-hover: var(--hover-surface);
-  --accent-cyan: var(--accent-primary);
-  --accent-blue: var(--accent-secondary);
-  --text-main: var(--text-primary);
-  --text-sub: var(--text-secondary);
-  --border-subtle: var(--border-default);
-  --border-card: var(--border-default);
-  --border-highlight: var(--border-strong);
-  --glow-cyan: rgba(8, 127, 155, 0.16);
-  --glow-lg: rgba(8, 127, 155, 0.25);
-  --grid-color: rgba(8, 127, 155, 0.035);
+  --bg-main: var(--bg-primary);          /* #FFFFFF */
+  --bg-section: var(--bg-secondary);     /* #E6EBF1 */
+  --bg-surface: var(--surface-primary);  /* #E6EBF1 */
+  --bg-card: var(--surface-primary);     /* #E6EBF1 */
+  --bg-card-hover: var(--surface-secondary); /* #DCE4ED */
+  --accent-cyan: var(--accent-primary);  /* #087F9B */
+  --accent-blue: var(--accent-secondary);/* #168BFF */
+  --text-main: var(--text-primary);      /* #14283D */
+  --text-sub: var(--text-secondary);     /* #425B72 */
+  --border-subtle: var(--border-default);/* #C8D4E0 */
+  --border-card: var(--border-default);  /* #C8D4E0 */
+  --border-highlight: var(--border-strong); /* #AABBCD */
+  --glow-cyan: rgba(8, 127, 155, 0.18);
+  --glow-lg: rgba(8, 127, 155, 0.28);
+  --grid-color: rgba(20, 40, 61, 0.035);
   --grad-text: linear-gradient(110deg, #14283D 0%, #087F9B 50%, #168BFF 100%);
-  --grad-text-soft: linear-gradient(110deg, #14283D 0%, #087F9B 50%, #64748B 100%);
-  --scrollbar-track: var(--bg-secondary);
-  --scrollbar-thumb: linear-gradient(180deg, #D9E0E8, #087F9B);
+  --grad-text-soft: linear-gradient(110deg, #14283D 0%, #087F9B 50%, #425B72 100%);
+  --scrollbar-track: #FFFFFF;
+  --scrollbar-thumb: linear-gradient(180deg, #C8D4E0, #087F9B);
 }
 
 /* ─────────────────────────── Base & Reset ─────────────────────────── */
@@ -113,8 +117,8 @@ body {
 }
 
 html.light ::selection {
-  background: rgba(0, 187, 217, 0.25);
-  color: #081522;
+  background: rgba(8, 127, 155, 0.25);
+  color: #14283D;
 }
 
 /* Slim luxury scrollbar */
@@ -443,13 +447,13 @@ html.light .noise::after,
   opacity: 0 !important;
 }
 
-/* Base Body and Main Container Text Contrast */
+/* Base Body and Main Container: Pure White Canvas #FFFFFF */
 html.light,
 html.light body,
 [data-theme="light"],
 [data-theme="light"] body {
-  background-color: var(--bg-primary) !important; /* #F5F7FA */
-  color: var(--text-primary) !important;           /* #14283D */
+  background-color: var(--bg-primary) !important; /* Pure White #FFFFFF */
+  color: var(--text-primary) !important;           /* Deep Navy #14283D */
 }
 
 /* ── Typography & Text Contrast Hierarchy ── */
@@ -467,22 +471,22 @@ html.light h4,
 html.light .split-char,
 html.light .split-word,
 html.light .split-word-inner {
-  color: var(--text-primary) !important; /* #14283D */
+  color: var(--text-primary) !important; /* Deep Navy #14283D */
 }
 
-/* Body & Secondary Text: Slate Blue #64748B */
+/* Body & Secondary Text: Slate Blue #425B72 */
 html.light .text-slate-300,
 html.light .text-slate-400 {
-  color: var(--text-secondary) !important; /* #64748B */
+  color: var(--text-secondary) !important; /* #425B72 */
 }
 
-/* Muted Meta & Label Text: Muted Slate #8291A3 */
+/* Muted Meta & Label Text: Muted Slate #647C91 */
 html.light .text-slate-500,
 html.light .text-slate-600 {
-  color: var(--text-muted) !important; /* #8291A3 */
+  color: var(--text-muted) !important; /* #647C91 */
 }
 
-/* Brand Cyan/Teal Accents: Deep Cyan #087F9B for High Contrast on Light Surfaces */
+/* Brand Cyan/Teal Accents: Deep Cyan #087F9B for High Contrast on Platinum/White */
 html.light .text-cyan-200,
 html.light .text-cyan-300,
 html.light .text-cyan-300\/80,
@@ -500,7 +504,7 @@ html.light .text-sky-400 {
   color: var(--accent-secondary) !important; /* #168BFF */
 }
 
-/* ── Surfaces and Cards: Pure White #FFFFFF with Platinum Borders #D9E0E8 ── */
+/* ── Surfaces and Cards: Platinum #E6EBF1 with Blue-Gray Borders #C8D4E0 ── */
 html.light .glass,
 html.light .glass-card,
 html.light .glass-glow,
@@ -518,12 +522,12 @@ html.light .bg-slate-900,
 html.light .bg-slate-900\/95,
 html.light .bg-slate-900\/90,
 html.light .bg-slate-900\/80 {
-  background-color: var(--surface-primary) !important; /* #FFFFFF */
-  border-color: var(--border-default) !important;       /* #D9E0E8 */
-  box-shadow: var(--shadow-card) !important;
+  background-color: var(--surface-primary) !important; /* Platinum #E6EBF1 */
+  border-color: var(--border-default) !important;       /* Blue-Gray #C8D4E0 */
+  box-shadow: var(--shadow-card) !important;          /* 0 8px 24px rgba(20, 40, 61, 0.09) */
 }
 
-/* Secondary Surfaces, Sub-cards, and Inner Panels: #F9FBFD */
+/* Secondary Surfaces, Sub-cards, and Inner Panels: Darker Platinum #DCE4ED */
 html.light .bg-slate-950\/40,
 html.light .bg-slate-900\/60,
 html.light .bg-white\/10,
@@ -533,11 +537,18 @@ html.light .bg-white\/\[0\.03\],
 html.light .bg-white\/\[0\.04\],
 html.light .bg-white\/\[0\.05\],
 html.light .bg-white\/\[0\.06\] {
-  background-color: var(--surface-secondary) !important; /* #F9FBFD */
-  border-color: var(--border-default) !important;
+  background-color: var(--surface-secondary) !important; /* #DCE4ED */
+  border-color: var(--border-default) !important;       /* #C8D4E0 */
 }
 
-/* All Borders & Dividers: Platinum #D9E0E8 */
+/* Elevated Surfaces: Soft Elevated Platinum #F0F3F7 */
+html.light .surface-elevated {
+  background-color: var(--surface-elevated) !important; /* #F0F3F7 */
+  border-color: var(--border-default) !important;
+  box-shadow: var(--shadow-elevated) !important;
+}
+
+/* All Borders & Dividers: Subtle Blue-Gray #C8D4E0 */
 html.light .border-white\/20,
 html.light .border-white\/15,
 html.light .border-white\/12,
@@ -547,14 +558,14 @@ html.light .border-white\/5,
 html.light .hairline,
 html.light .divide-white\/10 > :not([hidden]) ~ :not([hidden]),
 html.light .divide-white\/15 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--border-default) !important; /* #D9E0E8 */
+  border-color: var(--border-default) !important; /* #C8D4E0 */
 }
 
 /* Card Hover Luminous Border Glow in Light Mode */
 html.light .card-border-glow:hover,
 html.light .card-border-glow.is-hovered {
   border-color: var(--accent-primary) !important; /* #087F9B */
-  box-shadow: 0 0 24px var(--glow-cyan), var(--shadow-card) !important;
+  box-shadow: 0 0 20px var(--glow-cyan), var(--shadow-elevated) !important;
 }
 
 /* Soft Platinum Navy Shadows */
@@ -568,41 +579,48 @@ html.light .shadow-\[0_24px_55px_rgba\(0\,0\,0\,0\.85\)\] {
 }
 
 /* ── Buttons & Interactive Elements ── */
-/* Primary Button: Deep Cyan/Teal #087F9B with Crisp White Text */
+/* Primary Button: Deep Navy into Brand Teal with Crisp White Text */
 html.light .btn-shimmer,
 html.light button.bg-cyan-400,
 html.light a.bg-cyan-400 {
-  background: linear-gradient(135deg, #087F9B 0%, #06677F 100%) !important;
+  background: linear-gradient(135deg, #14283D 0%, #087F9B 100%) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 4px 18px rgba(8, 127, 155, 0.28) !important;
+  box-shadow: 0 4px 18px rgba(20, 40, 61, 0.20) !important;
+}
+
+html.light .btn-shimmer:hover,
+html.light button.bg-cyan-400:hover,
+html.light a.bg-cyan-400:hover {
+  background: linear-gradient(135deg, #087F9B 0%, #168BFF 100%) !important;
+  box-shadow: 0 6px 22px rgba(8, 127, 155, 0.32) !important;
 }
 
 html.light .btn-shimmer * {
   color: #FFFFFF !important;
 }
 
-/* Secondary Button: Pure White, Navy text, Platinum Border #D9E0E8, Cyan hover */
+/* Secondary Button: Platinum Surface #E6EBF1, Deep Navy text, Blue-gray Border #C8D4E0 */
 html.light button.glass-card,
 html.light a.glass-card {
-  background-color: var(--surface-primary) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-default) !important;
+  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  color: var(--text-primary) !important;              /* #14283D */
+  border-color: var(--border-default) !important;      /* #C8D4E0 */
 }
 html.light button.glass-card:hover,
 html.light a.glass-card:hover {
-  background-color: var(--hover-surface) !important; /* #EDF1F5 */
-  border-color: var(--accent-primary) !important;   /* #087F9B */
+  background-color: var(--surface-secondary) !important; /* #DCE4ED */
+  border-color: var(--accent-primary) !important;        /* #087F9B */
   color: var(--accent-primary) !important;
 }
 
-/* Form Inputs: White background, Deep Navy text, Visible border #D9E0E8 */
+/* Form Inputs: Elevated Platinum #F0F3F7, Deep Navy text, Blue-gray border #C8D4E0 */
 html.light input,
 html.light textarea,
 html.light select,
 html.light .field {
-  background-color: var(--surface-primary) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-default) !important;
+  background-color: var(--surface-elevated) !important; /* #F0F3F7 */
+  color: var(--text-primary) !important;                /* #14283D */
+  border-color: var(--border-default) !important;        /* #C8D4E0 */
   box-shadow: 0 1px 3px rgba(20, 40, 61, 0.04) inset !important;
 }
 html.light input:focus,
@@ -611,11 +629,11 @@ html.light select:focus,
 html.light .field:focus {
   border-color: var(--focus-ring) !important; /* #087F9B */
   box-shadow: 0 0 0 3px rgba(8, 127, 155, 0.18) !important;
-  background-color: var(--surface-primary) !important;
+  background-color: #FFFFFF !important;
 }
 html.light input::placeholder,
 html.light textarea::placeholder {
-  color: var(--text-muted) !important; /* #8291A3 */
+  color: var(--text-muted) !important; /* #647C91 */
 }
 
 /* ── Badges, Active Pills, and Tabs in Light Mode ── */
@@ -624,12 +642,10 @@ html.light .bg-cyan-400\/20,
 html.light .bg-cyan-400\/15,
 html.light .bg-cyan-400\/10,
 html.light .bg-cyan-500\/15,
-html.light .bg-teal-400\/15,
-html.light .bg-cyan-950\/80,
-html.light .bg-cyan-950\/60 {
-  background-color: var(--accent-soft) !important; /* #E1F5F8 */
+html.light .bg-teal-400\/15 {
+  background-color: var(--accent-soft) !important; /* #D5F2F7 */
   color: var(--accent-primary) !important;         /* #087F9B */
-  border-color: var(--border-strong) !important;   /* #C3CED9 */
+  border-color: var(--border-strong) !important;   /* #AABBCD */
 }
 
 html.light .border-cyan-400\/60,
@@ -652,21 +668,21 @@ html.light .hover\:text-white:hover {
   color: var(--accent-primary) !important;
 }
 
-/* Navbar Navigation in Light Mode: Arctic Glass with Crisp Navy Links */
+/* Navbar Navigation in Light Mode: Platinum Glass with Crisp Deep Navy Links */
 html.light header nav {
-  background-color: var(--surface-glass) !important;
-  border-color: var(--border-default) !important;
+  background-color: var(--surface-glass) !important; /* rgba(230, 235, 241, 0.90) */
+  border-color: var(--border-default) !important;   /* #C8D4E0 */
   box-shadow: var(--shadow-elevated) !important;
 }
 html.light header nav span.bg-white\/10 {
-  background-color: var(--bg-secondary) !important; /* #EDF1F5 */
+  background-color: var(--surface-secondary) !important; /* #DCE4ED */
   box-shadow: 0 0 0 1px var(--border-default) inset !important;
 }
 
 /* Model Section SVG Gauge Track */
 html.light #model circle[stroke="rgba(255,255,255,0.07)"],
 html.light #model svg circle:first-of-type {
-  stroke: var(--border-default) !important; /* #D9E0E8 */
+  stroke: var(--border-default) !important; /* #C8D4E0 */
 }
 
 /* Watermark text: Platinum hint */
@@ -679,13 +695,13 @@ html.light .text-stroke {
   -webkit-text-stroke: 1.5px rgba(20, 40, 61, 0.35) !important;
 }
 
-/* Active Tabs, Badges & Buttons in Light Mode */
+/* Active Tabs & Category Pills in Light Mode */
 html.light .bg-cyan-400.text-slate-950,
 html.light button.bg-gradient-to-r.from-\[\#00D9FF\].text-slate-950,
 html.light .bg-gradient-to-r.from-\[\#00D9FF\].text-slate-950 {
-  background: linear-gradient(135deg, #087F9B 0%, #06677F 100%) !important;
+  background: linear-gradient(135deg, #14283D 0%, #087F9B 100%) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 4px 14px rgba(8, 127, 155, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(20, 40, 61, 0.20) !important;
 }
 
 html.light .bg-cyan-400.text-slate-950 svg,
@@ -694,38 +710,129 @@ html.light .bg-gradient-to-r.from-\[\#00D9FF\].text-slate-950 * {
   color: #FFFFFF !important;
 }
 
-/* How It Works Pipeline in Light Mode */
+/* ── 3D Wheel and Gesture Library in Light Mode ── */
+/* 3D Wheel Stage Edge Vignettes in Light Mode (fade to pure white instead of dark slate-950) */
+html.light #gestures .pointer-events-none.bg-gradient-to-r.from-slate-950 {
+  background-image: linear-gradient(to right, #FFFFFF 0%, rgba(255, 255, 255, 0.75) 50%, transparent 100%) !important;
+}
+html.light #gestures .pointer-events-none.bg-gradient-to-l.from-slate-950 {
+  background-image: linear-gradient(to left, #FFFFFF 0%, rgba(255, 255, 255, 0.75) 50%, transparent 100%) !important;
+}
+
+/* Front Active Card in 3D Wheel: Platinum #E6EBF1 with Cyan accent border/glow */
+html.light #gestures .preserve-3d .card-3d-crisp.is-hovered,
+html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400\/40,
+html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400 {
+  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  border-color: var(--accent-primary) !important;      /* #087F9B */
+  box-shadow: 0 0 24px rgba(8, 127, 155, 0.22), var(--shadow-elevated) !important;
+}
+
+/* Side Resting Cards in 3D Wheel: Slightly darker platinum #DCE4ED with Deep Navy text */
+html.light #gestures .preserve-3d .card-3d-crisp:not(.is-hovered):not(.border-cyan-400\/40) {
+  background-color: var(--surface-secondary) !important; /* #DCE4ED */
+  border-color: var(--border-default) !important;       /* #C8D4E0 */
+  box-shadow: var(--shadow-card) !important;
+}
+
+/* Grid Gesture Cards: Platinum #E6EBF1, Deep Navy text, Blue-gray border */
+html.light #gestures .card-3d-crisp {
+  background-color: var(--surface-primary) !important; /* Platinum #E6EBF1 */
+  border-color: var(--border-default) !important;       /* #C8D4E0 */
+  box-shadow: var(--shadow-card) !important;
+}
+html.light #gestures .card-3d-crisp.is-hovered,
+html.light #gestures .card-3d-crisp:hover {
+  border-color: var(--accent-primary) !important;      /* #087F9B */
+  box-shadow: 0 0 20px rgba(8, 127, 155, 0.20), var(--shadow-elevated) !important;
+}
+
+/* Search and Filter Container in Gesture Library */
+html.light #gestures .glass-card {
+  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  border-color: var(--border-default) !important;       /* #C8D4E0 */
+}
+
+/* ── Feature Section: How It Works Central HUD in Deep Navy #14283D ── */
 html.light #how .pipeline-container .rounded-2xl.bg-slate-950\/75 {
-  background-color: var(--surface-primary) !important; /* #FFFFFF */
-  border-color: var(--border-default) !important;       /* #D9E0E8 */
+  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  border-color: var(--border-default) !important;       /* #C8D4E0 */
 }
 html.light #how button.bg-cyan-950\/80 {
-  background-color: var(--accent-soft) !important;     /* #E1F5F8 */
+  background-color: var(--accent-soft) !important;     /* #D5F2F7 */
   border-color: var(--accent-primary) !important;      /* #087F9B */
   box-shadow: 0 4px 16px rgba(8, 127, 155, 0.12) !important;
 }
 html.light #how button.bg-slate-900\/60 {
-  background-color: var(--surface-primary) !important; /* #FFFFFF */
-  border-color: var(--border-default) !important;       /* #D9E0E8 */
+  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  border-color: var(--border-default) !important;       /* #C8D4E0 */
 }
 html.light #how button.bg-slate-950\/40 {
-  background-color: var(--surface-secondary) !important; /* #F9FBFD */
-  border-color: var(--border-default) !important;
+  background-color: var(--surface-secondary) !important; /* #DCE4ED */
+  border-color: var(--border-default) !important;       /* #C8D4E0 */
 }
 
-/* Supported Gestures Cards & Badges in Light Mode */
-html.light #gestures .card-3d-crisp {
-  background-color: var(--surface-primary) !important; /* #FFFFFF */
-  border-color: var(--border-default) !important;       /* #D9E0E8 */
+/* Central Pipeline HUD Card: Deep Navy Feature Surface #14283D */
+html.light #how .glass-card {
+  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important; /* #203B55 */
+  box-shadow: 0 16px 45px rgba(20, 40, 61, 0.22) !important;
+  color: var(--text-inverse) !important;
 }
-html.light #gestures .card-3d-crisp.is-hovered {
-  border-color: var(--accent-primary) !important;      /* #087F9B */
+html.light #how .glass-card h3,
+html.light #how .glass-card .font-display,
+html.light #how .glass-card .text-white {
+  color: var(--text-inverse) !important; /* #F5F8FC */
+}
+html.light #how .glass-card p,
+html.light #how .glass-card .text-slate-300,
+html.light #how .glass-card .text-slate-400 {
+  color: #AABBCD !important;
+}
+html.light #how .glass-card .bg-slate-900\/60,
+html.light #how .glass-card .bg-slate-950\/85 {
+  background-color: var(--surface-navy-soft) !important; /* #203B55 */
+  border-color: rgba(200, 212, 224, 0.18) !important;
+}
+html.light #how .glass-card .text-cyan-300 {
+  color: #00D9FF !important;
+}
+
+/* ── Alternating Section Depth in Light Mode ── */
+html.light #demo {
+  background-color: rgba(230, 235, 241, 0.40);
+  border-top: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--border-default);
+}
+
+html.light #team {
+  background-color: rgba(230, 235, 241, 0.40);
+  border-top: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--border-default);
 }
 
 /* Team Accordion Gallery Container in Light Mode */
 html.light #team .bg-slate-950\/60 {
-  background-color: var(--surface-primary) !important; /* #FFFFFF */
-  border-color: var(--border-default) !important;       /* #D9E0E8 */
+  background-color: var(--surface-primary) !important; /* #E6EBF1 */
+  border-color: var(--border-default) !important;       /* #C8D4E0 */
+}
+
+/* ── Model Section Feature Card: Deep Navy Highlight with Cyan Accents ── */
+html.light #model .grid > div:first-child .glass-card {
+  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important; /* #203B55 */
+  box-shadow: 0 16px 40px rgba(20, 40, 61, 0.20) !important;
+}
+html.light #model .grid > div:first-child .glass-card .font-mono {
+  color: #AABBCD !important;
+}
+html.light #model .grid > div:first-child .glass-card .grad-text {
+  background: linear-gradient(110deg, #F5F8FC 0%, #00D9FF 50%, #168BFF 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+html.light #model .grid > div:first-child .glass-card circle[stroke="currentColor"] {
+  stroke: rgba(200, 212, 224, 0.15) !important;
 }
 
 /* Live Demo Camera Viewport Background in Light Mode */
@@ -733,12 +840,42 @@ html.light #demo .scanline.bg-slate-950 {
   background-color: #081522 !important; /* Keep camera feed container dark contrast */
 }
 
-/* Marquee & Footer in Light Mode */
-html.light .marquee-track span {
-  color: var(--text-secondary) !important; /* #64748B */
-}
+/* ── Deep Navy Anchor Footer in Light Mode ── */
 html.light footer {
-  border-top-color: var(--border-default) !important; /* #D9E0E8 */
+  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
+  color: var(--text-inverse) !important;            /* Light #F5F8FC */
+  border-top-color: var(--surface-navy-soft) !important; /* #203B55 */
+}
+html.light footer h1,
+html.light footer h2,
+html.light footer h3,
+html.light footer h4,
+html.light footer .font-display,
+html.light footer .text-white {
+  color: var(--text-inverse) !important;            /* #F5F8FC */
+}
+html.light footer p,
+html.light footer .text-slate-400,
+html.light footer .text-slate-300,
+html.light footer a.text-slate-400 {
+  color: #AABBCD !important;
+}
+html.light footer .text-cyan-300,
+html.light footer .text-cyan-400,
+html.light footer .text-cyan-300\/80 {
+  color: #00D9FF !important;                        /* Vibrant cyan accent on Navy */
+}
+html.light footer .glass-card {
+  background-color: rgba(32, 59, 85, 0.65) !important;
+  border-color: rgba(200, 212, 224, 0.18) !important;
+  color: #F5F8FC !important;
+}
+html.light footer .marquee-track span {
+  color: #AABBCD !important;
+}
+html.light footer .watermark {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.05) !important;
+  opacity: 0.08 !important;
 }
 
 /* Reduce motion */

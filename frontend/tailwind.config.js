@@ -25,17 +25,18 @@ export default {
         slate: {
           blue: '#8296A8',
         },
-        // Light Mode palette: Option B — Platinum & Navy
-        platinum: '#F5F7FA',
-        platinumSecondary: '#EDF1F5',
-        platinumTertiary: '#E6EBF1',
+        // Light Mode palette: Platinum & Deep Navy System
+        platinum: '#E6EBF1',
+        platinumSecondary: '#DCE4ED',
+        platinumElevated: '#F0F3F7',
         deepNavy: '#14283D',
-        slateBlue: '#64748B',
-        mutedSlate: '#8291A3',
+        navySoft: '#203B55',
+        slateBlue: '#425B72',
+        mutedSlate: '#647C91',
         tealAccent: '#087F9B',
-        softAccent: '#E1F5F8',
-        softBorder: '#D9E0E8',
-        strongBorder: '#C3CED9',
+        softAccent: '#D5F2F7',
+        softBorder: '#C8D4E0',
+        strongBorder: '#AABBCD',
         pure: {
           white: '#FFFFFF',
         },

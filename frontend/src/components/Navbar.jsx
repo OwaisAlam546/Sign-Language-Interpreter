@@ -143,7 +143,7 @@ export default function Navbar() {
               {isDark ? (
                 <FiSun className="h-4.5 w-4.5 transition-transform duration-300 hover:rotate-45 text-[#83E8F5]" />
               ) : (
-                <FiMoon className="h-4.5 w-4.5 transition-transform duration-300 hover:-rotate-12 text-[#00BBD9]" />
+                <FiMoon className="h-4.5 w-4.5 transition-transform duration-300 hover:-rotate-12 text-[#087F9B]" />
               )}
             </button>
 
@@ -211,7 +211,7 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <FiMoon className="h-4 w-4 text-[#00BBD9]" />
+                <FiMoon className="h-4 w-4 text-[#087F9B]" />
                 <span>Dark Theme</span>
               </>
             )}

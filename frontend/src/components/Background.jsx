@@ -302,44 +302,34 @@ export default function Background() {
   return (
     <div
       className={`pointer-events-none fixed inset-0 z-0 overflow-hidden transition-colors duration-500 ${
-        isDark ? 'bg-[#05080D]' : 'bg-[#F5F7FA]'
+        isDark ? 'bg-[#05080D]' : 'bg-[#FFFFFF]'
       }`}
       aria-hidden="true"
     >
-      {/* Background base mesh & subtle controlled depth - #05080D in dark, #F5F7FA in light */}
+      {/* Background base mesh & subtle controlled depth - #05080D in dark, pure #FFFFFF in light */}
       <div
         className="absolute inset-0 transition-opacity duration-500"
         style={{
           background: isDark
             ? 'radial-gradient(ellipse 65% 45% at 50% 18%, rgba(0, 217, 255, 0.045) 0%, rgba(8, 21, 34, 0.16) 35%, rgba(5, 8, 13, 0.95) 65%, #05080D 100%)'
-            : 'radial-gradient(ellipse 70% 50% at 50% 15%, rgba(230, 235, 241, 0.55) 0%, rgba(237, 241, 245, 0.85) 45%, #F5F7FA 100%)',
+            : '#FFFFFF',
         }}
       />
 
-      {/* Whisper-soft atmospheric accents with scroll parallax */}
-      <div ref={orbsRef} className="absolute inset-0 will-change-transform">
-        {/* Top subtle cyan accent */}
-        <div
-          className={`absolute -left-[5%] top-[-5%] h-[28vw] w-[28vw] rounded-full blur-[120px] animate-orb transition-colors duration-700 ${
-            isDark ? 'bg-[#00D9FF]/[0.035]' : 'bg-[#087F9B]/[0.025]'
-          }`}
-        />
-        {/* Mid-right faint Electric Blue accent */}
-        <div
-          className={`absolute right-[-5%] top-[25%] h-[24vw] w-[24vw] rounded-full blur-[120px] animate-orb [animation-delay:-5s] transition-colors duration-700 ${
-            isDark ? 'bg-[#168BFF]/[0.025]' : 'bg-[#168BFF]/[0.02]'
-          }`}
-        />
-        {/* Bottom subtle cyan foundation */}
-        <div
-          className={`absolute bottom-[-10%] left-[20%] h-[26vw] w-[26vw] rounded-full blur-[130px] animate-orb [animation-delay:-14s] transition-colors duration-700 ${
-            isDark ? 'bg-[#00D9FF]/[0.02]' : 'bg-[#087F9B]/[0.015]'
-          }`}
-        />
-      </div>
+      {/* Whisper-soft atmospheric accents with scroll parallax (Dark mode only) */}
+      {isDark && (
+        <div ref={orbsRef} className="absolute inset-0 will-change-transform">
+          {/* Top subtle cyan accent */}
+          <div className="absolute -left-[5%] top-[-5%] h-[28vw] w-[28vw] rounded-full blur-[120px] animate-orb bg-[#00D9FF]/[0.035]" />
+          {/* Mid-right faint Electric Blue accent */}
+          <div className="absolute right-[-5%] top-[25%] h-[24vw] w-[24vw] rounded-full blur-[120px] animate-orb [animation-delay:-5s] bg-[#168BFF]/[0.025]" />
+          {/* Bottom subtle cyan foundation */}
+          <div className="absolute bottom-[-10%] left-[20%] h-[26vw] w-[26vw] rounded-full blur-[130px] animate-orb [animation-delay:-14s] bg-[#00D9FF]/[0.02]" />
+        </div>
+      )}
 
       {/* Animated neural grid - subtle non-intrusive technical overlay */}
-      <div className="ai-grid absolute inset-0 animate-grid-pan opacity-25" />
+      <div className={`ai-grid absolute inset-0 animate-grid-pan ${isDark ? 'opacity-25' : 'opacity-15'}`} />
 
       {/* Interactive Continuously Glowing Neural Particle Constellation Canvas */}
       <Particles isDark={isDark} />
@@ -347,38 +337,38 @@ export default function Background() {
       {/* Horizon delicate accent lines */}
       <div
         className={`absolute bottom-0 left-1/2 h-px w-[120%] -translate-x-1/2 bg-gradient-to-r from-transparent ${
-          isDark ? 'via-[#00D9FF]/20' : 'via-[#087F9B]/20'
+          isDark ? 'via-[#00D9FF]/20' : 'via-[#C8D4E0]/50'
         } to-transparent transition-colors duration-500`}
       />
       <div
         className={`absolute top-0 left-1/2 h-px w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent ${
-          isDark ? 'via-[#00D9FF]/10' : 'via-[#087F9B]/10'
+          isDark ? 'via-[#00D9FF]/10' : 'via-[#C8D4E0]/30'
         } to-transparent transition-colors duration-500`}
       />
 
       {/* Floating technical geometric accents */}
       <div className={`absolute left-[8%] top-[64%] hidden h-16 w-16 rotate-12 rounded-2xl border ${
-        isDark ? 'border-[#00D9FF]/20 shadow-[0_0_12px_rgba(0,217,255,0.08)]' : 'border-[#087F9B]/25 shadow-[0_0_12px_rgba(8,127,155,0.06)]'
+        isDark ? 'border-[#00D9FF]/20 shadow-[0_0_12px_rgba(0,217,255,0.08)]' : 'border-[#C8D4E0]/70 shadow-[0_0_12px_rgba(20,40,61,0.04)]'
       } animate-float-slow lg:block`} />
       <div className={`absolute right-[10%] top-[16%] hidden h-10 w-10 -rotate-6 rounded-full border ${
-        isDark ? 'border-[#00D9FF]/20 shadow-[0_0_12px_rgba(0,217,255,0.08)]' : 'border-[#087F9B]/25 shadow-[0_0_12px_rgba(8,127,155,0.06)]'
+        isDark ? 'border-[#00D9FF]/20 shadow-[0_0_12px_rgba(0,217,255,0.08)]' : 'border-[#C8D4E0]/70 shadow-[0_0_12px_rgba(20,40,61,0.04)]'
       } animate-float lg:block`} />
       <div className={`absolute left-[45%] top-[8%] hidden h-4 w-4 rounded-full ${
         isDark ? 'bg-[#00D9FF]/15' : 'bg-[#087F9B]/15'
       } blur-[1px] animate-float-slow lg:block`} />
       <div className={`absolute right-[22%] bottom-[22%] hidden h-8 w-8 rotate-45 rounded-md border ${
-        isDark ? 'border-[#00D9FF]/20' : 'border-[#087F9B]/25'
+        isDark ? 'border-[#00D9FF]/20' : 'border-[#C8D4E0]/70'
       } animate-float lg:block [animation-delay:-3s]`} />
 
-      {/* Vignette preserving depth and contrast */}
-      <div
-        className="absolute inset-0 transition-opacity duration-500"
-        style={{
-          background: isDark
-            ? 'radial-gradient(ellipse at center, transparent 35%, rgba(5, 8, 13, 0.82) 65%, #05080D 95%)'
-            : 'radial-gradient(ellipse at center, transparent 70%, rgba(237, 241, 245, 0.45) 100%)',
-        }}
-      />
+      {/* Vignette preserving depth and contrast in dark mode */}
+      {isDark && (
+        <div
+          className="absolute inset-0 transition-opacity duration-500"
+          style={{
+            background: 'radial-gradient(ellipse at center, transparent 35%, rgba(5, 8, 13, 0.82) 65%, #05080D 95%)',
+          }}
+        />
+      )}
     </div>
   );
 }
