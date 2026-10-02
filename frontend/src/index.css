@@ -34,6 +34,9 @@
   --grad-text-soft: linear-gradient(110deg, #EAF6FA 0%, #83E8F5 50%, #00D9FF 100%);
   --scrollbar-track: #05080D;
   --scrollbar-thumb: linear-gradient(180deg, #0B2634, #168BFF);
+  --map-card-bg: rgba(6, 16, 26, 0.88);
+  --bg-input: rgba(5, 8, 13, 0.75);
+  --text-muted: #64748B;
 }
 
 :root[data-theme="light"],
@@ -107,6 +110,8 @@ html.light {
   --grad-text-soft: linear-gradient(110deg, #14283D 0%, #087F9B 50%, #425B72 100%);
   --scrollbar-track: #FFFFFF;
   --scrollbar-thumb: linear-gradient(180deg, #C5D0DC, #087F9B);
+  --map-card-bg: #FFFFFF;
+  --bg-input: #F8FAFC;
 }
 
 /* ─────────────────────────── Base & Reset ─────────────────────────── */
@@ -1468,37 +1473,69 @@ html.light #gestures .glass-card {
 }
 
 /* Category Tabs (Letters vs Words) */
-html.light #gestures .glass-card button.text-slate-400 {
+html.light #gestures .glass-card button.font-display.text-slate-400 {
   color: var(--text-secondary) !important;
   /* #425B72 */
   font-weight: 500 !important;
 }
 
-html.light #gestures .glass-card button.text-slate-400:hover {
+html.light #gestures .glass-card button.font-display.text-slate-400:hover {
   color: var(--accent-primary) !important;
   /* #087F9B */
 }
 
-/* View Mode Switcher (3D Wheel vs Grid) */
-html.light #gestures button.bg-cyan-400\/20 {
-  background-color: var(--surface-navy) !important;
-  /* Deep Navy #14283D */
+/* Selected Letters / Words Tab in Gesture Library: Pure White #FFFFFF Text */
+html.light #gestures .glass-card button.font-display[aria-pressed="true"],
+html.light #gestures .glass-card button.font-display[aria-pressed="true"].bg-gradient-to-r,
+html.light #gestures .glass-card button.font-display[aria-pressed="true"].shadow-glow,
+html.light #gestures .glass-card button.font-display[aria-pressed="true"] * {
+  color: #FFFFFF !important;
+}
+
+/* ── View Mode Switcher (3D Wheel vs Grid) in Light Mode ── */
+/* Selected button: existing blue background with pure white #FFFFFF text */
+html.light #gestures .glass-card button.font-mono[aria-pressed="true"],
+html.light #gestures .glass-card button.font-mono.bg-cyan-400\/20 {
+  background: linear-gradient(135deg, #14283D 0%, #087F9B 100%) !important;
   color: #FFFFFF !important;
   border: 1px solid var(--accent-primary) !important;
-  box-shadow: 0 2px 8px rgba(20, 40, 61, 0.18) !important;
+  box-shadow: 0 2px 10px rgba(20, 40, 61, 0.22), 0 0 12px rgba(8, 127, 155, 0.20) !important;
 }
 
-html.light #gestures button.bg-cyan-400\/20 svg {
+html.light #gestures .glass-card button.font-mono[aria-pressed="true"] span,
+html.light #gestures .glass-card button.font-mono.bg-cyan-400\/20 span {
+  color: #FFFFFF !important;
+}
+
+html.light #gestures .glass-card button.font-mono[aria-pressed="true"] svg,
+html.light #gestures .glass-card button.font-mono.bg-cyan-400\/20 svg {
   color: #83E8F5 !important;
-  /* Subtle cyan accent */
+  /* Subtle cyan accent on icon */
 }
 
-html.light #gestures button.text-slate-400 {
-  color: var(--text-secondary) !important;
-  /* #425B72 */
+/* Unselected button: original light background with Deep Navy #14283D text */
+html.light #gestures .glass-card button.font-mono[aria-pressed="false"],
+html.light #gestures .glass-card button.font-mono.text-slate-400 {
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #14283D !important;
 }
 
-html.light #gestures button.text-slate-400:hover {
+html.light #gestures .glass-card button.font-mono[aria-pressed="false"] span,
+html.light #gestures .glass-card button.font-mono.text-slate-400 span,
+html.light #gestures .glass-card button.font-mono[aria-pressed="false"] svg,
+html.light #gestures .glass-card button.font-mono.text-slate-400 svg {
+  color: #14283D !important;
+}
+
+html.light #gestures .glass-card button.font-mono[aria-pressed="false"]:hover,
+html.light #gestures .glass-card button.font-mono.text-slate-400:hover,
+html.light #gestures .glass-card button.font-mono[aria-pressed="false"]:hover span,
+html.light #gestures .glass-card button.font-mono.text-slate-400:hover span,
+html.light #gestures .glass-card button.font-mono[aria-pressed="false"]:hover svg,
+html.light #gestures .glass-card button.font-mono.text-slate-400:hover svg {
   color: var(--accent-primary) !important;
 }
 
@@ -1524,6 +1561,52 @@ html.light #gestures .relative button.text-slate-400 {
 html.light #gestures .relative button.text-slate-400:hover {
   color: var(--accent-primary) !important;
 }
+/* Search Results & Cross-Category Suggestion Banner in Light Mode */
+html.light #gestures .search-suggestion-banner {
+  background-color: var(--surface-navy) !important;
+  border-color: rgba(0, 217, 255, 0.40) !important;
+  box-shadow: 0 12px 36px rgba(20, 40, 61, 0.22) !important;
+  color: #FFFFFF !important;
+}
+
+html.light #gestures .search-suggestion-banner span {
+  color: #DCE4ED !important;
+}
+
+html.light #gestures .search-suggestion-banner strong {
+  color: #FFFFFF !important;
+}
+
+html.light #gestures .search-suggestion-banner strong.text-cyan-300 {
+  color: #00D9FF !important;
+}
+
+html.light #gestures .search-suggestion-banner button {
+  background-color: rgba(0, 217, 255, 0.16) !important;
+  border-color: rgba(0, 217, 255, 0.45) !important;
+  color: #00D9FF !important;
+}
+
+html.light #gestures .search-suggestion-banner button:hover {
+  background-color: rgba(0, 217, 255, 0.28) !important;
+  color: #FFFFFF !important;
+}
+
+/* Empty Search Feedback Card in Light Mode */
+html.light #gestures .glass-card.max-w-lg {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  box-shadow: 0 14px 40px rgba(20, 40, 61, 0.08) !important;
+}
+
+html.light #gestures .glass-card.max-w-lg p {
+  color: var(--text-primary) !important;
+}
+
+html.light #gestures .glass-card.max-w-lg p.text-cyan-300 {
+  color: var(--accent-primary) !important;
+}
+
 
 /* Active Spotlight Banner above Wheel (Approved Deep Navy Feature Surface) */
 html.light #gestures .glass-card.max-w-2xl {
@@ -1620,7 +1703,6 @@ html.light .wheel-side-card .bg-cyan-400\/15 {
 }
 
 /* Navigation prev/next buttons and guide pill */
-html.light #gestures .glass-card button,
 html.light #gestures button.glass-card {
   background-color: #FFFFFF !important;
   border-color: var(--border-default) !important;
@@ -2520,5 +2602,71 @@ html.light .has-cursor div.mix-blend-difference {
   .pipeline-container {
     position: sticky;
     top: 5rem;
+  }
+}
+
+/* ─────────────────────────── Contact Page & Global World Map ─────────────────────────── */
+.map-canvas-container {
+  touch-action: none;
+  user-select: none;
+}
+
+/* Light mode specific input and select contrast enhancements */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #F8FAFC !important;
+  color: #14283D !important;
+  border-color: #CBD5E1 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #087F9B !important;
+  box-shadow: 0 0 0 3px rgba(8, 127, 155, 0.2) !important;
+}
+
+html.light select option {
+  background-color: #FFFFFF;
+  color: #14283D;
+}
+
+/* Dark mode inputs */
+input,
+select,
+textarea {
+  background-color: rgba(5, 8, 13, 0.75);
+  color: #EAF6FA;
+}
+
+select option {
+  background-color: #081522;
+  color: #EAF6FA;
+}
+
+/* World Map SVG Elements */
+#world-countries path {
+  vector-effect: non-scaling-stroke;
+  transition: fill 0.25s ease, stroke 0.25s ease;
+}
+
+#india-highlight path {
+  vector-effect: non-scaling-stroke;
+}
+
+#network-connections path {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  #network-connections circle animateMotion {
+    dur: 0s !important;
+  }
+
+  .animate-ping,
+  .animate-pulse {
+    animation: none !important;
   }
 }

@@ -1028,6 +1028,38 @@ export default function SupportedGestures() {
     [rawItems.length, angleStep]
   );
 
+  // Reset state and handle search rotation when tab changes
+  useEffect(() => {
+    rotationRef.current = 0;
+    lastStepRef.current = 0;
+    setWheelStep(0);
+    setHoveredId(null);
+    hoveredCardRef.current = null;
+    isDraggingRef.current = false;
+    hasDraggedRef.current = false;
+    isFlickingRef.current = false;
+    flickVelocityRef.current = 0;
+
+    if (cylinderRef.current) {
+      cylinderRef.current.style.transform = `translate3d(0, 0, -${depthOffset}px) rotate3d(0, 1, 0, 0deg)`;
+    }
+
+    if (q.trim() && matchingIndices.length > 0) {
+      const targetIdx = matchingIndices[0];
+      animTargetRef.current = -(targetIdx * angleStep);
+      targetSpeedRef.current = 0;
+      currentSpeedRef.current = 0;
+      setActiveIndex(targetIdx);
+      lastActiveRef.current = targetIdx;
+    } else {
+      animTargetRef.current = null;
+      targetSpeedRef.current = isSearchingRef.current ? 0 : baseAngularSpeed;
+      currentSpeedRef.current = isSearchingRef.current ? 0 : baseAngularSpeed;
+      setActiveIndex(0);
+      lastActiveRef.current = 0;
+    }
+  }, [tab, angleStep, depthOffset, baseAngularSpeed]);
+
   // SEARCH TRIGGER IN 3D WHEEL:
   // When user searches:
   // 1. Keep ALL cards visible (no removal, no hiding).
@@ -1052,22 +1084,6 @@ export default function SupportedGestures() {
       targetSpeedRef.current = baseAngularSpeed;
     }
   }, [q, matchingIndices, rotateToIndex, baseAngularSpeed]);
-
-  // Reset state when tab changes
-  useEffect(() => {
-    rotationRef.current = 0;
-    animTargetRef.current = null;
-    lastStepRef.current = 0;
-    setWheelStep(0);
-    setActiveIndex(0);
-    lastActiveRef.current = 0;
-    setHoveredId(null);
-    hoveredCardRef.current = null;
-    isDraggingRef.current = false;
-    hasDraggedRef.current = false;
-    isFlickingRef.current = false;
-    flickVelocityRef.current = 0;
-  }, [tab]);
 
   // Pointer interactions for Hover left/right & Drag-to-flick
   const handlePointerLeave = () => {
@@ -1318,21 +1334,40 @@ export default function SupportedGestures() {
           </div>
         </Reveal>
 
-        {/* Search Results Highlight Banner (Only for Grid mode) */}
-        {viewMode === 'grid' && q.trim() && matchingIndices.length > 0 && (
-          <div className="mx-auto mb-6 flex max-w-xl items-center justify-between rounded-2xl border border-cyan-400/40 bg-slate-950/90 px-5 py-3 text-xs backdrop-blur-2xl shadow-2xl">
+        {/* Cross-Category Search & Results Highlight Banner */}
+        {Boolean(q.trim()) && (
+          <div className="search-suggestion-banner mx-auto mb-6 flex max-w-xl items-center justify-between gap-3 rounded-2xl border border-cyan-400/40 bg-slate-950/90 px-5 py-3 text-xs backdrop-blur-2xl shadow-2xl">
             <span className="text-slate-200">
-              Found <strong className="text-cyan-300 font-mono">{matchingIndices.length}</strong> match{matchingIndices.length === 1 ? '' : 'es'}
+              {matchingIndices.length > 0 ? (
+                <>
+                  Found <strong className="text-cyan-300 font-mono">{matchingIndices.length}</strong> match{matchingIndices.length === 1 ? '' : 'es'}
+                </>
+              ) : (
+                <>
+                  No {tab === 'letters' ? 'letters' : 'words'} match “<strong className="text-cyan-300 font-mono">{q.trim()}</strong>”
+                </>
+              )}
             </span>
-            {otherTabMatches > 0 && (
+            {otherTabMatches > 0 ? (
               <button
-                onClick={() => setTab(tab === 'letters' ? 'words' : 'letters')}
-                className="flex items-center gap-1.5 font-mono text-[11px] text-cyan-300 hover:text-white bg-cyan-500/15 border border-cyan-500/30 px-3 py-1 rounded-full transition-all shadow-sm"
+                onClick={() => {
+                  setTab(tab === 'letters' ? 'words' : 'letters');
+                  setHoveredId(null);
+                  hoveredCardRef.current = null;
+                }}
+                className="flex items-center gap-1.5 font-mono text-[11px] text-cyan-300 hover:text-white bg-cyan-500/15 border border-cyan-500/30 px-3.5 py-1.5 rounded-full transition-all shadow-sm hover:bg-cyan-500/25 shrink-0"
               >
-                <span>Found {otherTabMatches} in {tab === 'letters' ? 'Words' : 'Letters'}</span>
+                <span>Found in {tab === 'letters' ? 'Words' : 'Letters'} — Switch to {tab === 'letters' ? 'Words' : 'Letters'}</span>
                 <FiArrowRight className="h-3 w-3" />
               </button>
-            )}
+            ) : matchingIndices.length === 0 ? (
+              <button
+                onClick={() => setQ('')}
+                className="flex items-center gap-1 font-mono text-[11px] text-slate-400 hover:text-white bg-white/10 border border-white/12 px-3 py-1 rounded-full transition-all shrink-0"
+              >
+                Clear
+              </button>
+            ) : null}
           </div>
         )}
 
@@ -1609,10 +1644,14 @@ export default function SupportedGestures() {
             <div className="mt-5 flex items-center justify-center gap-3">
               {otherTabMatches > 0 && (
                 <button
-                  onClick={() => setTab(tab === 'letters' ? 'words' : 'letters')}
+                  onClick={() => {
+                    setTab(tab === 'letters' ? 'words' : 'letters');
+                    setHoveredId(null);
+                    hoveredCardRef.current = null;
+                  }}
                   className="rounded-full bg-gradient-to-r from-[#00D9FF] via-[#83E8F5] to-[#168BFF] px-6 py-2.5 font-mono text-xs font-bold text-slate-950 shadow-glow hover:scale-105 transition-transform"
                 >
-                  Switch to {tab === 'letters' ? 'Words' : 'Letters'}
+                  Found in {tab === 'letters' ? 'Words' : 'Letters'} — Switch to {tab === 'letters' ? 'Words' : 'Letters'}
                 </button>
               )}
               <button

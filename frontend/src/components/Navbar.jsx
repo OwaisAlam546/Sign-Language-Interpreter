@@ -4,14 +4,15 @@
 import { useEffect, useState } from 'react';
 import { FiSun, FiMoon } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext.jsx';
+import { useRouter } from '../context/RouterContext.jsx';
 
 const LINKS = [
-  { id: 'demo', label: 'Live Demo' },
-  { id: 'how', label: 'How It Works' },
-  { id: 'gestures', label: 'Gestures' },
-  { id: 'model', label: 'Model' },
-  { id: 'team', label: 'Team' },
-  { id: 'contact', label: 'Contact' },
+  { id: 'demo', label: 'Live Demo', isSection: true },
+  { id: 'how', label: 'How It Works', isSection: true },
+  { id: 'gestures', label: 'Gestures', isSection: true },
+  { id: 'model', label: 'Model', isSection: true },
+  { id: 'team', label: 'Team', isSection: true },
+  { id: 'contact', label: 'Contact Us', isPage: true, to: '/contact' },
 ];
 
 function scrollTo(id) {
@@ -21,6 +22,7 @@ function scrollTo(id) {
 
 export default function Navbar() {
   const { theme, toggleTheme, isDark } = useTheme();
+  const { path, navigate } = useRouter();
   const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState('hero');
@@ -28,6 +30,12 @@ export default function Navbar() {
   const [progress, setProgress] = useState({});
 
   useEffect(() => {
+    if (path === '/contact') {
+      setActive('contact');
+      setProgress({ contact: 1 });
+      return;
+    }
+
     let lastY = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
@@ -38,6 +46,7 @@ export default function Navbar() {
       // active section
       let current = 'hero';
       for (const l of LINKS) {
+        if (!l.isSection) continue;
         const el = document.getElementById(l.id);
         if (el && el.getBoundingClientRect().top < window.innerHeight * 0.42) current = l.id;
       }
@@ -46,6 +55,7 @@ export default function Navbar() {
       // section progress for indicator
       const p = {};
       for (const l of LINKS) {
+        if (!l.isSection) continue;
         const el = document.getElementById(l.id);
         if (!el) continue;
         const rect = el.getBoundingClientRect();
@@ -58,7 +68,7 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [path]);
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
@@ -80,9 +90,13 @@ export default function Navbar() {
         >
           {/* Logo */}
           <a
-            href="#hero"
-            onClick={(e) => { e.preventDefault(); scrollTo('hero'); }}
-            className="group flex items-center gap-3"
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              if (path !== '/') navigate('/');
+              else scrollTo('hero');
+            }}
+            className="group flex items-center gap-3 cursor-pointer"
             aria-label="SignSpeak AI home"
           >
             <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#00D9FF] via-[#38BDF8] to-[#168BFF] shadow-glow transition-transform duration-500 group-hover:rotate-[10deg]">
@@ -108,9 +122,20 @@ export default function Navbar() {
               return (
                 <li key={l.id} className="relative">
                   <a
-                    href={`#${l.id}`}
-                    onClick={(e) => { e.preventDefault(); scrollTo(l.id); }}
-                    className={`relative block rounded-full px-4 py-2 font-sans text-[13px] font-medium transition-colors duration-300 ${
+                    href={l.isPage ? l.to : `/#${l.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (l.isPage) {
+                        navigate(l.to);
+                      } else {
+                        if (path !== '/') {
+                          navigate('/', l.id);
+                        } else {
+                          scrollTo(l.id);
+                        }
+                      }
+                    }}
+                    className={`relative block rounded-full px-4 py-2 font-sans text-[13px] font-medium transition-colors duration-300 cursor-pointer ${
                       isActive ? 'text-[var(--text-main)] font-semibold' : 'text-[var(--text-sub)] hover:text-[var(--text-main)]'
                     }`}
                   >
@@ -184,8 +209,22 @@ export default function Navbar() {
           {LINKS.map((l, i) => (
             <a
               key={l.id}
-              href={`#${l.id}`}
-              onClick={(e) => { e.preventDefault(); setOpen(false); setTimeout(() => scrollTo(l.id), 80); }}
+              href={l.isPage ? l.to : `/#${l.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                setOpen(false);
+                setTimeout(() => {
+                  if (l.isPage) {
+                    navigate(l.to);
+                  } else {
+                    if (path !== '/') {
+                      navigate('/', l.id);
+                    } else {
+                      scrollTo(l.id);
+                    }
+                  }
+                }, 80);
+              }}
               className={`font-display text-3xl font-semibold tracking-tight text-[var(--text-sub)] transition-all duration-500 hover:text-[var(--text-main)] ${
                 open ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
               }`}

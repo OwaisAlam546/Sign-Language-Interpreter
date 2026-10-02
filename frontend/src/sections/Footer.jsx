@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FiArrowUp, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
 import Marquee from '../components/Marquee.jsx';
+import { useRouter } from '../context/RouterContext.jsx';
 
 const QUICK = [
   ['Live Demo', 'demo'],
@@ -8,7 +9,7 @@ const QUICK = [
   ['Gesture Library', 'gestures'],
   ['Model', 'model'],
   ['Team', 'team'],
-  ['Contact', 'contact'],
+  ['Contact Us', 'contact'],
 ];
 
 const SOCIALS = [
@@ -24,6 +25,21 @@ function scrollTop() {
 
 export default function Footer() {
   const [hoveredSocial, setHoveredSocial] = useState(null);
+  const { path, navigate } = useRouter();
+
+  const handleLinkClick = (e, id) => {
+    e.preventDefault();
+    if (id === 'contact') {
+      navigate('/contact');
+    } else {
+      if (path !== '/') {
+        navigate('/', id);
+      } else {
+        if (window.__lenis) window.__lenis.scrollTo(`#${id}`, { offset: -70 });
+        else document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <footer className="relative z-10 mt-10 overflow-hidden border-t border-white/10">
@@ -47,7 +63,10 @@ export default function Footer() {
           <div className="footer-columns grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
             {/* brand */}
             <div>
-              <div className="flex items-center gap-3">
+              <div
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => (path !== '/' ? navigate('/') : scrollTop())}
+              >
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-[#00D9FF] via-[#83E8F5] to-[#168BFF] shadow-glow">
                   <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-950" fill="currentColor" aria-hidden="true"><path d="M12 2 L15.5 9.5 L23 12 L15.5 14.5 L12 22 L8.5 14.5 L1 12 L8.5 9.5 Z" /></svg>
                 </span>
@@ -56,7 +75,7 @@ export default function Footer() {
               <p className="mt-4 max-w-sm font-sans text-sm leading-relaxed text-slate-400">
                 A real-time sign language translator powered by computer vision and deep learning. Breaking communication barriers through AI.
               </p>
-              <button onClick={scrollTop} className="glass-card inline-flex items-center gap-2 rounded-full border border-white/12 bg-slate-950/80 px-5 py-2.5 font-display text-xs font-semibold text-slate-200 shadow-lg backdrop-blur-xl hover:border-cyan-400/50 hover:text-white transition-all mt-6">
+              <button onClick={scrollTop} className="glass-card inline-flex items-center gap-2 rounded-full border border-white/12 bg-slate-950/80 px-5 py-2.5 font-display text-xs font-semibold text-slate-200 shadow-lg backdrop-blur-xl hover:border-cyan-400/50 hover:text-white transition-all mt-6 cursor-pointer">
                 Back to top <FiArrowUp className="h-3.5 w-3.5 text-cyan-300" aria-hidden="true" />
               </button>
             </div>
@@ -68,9 +87,9 @@ export default function Footer() {
                 {QUICK.map(([label, id]) => (
                   <li key={id}>
                     <a
-                      href={`#${id}`}
-                      onClick={(e) => { e.preventDefault(); window.__lenis ? window.__lenis.scrollTo(`#${id}`, { offset: -70 }) : document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); }}
-                      className="font-sans text-sm text-slate-400 transition-colors hover:text-cyan-300"
+                      href={id === 'contact' ? '/contact' : `/#${id}`}
+                      onClick={(e) => handleLinkClick(e, id)}
+                      className="font-sans text-sm text-slate-400 transition-colors hover:text-cyan-300 cursor-pointer"
                     >
                       {label}
                     </a>

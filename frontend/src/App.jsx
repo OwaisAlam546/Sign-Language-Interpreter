@@ -8,11 +8,15 @@ import HowItWorks from './sections/HowItWorks.jsx';
 import SupportedGestures from './sections/SupportedGestures.jsx';
 import Model from './sections/Model.jsx';
 import Team from './sections/Team.jsx';
-import Contact from './sections/Contact.jsx';
+import ContactPage from './sections/ContactPage.jsx';
 import Footer from './sections/Footer.jsx';
 import WaveDivider from './components/WaveDivider.jsx';
+import { useRouter } from './context/RouterContext.jsx';
 
 export default function App() {
+  const { path } = useRouter();
+  const isContactPage = path === '/contact';
+
   return (
     <div className="noise relative min-h-screen overflow-x-clip text-[var(--text-main)]">
       <Background />
@@ -21,22 +25,27 @@ export default function App() {
       <Navbar />
 
       <main className="relative z-10">
-        <Hero />
-        <WaveDivider className="light-only-wave" flip={false} height={44} />
-        <LiveDemo />
-        <WaveDivider className="light-only-wave" flip={true} height={44} />
-        <HowItWorks />
-        <WaveDivider className="light-only-wave" flip={false} height={44} />
-        <SupportedGestures />
-        <WaveDivider className="light-only-wave" flip={true} height={44} />
-        <Model />
-        <WaveDivider className="light-only-wave" flip={false} height={44} />
-        <Team />
-        <WaveDivider className="light-only-wave" flip={true} height={44} />
-        <Contact />
+        {isContactPage ? (
+          <ContactPage />
+        ) : (
+          <>
+            <Hero />
+            <WaveDivider className="light-only-wave" flip={false} height={44} />
+            <LiveDemo />
+            <WaveDivider className="light-only-wave" flip={true} height={44} />
+            <HowItWorks />
+            <WaveDivider className="light-only-wave" flip={false} height={44} />
+            <SupportedGestures />
+            <WaveDivider className="light-only-wave" flip={true} height={44} />
+            <Model />
+            <WaveDivider className="light-only-wave" flip={false} height={44} />
+            <Team />
+          </>
+        )}
       </main>
 
       <Footer />
     </div>
   );
 }
+
