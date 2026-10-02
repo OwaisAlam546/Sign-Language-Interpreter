@@ -6,6 +6,7 @@ import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
 import HandOverlay from '../components/HandOverlay.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
+import { Particles } from '../components/Background.jsx';
 import { bboxOf, classifyHand } from '../lib/handClassifier.js';
 import { LETTERS, WORDS } from '../lib/data.js';
 
@@ -186,8 +187,9 @@ export default function LiveDemo() {
   useEffect(() => () => clearIdle(), []);
   const letter = gesture || '–', waveSeed = letter.charCodeAt(0) || 45;
   return (
-    <section id="demo" className="relative z-10 px-4 py-24 md:px-8 md:py-32">
-      <div className="mx-auto max-w-7xl">
+    <section id="demo" className="relative z-10 px-4 py-24 md:px-8 md:py-32 overflow-hidden">
+      <Particles className="pointer-events-none absolute inset-0 z-0 opacity-35 dark:opacity-25" count={34} />
+      <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="Live Recognition"
           title="Sign Language to Text"
@@ -256,7 +258,7 @@ export default function LiveDemo() {
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
           {/* Left: Camera Viewport Card */}
           <Reveal delay={0.1}>
-            <div className="glass-glow relative overflow-hidden rounded-3xl p-5 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
+            <div className="camera-panel-card glass-glow relative overflow-hidden rounded-3xl p-5 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
               <div className="scanline relative aspect-[4/3] overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-white/12">
                 <video
                   ref={videoRef}
@@ -304,7 +306,7 @@ export default function LiveDemo() {
 
           {/* Right: Live Translation Output Card */}
           <Reveal delay={0.2}>
-            <div className="glass-glow flex h-full flex-col justify-between rounded-3xl p-6 sm:p-7 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
+            <div className="translation-panel-card glass-glow flex h-full flex-col justify-between rounded-3xl p-6 sm:p-7 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
               <div>
                 <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
                   <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-300 font-semibold">

@@ -35,7 +35,7 @@ export default {
         mutedSlate: '#647C91',
         tealAccent: '#087F9B',
         softAccent: '#D5F2F7',
-        softBorder: '#C8D4E0',
+        softBorder: '#C5D0DC',
         strongBorder: '#AABBCD',
         pure: {
           white: '#FFFFFF',

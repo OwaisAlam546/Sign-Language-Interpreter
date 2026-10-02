@@ -5,16 +5,24 @@
 /* ─────────────────────────── Global Design Tokens ─────────────────────────── */
 :root {
   /* Dark Mode — Exact SignSpeak AI Neon Design System Reference */
-  --bg-main: #05080D;          /* Deep Black */
-  --bg-section: #081522;       /* Midnight Navy */
-  --bg-surface: #0B2634;       /* Dark Teal */
+  --bg-main: #05080D;
+  /* Deep Black */
+  --bg-section: #081522;
+  /* Midnight Navy */
+  --bg-surface: #0B2634;
+  /* Dark Teal */
   --bg-card: rgba(6, 16, 26, 0.85);
   --bg-card-hover: rgba(8, 22, 34, 0.92);
-  --accent-cyan: #00D9FF;      /* Ice Cyan */
-  --accent-blue: #168BFF;      /* Electric Blue */
-  --accent-soft: #83E8F5;      /* Soft Cyan */
-  --text-main: #EAF6FA;        /* Cool White */
-  --text-sub: #8296A8;         /* Slate Blue */
+  --accent-cyan: #00D9FF;
+  /* Ice Cyan */
+  --accent-blue: #168BFF;
+  /* Electric Blue */
+  --accent-soft: #83E8F5;
+  /* Soft Cyan */
+  --text-main: #EAF6FA;
+  /* Cool White */
+  --text-sub: #8296A8;
+  /* Slate Blue */
   --border-subtle: rgba(0, 217, 255, 0.16);
   --border-card: rgba(234, 246, 250, 0.08);
   --border-highlight: rgba(0, 217, 255, 0.45);
@@ -30,27 +38,27 @@
 
 :root[data-theme="light"],
 html.light {
-  /* Final Light Mode: Platinum × Deep Navy × White Distribution */
+  /* Final Light Mode: Platinum × Deep Navy × Soft White × Ice Cyan */
   /* Page canvas */
   --bg-primary: #FFFFFF;
 
   /* Section surfaces */
-  --bg-secondary: #DCE4ED;
-  --bg-tertiary: #E6EBF1;
+  --bg-secondary: #E6EBF1;
+  --bg-tertiary: #F0F3F7;
 
   /* Component surfaces */
-  --surface-primary: #DCE4ED;
-  --surface-secondary: #E6EBF1;
+  --surface-primary: #FFFFFF;
+  --surface-secondary: #DCE4ED;
   --surface-elevated: #F0F3F7;
   --surface-navy: #14283D;
   --surface-navy-soft: #203B55;
-  --surface-glass: rgba(220, 228, 237, 0.92);
+  --surface-glass: rgba(255, 255, 255, 0.92);
 
   /* Typography */
   --text-primary: #14283D;
   --text-secondary: #425B72;
   --text-muted: #647C91;
-  --text-inverse: #F5F8FC;
+  --text-inverse: #FFFFFF;
 
   /* Accents */
   --accent-primary: #087F9B;
@@ -58,37 +66,47 @@ html.light {
   --accent-soft: #D5F2F7;
 
   /* Borders */
-  --border-default: #C8D4E0;
+  --border-default: #C5D0DC;
   --border-strong: #AABBCD;
 
   /* Elevation */
-  --shadow-card: 0 8px 24px rgba(20, 40, 61, 0.09);
-  --shadow-elevated: 0 12px 32px rgba(20, 40, 61, 0.13);
+  --shadow-card: 0 4px 20px rgba(20, 40, 61, 0.07);
+  --shadow-elevated: 0 10px 30px rgba(20, 40, 61, 0.11);
 
   /* Interactive states */
   --hover-surface: #E6EBF1;
   --focus-ring: #087F9B;
 
   /* Architecture token mappings */
-  --bg-main: var(--bg-primary);          /* #FFFFFF */
-  --bg-section: var(--bg-secondary);     /* #DCE4ED */
-  --bg-surface: var(--surface-primary);  /* #DCE4ED */
-  --bg-card: var(--surface-primary);     /* #DCE4ED */
-  --bg-card-hover: var(--surface-secondary); /* #E6EBF1 */
-  --accent-cyan: var(--accent-primary);  /* #087F9B */
-  --accent-blue: var(--accent-secondary);/* #168BFF */
-  --text-main: var(--text-primary);      /* #14283D */
-  --text-sub: var(--text-secondary);     /* #425B72 */
-  --border-subtle: var(--border-default);/* #C8D4E0 */
-  --border-card: var(--border-default);  /* #C8D4E0 */
-  --border-highlight: var(--border-strong); /* #AABBCD */
+  --bg-main: var(--bg-primary);
+  /* #FFFFFF */
+  --bg-section: var(--bg-secondary);
+  /* #E6EBF1 */
+  --bg-surface: var(--surface-primary);
+  /* #FFFFFF */
+  --bg-card: #FFFFFF;
+  /* Pure white or Platinum cards */
+  --bg-card-hover: var(--surface-elevated);
+  --accent-cyan: var(--accent-primary);
+  /* #087F9B */
+  --accent-blue: var(--accent-secondary);
+  /* #168BFF */
+  --text-main: var(--text-primary);
+  /* #14283D */
+  --text-sub: var(--text-secondary);
+  /* #425B72 */
+  --border-subtle: var(--border-default);
+  /* #C5D0DC */
+  --border-card: var(--border-default);
+  /* #C5D0DC */
+  --border-highlight: var(--accent-primary);
   --glow-cyan: rgba(8, 127, 155, 0.18);
   --glow-lg: rgba(8, 127, 155, 0.28);
   --grid-color: rgba(20, 40, 61, 0.035);
   --grad-text: linear-gradient(110deg, #14283D 0%, #087F9B 50%, #168BFF 100%);
   --grad-text-soft: linear-gradient(110deg, #14283D 0%, #087F9B 50%, #425B72 100%);
   --scrollbar-track: #FFFFFF;
-  --scrollbar-thumb: linear-gradient(180deg, #C8D4E0, #087F9B);
+  --scrollbar-thumb: linear-gradient(180deg, #C5D0DC, #087F9B);
 }
 
 /* ─────────────────────────── Base & Reset ─────────────────────────── */
@@ -452,8 +470,10 @@ html.light,
 html.light body,
 [data-theme="light"],
 [data-theme="light"] body {
-  background-color: var(--bg-primary) !important; /* Pure White #FFFFFF */
-  color: var(--text-primary) !important;           /* Deep Navy #14283D */
+  background-color: var(--bg-primary) !important;
+  /* Pure White #FFFFFF */
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
 }
 
 /* ── Typography & Text Contrast Hierarchy ── */
@@ -471,19 +491,22 @@ html.light h4,
 html.light .split-char,
 html.light .split-word,
 html.light .split-word-inner {
-  color: var(--text-primary) !important; /* Deep Navy #14283D */
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
 }
 
 /* Body & Secondary Text: Slate Blue #425B72 */
 html.light .text-slate-300,
 html.light .text-slate-400 {
-  color: var(--text-secondary) !important; /* #425B72 */
+  color: var(--text-secondary) !important;
+  /* #425B72 */
 }
 
 /* Muted Meta & Label Text: Muted Slate #647C91 */
 html.light .text-slate-500,
 html.light .text-slate-600 {
-  color: var(--text-muted) !important; /* #647C91 */
+  color: var(--text-muted) !important;
+  /* #647C91 */
 }
 
 /* Brand Cyan/Teal Accents: Deep Cyan #087F9B for High Contrast on Platinum/White */
@@ -495,16 +518,18 @@ html.light .text-cyan-400,
 html.light .text-cyan-400\/80,
 html.light .text-teal-300,
 html.light .text-teal-400 {
-  color: var(--accent-primary) !important; /* #087F9B */
+  color: var(--accent-primary) !important;
+  /* #087F9B */
 }
 
 /* Electric Blue Accents */
 html.light .text-blue-400,
 html.light .text-sky-400 {
-  color: var(--accent-secondary) !important; /* #168BFF */
+  color: var(--accent-secondary) !important;
+  /* #168BFF */
 }
 
-/* ── Surfaces and Cards: Platinum #DCE4ED with Blue-Gray Borders #C8D4E0 ── */
+/* ── Surfaces and Cards: Clean White #FFFFFF & Platinum #DCE4ED with Muted Borders #C5D0DC ── */
 html.light .glass,
 html.light .glass-card,
 html.light .glass-glow,
@@ -522,12 +547,15 @@ html.light .bg-slate-900,
 html.light .bg-slate-900\/95,
 html.light .bg-slate-900\/90,
 html.light .bg-slate-900\/80 {
-  background-color: var(--surface-primary) !important; /* Platinum #DCE4ED */
-  border-color: var(--border-default) !important;       /* Blue-Gray #C8D4E0 */
-  box-shadow: var(--shadow-card) !important;          /* 0 8px 24px rgba(20, 40, 61, 0.09) */
+  background-color: #FFFFFF !important;
+  /* Clean White Card Surface */
+  border-color: var(--border-default) !important;
+  /* Muted Border #C5D0DC */
+  box-shadow: var(--shadow-card) !important;
+  /* 0 4px 20px rgba(20, 40, 61, 0.07) */
 }
 
-/* Secondary Surfaces, Sub-cards, and Inner Panels: Lighter Platinum #E6EBF1 */
+/* Secondary Surfaces, Sub-cards, and Inner Panels: Lighter Platinum #E6EBF1 or #F0F3F7 */
 html.light .bg-slate-950\/40,
 html.light .bg-slate-900\/60,
 html.light .bg-white\/10,
@@ -537,18 +565,21 @@ html.light .bg-white\/\[0\.03\],
 html.light .bg-white\/\[0\.04\],
 html.light .bg-white\/\[0\.05\],
 html.light .bg-white\/\[0\.06\] {
-  background-color: var(--surface-secondary) !important; /* Lighter Platinum #E6EBF1 */
-  border-color: var(--border-default) !important;       /* #C8D4E0 */
+  background-color: var(--surface-elevated) !important;
+  /* Soft Elevated #F0F3F7 */
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
 }
 
 /* Elevated Surfaces: Soft Elevated Platinum #F0F3F7 */
 html.light .surface-elevated {
-  background-color: var(--surface-elevated) !important; /* #F0F3F7 */
+  background-color: var(--surface-elevated) !important;
+  /* #F0F3F7 */
   border-color: var(--border-default) !important;
   box-shadow: var(--shadow-elevated) !important;
 }
 
-/* All Borders & Dividers: Subtle Blue-Gray #C8D4E0 */
+/* All Borders & Dividers: Muted Border #C5D0DC */
 html.light .border-white\/20,
 html.light .border-white\/15,
 html.light .border-white\/12,
@@ -556,15 +587,17 @@ html.light .border-white\/10,
 html.light .border-white\/8,
 html.light .border-white\/5,
 html.light .hairline,
-html.light .divide-white\/10 > :not([hidden]) ~ :not([hidden]),
-html.light .divide-white\/15 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--border-default) !important; /* #C8D4E0 */
+html.light .divide-white\/10> :not([hidden])~ :not([hidden]),
+html.light .divide-white\/15> :not([hidden])~ :not([hidden]) {
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
 }
 
 /* Card Hover Luminous Border Glow in Light Mode */
 html.light .card-border-glow:hover,
 html.light .card-border-glow.is-hovered {
-  border-color: var(--accent-primary) !important; /* #087F9B */
+  border-color: var(--accent-primary) !important;
+  /* #087F9B */
   box-shadow: 0 0 20px var(--glow-cyan), var(--shadow-elevated) !important;
 }
 
@@ -585,55 +618,67 @@ html.light button.bg-cyan-400,
 html.light a.bg-cyan-400 {
   background: linear-gradient(135deg, #14283D 0%, #087F9B 100%) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 4px 18px rgba(20, 40, 61, 0.20) !important;
+  box-shadow: 0 4px 18px rgba(20, 40, 61, 0.18) !important;
 }
 
 html.light .btn-shimmer:hover,
 html.light button.bg-cyan-400:hover,
 html.light a.bg-cyan-400:hover {
   background: linear-gradient(135deg, #087F9B 0%, #168BFF 100%) !important;
-  box-shadow: 0 6px 22px rgba(8, 127, 155, 0.32) !important;
+  box-shadow: 0 6px 22px rgba(8, 127, 155, 0.28) !important;
 }
 
 html.light .btn-shimmer * {
   color: #FFFFFF !important;
 }
 
-/* Secondary Button: Platinum Surface #E6EBF1, Deep Navy text, Blue-gray Border #C8D4E0 */
+/* Secondary Button: Clean White / Platinum Surface, Deep Navy text, Muted Border #C5D0DC */
 html.light button.glass-card,
 html.light a.glass-card {
-  background-color: var(--surface-primary) !important; /* #E6EBF1 */
-  color: var(--text-primary) !important;              /* #14283D */
-  border-color: var(--border-default) !important;      /* #C8D4E0 */
+  background-color: #FFFFFF !important;
+  color: var(--text-primary) !important;
+  /* #14283D */
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
 }
+
 html.light button.glass-card:hover,
 html.light a.glass-card:hover {
-  background-color: var(--surface-secondary) !important; /* #DCE4ED */
-  border-color: var(--accent-primary) !important;        /* #087F9B */
+  background-color: var(--surface-elevated) !important;
+  /* #F0F3F7 */
+  border-color: var(--accent-primary) !important;
+  /* #087F9B */
   color: var(--accent-primary) !important;
 }
 
-/* Form Inputs: Elevated Platinum #F0F3F7, Deep Navy text, Blue-gray border #C8D4E0 */
+/* Form Inputs: Elevated Surface #F0F3F7, Deep Navy text, Muted border #C5D0DC */
 html.light input,
 html.light textarea,
 html.light select,
 html.light .field {
-  background-color: var(--surface-elevated) !important; /* #F0F3F7 */
-  color: var(--text-primary) !important;                /* #14283D */
-  border-color: var(--border-default) !important;        /* #C8D4E0 */
+  background-color: var(--surface-elevated) !important;
+  /* #F0F3F7 */
+  color: var(--text-primary) !important;
+  /* #14283D */
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
   box-shadow: 0 1px 3px rgba(20, 40, 61, 0.04) inset !important;
 }
+
 html.light input:focus,
 html.light textarea:focus,
 html.light select:focus,
 html.light .field:focus {
-  border-color: var(--focus-ring) !important; /* #087F9B */
+  border-color: var(--focus-ring) !important;
+  /* #087F9B */
   box-shadow: 0 0 0 3px rgba(8, 127, 155, 0.18) !important;
   background-color: #FFFFFF !important;
 }
+
 html.light input::placeholder,
 html.light textarea::placeholder {
-  color: var(--text-muted) !important; /* #647C91 */
+  color: var(--text-muted) !important;
+  /* #647C91 */
 }
 
 /* ── Badges, Active Pills, and Tabs in Light Mode ── */
@@ -643,9 +688,12 @@ html.light .bg-cyan-400\/15,
 html.light .bg-cyan-400\/10,
 html.light .bg-cyan-500\/15,
 html.light .bg-teal-400\/15 {
-  background-color: var(--accent-soft) !important; /* #D5F2F7 */
-  color: var(--accent-primary) !important;         /* #087F9B */
-  border-color: var(--border-strong) !important;   /* #AABBCD */
+  background-color: var(--accent-soft) !important;
+  /* #D5F2F7 */
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+  border-color: var(--border-strong) !important;
+  /* #AABBCD */
 }
 
 html.light .border-cyan-400\/60,
@@ -655,7 +703,8 @@ html.light .border-cyan-400\/35,
 html.light .border-cyan-400\/30,
 html.light .border-cyan-400\/25,
 html.light .border-teal-400\/40 {
-  border-color: var(--accent-primary) !important; /* #087F9B */
+  border-color: var(--accent-primary) !important;
+  /* #087F9B */
 }
 
 html.light .hover\:border-cyan-400\/50:hover,
@@ -668,21 +717,27 @@ html.light .hover\:text-white:hover {
   color: var(--accent-primary) !important;
 }
 
-/* Navbar Navigation in Light Mode: Platinum Glass with Crisp Deep Navy Links */
+/* Navbar Navigation in Light Mode: Pure White Glass with Crisp Deep Navy Links */
 html.light header nav {
-  background-color: var(--surface-glass) !important; /* rgba(230, 235, 241, 0.90) */
-  border-color: var(--border-default) !important;   /* #C8D4E0 */
-  box-shadow: var(--shadow-elevated) !important;
+  background-color: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+  box-shadow: 0 10px 30px rgba(20, 40, 61, 0.08) !important;
 }
+
 html.light header nav span.bg-white\/10 {
-  background-color: var(--surface-secondary) !important; /* #DCE4ED */
+  background-color: var(--hover-surface) !important;
+  /* #E6EBF1 */
   box-shadow: 0 0 0 1px var(--border-default) inset !important;
 }
 
 /* Model Section SVG Gauge Track */
 html.light #model circle[stroke="rgba(255,255,255,0.07)"],
 html.light #model svg circle:first-of-type {
-  stroke: var(--border-default) !important; /* #C8D4E0 */
+  stroke: var(--border-default) !important;
+  /* #C5D0DC */
 }
 
 /* Watermark text: Platinum hint */
@@ -701,7 +756,7 @@ html.light button.bg-gradient-to-r.from-\[\#00D9FF\].text-slate-950,
 html.light .bg-gradient-to-r.from-\[\#00D9FF\].text-slate-950 {
   background: linear-gradient(135deg, #14283D 0%, #087F9B 100%) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 4px 14px rgba(20, 40, 61, 0.20) !important;
+  box-shadow: 0 4px 14px rgba(20, 40, 61, 0.18) !important;
 }
 
 html.light .bg-cyan-400.text-slate-950 svg,
@@ -711,284 +766,1316 @@ html.light .bg-gradient-to-r.from-\[\#00D9FF\].text-slate-950 * {
 }
 
 /* ── 3D Wheel and Gesture Library in Light Mode ── */
-/* 3D Wheel Stage Edge Vignettes in Light Mode (fade to pure white instead of dark slate-950) */
+/* 3D Wheel Stage Edge Vignettes in Light Mode (fade to secondary surface #E6EBF1) */
 html.light #gestures .pointer-events-none.bg-gradient-to-r.from-slate-950 {
-  background-image: linear-gradient(to right, #FFFFFF 0%, rgba(255, 255, 255, 0.75) 50%, transparent 100%) !important;
-}
-html.light #gestures .pointer-events-none.bg-gradient-to-l.from-slate-950 {
-  background-image: linear-gradient(to left, #FFFFFF 0%, rgba(255, 255, 255, 0.75) 50%, transparent 100%) !important;
+  background-image: linear-gradient(to right, #E6EBF1 0%, rgba(230, 235, 241, 0.75) 50%, transparent 100%) !important;
 }
 
-/* Front Active Card in 3D Wheel: Deep Navy #14283D with Platinum/White text and Cyan accent border/glow */
+html.light #gestures .pointer-events-none.bg-gradient-to-l.from-slate-950 {
+  background-image: linear-gradient(to left, #E6EBF1 0%, rgba(230, 235, 241, 0.75) 50%, transparent 100%) !important;
+}
+
+/* Front Active Card in 3D Wheel: Deep Navy #14283D with White text and Cyan accents */
+html.light #gestures .wheel-active-card,
 html.light #gestures .preserve-3d .card-3d-crisp.is-hovered,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400\/40,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400 {
-  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
-  border-color: var(--accent-primary) !important;      /* Cyan border #087F9B */
+  background-color: var(--surface-navy) !important;
+  /* Deep Navy #14283D */
+  border-color: var(--accent-primary) !important;
+  /* Cyan border #087F9B */
   box-shadow: 0 0 28px rgba(8, 127, 155, 0.35), 0 20px 48px rgba(20, 40, 61, 0.32) !important;
   color: var(--text-inverse) !important;
 }
+
+html.light #gestures .wheel-active-card .font-display,
 html.light #gestures .preserve-3d .card-3d-crisp.is-hovered .font-display,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400\/40 .font-display,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400 .font-display {
-  color: var(--text-inverse) !important; /* #F5F8FC */
+  color: var(--text-inverse) !important;
+  /* #FFFFFF */
 }
+
+html.light #gestures .wheel-active-card p,
 html.light #gestures .preserve-3d .card-3d-crisp.is-hovered p,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400\/40 p,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400 p {
-  color: #AABBCD !important;
+  color: #DCE4ED !important;
 }
+
+html.light #gestures .wheel-active-card .text-cyan-300,
 html.light #gestures .preserve-3d .card-3d-crisp.is-hovered .text-cyan-300,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400\/40 .text-cyan-300,
 html.light #gestures .preserve-3d .card-3d-crisp.border-cyan-400 .text-cyan-300 {
   color: #00D9FF !important;
 }
 
-/* Side Resting Cards in 3D Wheel: Platinum #DCE4ED with Deep Navy text #14283D */
-html.light #gestures .preserve-3d .card-3d-crisp:not(.is-hovered):not(.border-cyan-400\/40) {
-  background-color: var(--surface-primary) !important; /* Platinum #DCE4ED */
-  border-color: var(--border-default) !important;       /* #C8D4E0 */
-  box-shadow: var(--shadow-card) !important;
-  color: var(--text-primary) !important;              /* Deep Navy #14283D */
-}
-html.light #gestures .preserve-3d .card-3d-crisp:not(.is-hovered):not(.border-cyan-400\/40) .font-display {
-  color: var(--text-primary) !important;              /* Deep Navy #14283D */
-}
-html.light #gestures .preserve-3d .card-3d-crisp:not(.is-hovered):not(.border-cyan-400\/40) p {
-  color: var(--text-secondary) !important;            /* #425B72 */
-}
-
-/* Active Gesture Spotlight Banner: Deep Navy #14283D Feature Surface */
-html.light #gestures .glass-card.max-w-2xl {
-  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
-  border-color: var(--surface-navy-soft) !important; /* #203B55 */
-  box-shadow: 0 16px 45px rgba(20, 40, 61, 0.22) !important;
-  color: var(--text-inverse) !important;
-}
-html.light #gestures .glass-card.max-w-2xl .font-display,
-html.light #gestures .glass-card.max-w-2xl .text-white {
-  color: var(--text-inverse) !important; /* #F5F8FC */
-}
-html.light #gestures .glass-card.max-w-2xl p,
-html.light #gestures .glass-card.max-w-2xl .text-slate-300 {
-  color: #AABBCD !important;
-}
-html.light #gestures .glass-card.max-w-2xl .text-cyan-300 {
-  color: #00D9FF !important;
-}
-
-/* Grid Gesture Cards: Platinum #DCE4ED, Deep Navy text, Blue-gray border */
-html.light #gestures .card-3d-crisp {
-  background-color: var(--surface-primary) !important; /* Platinum #DCE4ED */
-  border-color: var(--border-default) !important;       /* #C8D4E0 */
-  box-shadow: var(--shadow-card) !important;
-}
-html.light #gestures .grid .card-3d-crisp.is-hovered,
-html.light #gestures .grid .card-3d-crisp:hover {
-  background-color: var(--surface-navy) !important;    /* Deep Navy #14283D Feature Card */
-  border-color: var(--accent-primary) !important;      /* #087F9B */
-  box-shadow: 0 16px 40px rgba(20, 40, 61, 0.25), 0 0 20px rgba(8, 127, 155, 0.20) !important;
-  color: var(--text-inverse) !important;
-}
-html.light #gestures .grid .card-3d-crisp.is-hovered .font-display,
-html.light #gestures .grid .card-3d-crisp:hover .font-display {
-  color: var(--text-inverse) !important;
-}
-html.light #gestures .grid .card-3d-crisp.is-hovered p,
-html.light #gestures .grid .card-3d-crisp:hover p {
-  color: #AABBCD !important;
-}
-
-/* Search and Filter Container in Gesture Library */
-html.light #gestures .glass-card {
-  background-color: var(--surface-primary) !important; /* #DCE4ED */
-  border-color: var(--border-default) !important;       /* #C8D4E0 */
-}
-
-/* ── Feature Panel: Hero Live Recognition Preview in Deep Navy #14283D ── */
-html.light #hero .max-w-md .glass-card {
-  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
-  border-color: var(--surface-navy-soft) !important; /* #203B55 */
-  box-shadow: 0 24px 60px rgba(20, 40, 61, 0.28) !important;
-  color: var(--text-inverse) !important;
-}
-html.light #hero .max-w-md .glass-card .font-display,
-html.light #hero .max-w-md .glass-card .text-white {
-  color: var(--text-inverse) !important; /* #F5F8FC */
-}
-html.light #hero .max-w-md .glass-card .text-slate-200,
-html.light #hero .max-w-md .glass-card .text-slate-300 {
-  color: #DCE4ED !important;
-}
-html.light #hero .max-w-md .glass-card .text-slate-400 {
-  color: #AABBCD !important;
-}
-html.light #hero .max-w-md .glass-card .bg-slate-950\/80 {
-  background-color: var(--surface-navy-soft) !important; /* #203B55 */
-  border-color: rgba(200, 212, 224, 0.16) !important;
-}
-html.light #hero .max-w-md .glass-card .bg-white\/10 {
-  background-color: rgba(200, 212, 224, 0.15) !important;
-  color: #83E8F5 !important;
-}
-html.light #hero .max-w-md .glass-card .text-cyan-300,
-html.light #hero .max-w-md .glass-card .text-cyan-300\/80 {
-  color: #00D9FF !important;
-}
-html.light #hero .max-w-md .glass-frosted {
-  background-color: var(--surface-navy-soft) !important; /* #203B55 */
-  border-color: rgba(200, 212, 224, 0.16) !important;
-  color: var(--text-inverse) !important;
-}
-html.light #hero .max-w-md .glass-frosted .text-white {
-  color: var(--text-inverse) !important;
-}
-
-/* ── Feature Panel: Live Interpreter Output Panel in Deep Navy #14283D ── */
-html.light #demo .grid.gap-6 > div:last-child .glass-glow {
-  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
-  border-color: var(--surface-navy-soft) !important; /* #203B55 */
-  box-shadow: 0 20px 55px rgba(20, 40, 61, 0.25) !important;
-  color: var(--text-inverse) !important;
-}
-html.light #demo .grid.gap-6 > div:last-child .glass-glow .font-display,
-html.light #demo .grid.gap-6 > div:last-child .glass-glow .text-white {
-  color: var(--text-inverse) !important; /* #F5F8FC */
-}
-html.light #demo .grid.gap-6 > div:last-child .glass-glow .text-slate-400 {
-  color: #AABBCD !important;
-}
-html.light #demo .grid.gap-6 > div:last-child .glass-glow .text-cyan-300 {
-  color: #00D9FF !important;
-}
-html.light #demo .grid.gap-6 > div:last-child .glass-glow .bg-white\/\[0\.03\] {
-  background-color: var(--surface-navy-soft) !important; /* #203B55 */
-  border-color: rgba(200, 212, 224, 0.16) !important;
-}
-html.light #demo .grid.gap-6 > div:last-child .glass-glow .bg-cyan-400\/15 {
-  background-color: rgba(0, 217, 255, 0.18) !important;
+html.light #gestures .wheel-active-card .bg-white\/\[0\.06\],
+html.light #gestures .preserve-3d .card-3d-crisp.is-hovered .bg-white\/\[0\.06\] {
+  background-color: rgba(0, 217, 255, 0.15) !important;
   border-color: rgba(0, 217, 255, 0.40) !important;
   color: #00D9FF !important;
 }
 
+/* Side Resting Cards in 3D Wheel: Clean White with Deep Navy text #14283D */
+html.light #gestures .wheel-side-card,
+html.light #gestures .preserve-3d .card-3d-crisp:not(.wheel-active-card):not(.is-hovered):not(.border-cyan-400\/40) {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+  box-shadow: var(--shadow-card) !important;
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+}
+
+html.light #gestures .wheel-side-card .font-display,
+html.light #gestures .preserve-3d .card-3d-crisp:not(.wheel-active-card):not(.is-hovered):not(.border-cyan-400\/40) .font-display {
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+}
+
+html.light #gestures .wheel-side-card p,
+html.light #gestures .preserve-3d .card-3d-crisp:not(.wheel-active-card):not(.is-hovered):not(.border-cyan-400\/40) p {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+html.light #gestures .wheel-side-card .text-cyan-300,
+html.light #gestures .wheel-side-card .text-cyan-300\/90,
+html.light #gestures .preserve-3d .card-3d-crisp:not(.wheel-active-card):not(.is-hovered):not(.border-cyan-400\/40) .text-cyan-300,
+html.light #gestures .preserve-3d .card-3d-crisp:not(.wheel-active-card):not(.is-hovered):not(.border-cyan-400\/40) .text-cyan-300\/90 {
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+html.light #gestures .wheel-side-card .bg-white\/\[0\.06\],
+html.light #gestures .preserve-3d .card-3d-crisp:not(.wheel-active-card):not(.is-hovered):not(.border-cyan-400\/40) .bg-white\/\[0\.06\] {
+  background-color: var(--surface-elevated) !important;
+  /* #F0F3F7 */
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+/* Active Gesture Spotlight Banner: Deep Navy #14283D Feature Surface */
+html.light #gestures .glass-card.max-w-2xl {
+  background-color: var(--surface-navy) !important;
+  /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important;
+  /* #203B55 */
+  box-shadow: 0 16px 45px rgba(20, 40, 61, 0.22) !important;
+  color: var(--text-inverse) !important;
+}
+
+html.light #gestures .glass-card.max-w-2xl .font-display,
+html.light #gestures .glass-card.max-w-2xl .text-white {
+  color: var(--text-inverse) !important;
+  /* #FFFFFF */
+}
+
+html.light #gestures .glass-card.max-w-2xl p,
+html.light #gestures .glass-card.max-w-2xl .text-slate-300 {
+  color: #DCE4ED !important;
+}
+
+html.light #gestures .glass-card.max-w-2xl .text-cyan-300 {
+  color: #00D9FF !important;
+}
+
+/* Grid Gesture Cards: Clean White #FFFFFF, Deep Navy text, Muted border #C5D0DC */
+html.light #gestures .grid .card-3d-crisp {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+  box-shadow: var(--shadow-card) !important;
+}
+
+html.light #gestures .grid .card-3d-crisp .font-display {
+  color: var(--text-primary) !important;
+}
+
+html.light #gestures .grid .card-3d-crisp p {
+  color: var(--text-secondary) !important;
+}
+
+html.light #gestures .grid .card-3d-crisp .text-cyan-300,
+html.light #gestures .grid .card-3d-crisp .text-cyan-300\/90 {
+  color: var(--accent-primary) !important;
+}
+
+html.light #gestures .grid .card-3d-crisp .bg-white\/\[0\.06\] {
+  background-color: var(--surface-elevated) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Grid Hovered Card: Deep Navy Highlight */
+html.light #gestures .grid .card-3d-crisp.is-hovered,
+html.light #gestures .grid .card-3d-crisp:hover {
+  background-color: var(--surface-navy) !important;
+  /* Deep Navy #14283D Feature Card */
+  border-color: var(--accent-primary) !important;
+  /* #087F9B */
+  box-shadow: 0 16px 40px rgba(20, 40, 61, 0.25), 0 0 20px rgba(8, 127, 155, 0.20) !important;
+  color: var(--text-inverse) !important;
+}
+
+html.light #gestures .grid .card-3d-crisp.is-hovered .font-display,
+html.light #gestures .grid .card-3d-crisp:hover .font-display {
+  color: var(--text-inverse) !important;
+}
+
+html.light #gestures .grid .card-3d-crisp.is-hovered p,
+html.light #gestures .grid .card-3d-crisp:hover p {
+  color: #DCE4ED !important;
+}
+
+html.light #gestures .grid .card-3d-crisp.is-hovered .text-cyan-300,
+html.light #gestures .grid .card-3d-crisp:hover .text-cyan-300 {
+  color: #00D9FF !important;
+}
+
+/* Search and Filter Container in Gesture Library */
+html.light #gestures .glass-card {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+}
+
+/* ── Feature Panel: Hero Live Recognition Preview in Deep Navy #14283D ── */
+html.light #hero .max-w-md .glass-card {
+  background-color: var(--surface-navy) !important;
+  /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important;
+  /* #203B55 */
+  box-shadow: 0 24px 60px rgba(20, 40, 61, 0.28) !important;
+  color: var(--text-inverse) !important;
+}
+
+html.light #hero .max-w-md .glass-card .font-display,
+html.light #hero .max-w-md .glass-card .text-white {
+  color: var(--text-inverse) !important;
+  /* #FFFFFF */
+}
+
+html.light #hero .max-w-md .glass-card .text-slate-200,
+html.light #hero .max-w-md .glass-card .text-slate-300 {
+  color: #DCE4ED !important;
+}
+
+html.light #hero .max-w-md .glass-card .text-slate-400 {
+  color: #AABBCD !important;
+}
+
+html.light #hero .max-w-md .glass-card .bg-slate-950\/80 {
+  background-color: var(--surface-navy-soft) !important;
+  /* #203B55 */
+  border-color: rgba(200, 212, 224, 0.16) !important;
+}
+
+html.light #hero .max-w-md .glass-card .bg-white\/10 {
+  background-color: rgba(200, 212, 224, 0.15) !important;
+  color: #83E8F5 !important;
+}
+
+html.light #hero .max-w-md .glass-card .text-cyan-300,
+html.light #hero .max-w-md .glass-card .text-cyan-300\/80 {
+  color: #00D9FF !important;
+}
+
+html.light #hero .max-w-md .glass-frosted {
+  background-color: var(--surface-navy-soft) !important;
+  /* #203B55 */
+  border-color: rgba(200, 212, 224, 0.16) !important;
+  color: var(--text-inverse) !important;
+}
+
+html.light #hero .max-w-md .glass-frosted .text-white {
+  color: var(--text-inverse) !important;
+}
+
+/* Fix 3: Live Recognition card bottom 4 chips — Platinum surface, Deep Navy text, subtle cyan accent */
+html.light #hero .max-w-md .glass-card .rounded-full.border-white\/10 {
+  background-color: var(--surface-secondary) !important;
+  /* Platinum #DCE4ED */
+  border: 1px solid rgba(8, 127, 155, 0.30) !important;
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+  box-shadow: 0 1px 3px rgba(20, 40, 61, 0.08) !important;
+  font-weight: 600 !important;
+}
+
+html.light #hero .max-w-md .glass-card .rounded-full.border-white\/10:hover {
+  background-color: #FFFFFF !important;
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+}
+
+/* Hero Secondary CTA Button (Live Demo) */
+html.light #hero .glass-card.inline-flex {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid var(--border-strong) !important;
+  /* #BAC8D7 */
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+  box-shadow: 0 4px 14px rgba(20, 40, 61, 0.07) !important;
+}
+
+html.light #hero .glass-card.inline-flex:hover {
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+  background-color: var(--surface-elevated) !important;
+}
+
+html.light #hero a span.text-slate-400 {
+  color: var(--text-secondary) !important;
+}
+
+html.light #hero a span.text-slate-400:hover {
+  color: var(--accent-primary) !important;
+}
+
+/* ── Live Interpreter Section in Light Mode: Surface Layering & Shading ── */
+html.light #demo {
+  background: radial-gradient(ellipse 85% 65% at 50% 45%, rgba(213, 242, 247, 0.45) 0%, rgba(220, 228, 237, 0.70) 55%, #E6EBF1 100%) !important;
+  position: relative !important;
+}
+
+/* Subtle cool-blue radial shading behind the main workspace */
+html.light #demo::after {
+  content: '';
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1100px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(8, 127, 155, 0.08) 0%, rgba(213, 242, 247, 0.35) 45%, transparent 70%);
+  filter: blur(48px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Fix 2: Live Interpreter — Model Standby and Camera Standby crisp white pills */
+html.light #demo .glass-frosted {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-strong) !important;
+  /* #BAC8D7 */
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+  box-shadow: 0 2px 8px rgba(20, 40, 61, 0.06) !important;
+  font-weight: 600 !important;
+}
+
+html.light #demo .glass-frosted,
+html.light #demo .glass-frosted span,
+html.light #demo .glass-frosted .text-slate-200 {
+  color: var(--text-primary) !important;
+}
+
+/* Standby Status Indicators: High-contrast readable dot */
+html.light #demo .glass-frosted span.bg-slate-500 {
+  background-color: #647C91 !important;
+  box-shadow: 0 0 0 2px rgba(20, 40, 61, 0.18) !important;
+}
+
+/* Active Status Indicators: Vibrant, clearly visible */
+html.light #demo .glass-frosted span.bg-emerald-400 {
+  background-color: #059669 !important;
+  box-shadow: 0 0 6px rgba(5, 150, 105, 0.6) !important;
+}
+
+html.light #demo .glass-frosted span.bg-cyan-400 {
+  background-color: var(--accent-primary) !important;
+  /* #087F9B */
+  box-shadow: 0 0 6px rgba(8, 127, 155, 0.6) !important;
+}
+
+html.light #demo .glass-frosted span.bg-amber-400 {
+  background-color: #D97706 !important;
+  box-shadow: 0 0 6px rgba(217, 119, 6, 0.6) !important;
+}
+
+html.light #demo .glass-frosted span.bg-red-400 {
+  background-color: #DC2626 !important;
+  box-shadow: 0 0 6px rgba(220, 38, 38, 0.6) !important;
+}
+
+/* Control Buttons (Mirror toggle, etc.) */
+html.light #demo button.glass-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-strong) !important;
+  /* #BAC8D7 */
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+  box-shadow: 0 2px 8px rgba(20, 40, 61, 0.06) !important;
+  font-weight: 600 !important;
+}
+
+html.light #demo button.glass-card:hover {
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+  background-color: var(--surface-elevated) !important;
+}
+
+/* Left Panel: Camera Workspace Card — Crisp White with subtle Platinum border */
+html.light #demo .camera-panel-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-default) !important;
+  box-shadow: 0 12px 36px rgba(20, 40, 61, 0.08), 0 2px 6px rgba(20, 40, 61, 0.04) !important;
+  position: relative !important;
+  z-index: 2;
+}
+
+/* Camera Viewport Container: clean dark contrast workspace for high visibility */
+html.light #demo .scanline.bg-slate-950 {
+  background-color: #081522 !important;
+  border: 1px solid #14283D !important;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.light #demo .scanline .rounded-full.bg-slate-950\/85 {
+  background-color: rgba(8, 21, 34, 0.90) !important;
+  border-color: rgba(0, 217, 255, 0.30) !important;
+  color: #FFFFFF !important;
+}
+
+html.light #demo .scanline .rounded-full.bg-slate-950\/85,
+html.light #demo .scanline .rounded-full.bg-slate-950\/85 span,
+html.light #demo .scanline .rounded-full.bg-slate-950\/85.text-slate-200,
+html.light #demo .scanline .rounded-full.bg-slate-950\/85.text-cyan-300 {
+  color: #FFFFFF !important;
+}
+
+html.light #demo .scanline .glass-card {
+  background-color: rgba(8, 21, 34, 0.92) !important;
+  border-color: rgba(0, 217, 255, 0.35) !important;
+}
+
+/* Right Panel: Live Translation Card — Differentiated Elevated Surface with restrained top cyan highlight */
+html.light #demo .translation-panel-card {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5F8FA 100%) !important;
+  border: 1px solid #BAC8D7 !important;
+  border-top: 2.5px solid var(--accent-primary) !important;
+  box-shadow: 0 16px 42px rgba(20, 40, 61, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  position: relative !important;
+  z-index: 2;
+}
+
+html.light #demo .translation-panel-card .font-mono.tracking-\[0\.24em\] {
+  color: var(--accent-primary) !important;
+}
+
+html.light #demo .translation-panel-card .h-2.w-2.rounded-full.bg-cyan-400 {
+  background-color: var(--accent-primary) !important;
+  box-shadow: 0 0 8px rgba(8, 127, 155, 0.45) !important;
+}
+
+/* Inner chip trays in translation panel: Elevated Surface #F0F3F7 */
+html.light #demo .translation-panel-card .bg-white\/\[0\.03\] {
+  background-color: var(--surface-elevated) !important;
+  /* #F0F3F7 */
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+}
+
+/* Stream character chips: Soft Cyan #D5F2F7 with Primary Accent #087F9B */
+html.light #demo .translation-panel-card .bg-cyan-400\/15 {
+  background-color: var(--accent-soft) !important;
+  /* #D5F2F7 */
+  border-color: rgba(8, 127, 155, 0.40) !important;
+  color: var(--text-primary) !important;
+  /* #14283D */
+  box-shadow: 0 2px 6px rgba(8, 127, 155, 0.12) !important;
+}
+
+/* Primary Recognized Gesture letter box */
+html.light #demo .translation-panel-card .h-16.w-16.rounded-2xl {
+  background: linear-gradient(135deg, #D5F2F7 0%, #E6EBF1 100%) !important;
+  border: 1.5px solid rgba(8, 127, 155, 0.35) !important;
+  box-shadow: inset 0 2px 4px rgba(20, 40, 61, 0.05) !important;
+}
+
+html.light #demo .translation-panel-card .h-16.w-16.rounded-2xl span {
+  color: var(--text-primary) !important;
+  /* #14283D */
+}
+
+/* Committed word chips */
+html.light #demo .translation-panel-card .rounded-xl.bg-cyan-400\/15 {
+  background-color: var(--accent-soft) !important;
+  /* #D5F2F7 */
+  border-color: rgba(8, 127, 155, 0.35) !important;
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+/* Audio waveform stream bars in Light Mode */
+html.light #demo .wave-bar {
+  background: linear-gradient(180deg, #087F9B 0%, #168BFF 100%) !important;
+}
+
+/* Telemetry metric values in bold navy */
+html.light #demo .translation-panel-card .font-display.text-xl {
+  color: var(--text-primary) !important;
+  /* #14283D */
+}
+
+html.light #demo .translation-panel-card .font-mono.tracking-widest {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+html.light #demo .translation-panel-card .font-display.text-lg {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
 /* ── Feature Section: How It Works Central HUD in Deep Navy #14283D ── */
-html.light #how .pipeline-container .rounded-2xl.bg-slate-950\/75 {
-  background-color: var(--surface-primary) !important; /* #DCE4ED */
-  border-color: var(--border-default) !important;       /* #C8D4E0 */
+html.light #how .rounded-2xl.bg-slate-950\/75,
+html.light #how .bg-slate-950\/75 {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-default) !important;
+  /* #C5D0DC */
+  box-shadow: 0 4px 20px rgba(20, 40, 61, 0.06) !important;
 }
+
+/* Fix 1: Active Step Button (Webcam Input) — Deep Navy surface, white text, subtle cyan accent */
 html.light #how button.bg-cyan-950\/80 {
-  background-color: var(--accent-soft) !important;     /* #D5F2F7 */
-  border-color: var(--accent-primary) !important;      /* #087F9B */
-  box-shadow: 0 4px 16px rgba(8, 127, 155, 0.12) !important;
+  background-color: var(--surface-navy) !important;
+  /* Deep Navy #14283D */
+  border: 1.5px solid var(--accent-primary) !important;
+  /* #087F9B */
+  box-shadow: 0 4px 18px rgba(20, 40, 61, 0.24), 0 0 12px rgba(8, 127, 155, 0.22) !important;
 }
+
+html.light #how button.bg-cyan-950\/80 span.text-white,
+html.light #how button.bg-cyan-950\/80 .text-white {
+  color: #FFFFFF !important;
+  /* Crisp white text */
+}
+
+html.light #how button.bg-cyan-950\/80 span.text-cyan-300,
+html.light #how button.bg-cyan-950\/80 .font-mono {
+  color: #83E8F5 !important;
+  /* Subtle cyan accent */
+}
+
+html.light #how button.bg-cyan-950\/80 span.text-cyan-300\/90,
+html.light #how button.bg-cyan-950\/80 .text-cyan-300\/90 {
+  color: #DCE4ED !important;
+  /* Platinum secondary */
+}
+
+html.light #how button.bg-cyan-950\/80 .bg-cyan-400 {
+  background-color: var(--accent-primary) !important;
+  /* #087F9B */
+  color: #FFFFFF !important;
+  box-shadow: 0 0 10px rgba(8, 127, 155, 0.4) !important;
+}
+
+html.light #how button.bg-cyan-950\/80 .bg-cyan-400 svg {
+  color: #FFFFFF !important;
+}
+
+/* Inactive Completed Step Buttons */
 html.light #how button.bg-slate-900\/60 {
-  background-color: var(--surface-primary) !important; /* #DCE4ED */
-  border-color: var(--border-default) !important;       /* #C8D4E0 */
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-default) !important;
+  /* #C5D0DC */
 }
+
+html.light #how button.bg-slate-900\/60 span.text-slate-200 {
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+}
+
+html.light #how button.bg-slate-900\/60 span.text-cyan-400\/80 {
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+html.light #how button.bg-slate-900\/60 span.text-slate-400 {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+html.light #how button.bg-slate-900\/60 .bg-cyan-950\/60 {
+  background-color: var(--accent-soft) !important;
+  /* #D5F2F7 */
+  border-color: rgba(8, 127, 155, 0.35) !important;
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+/* Inactive Upcoming Step Buttons */
 html.light #how button.bg-slate-950\/40 {
-  background-color: var(--surface-secondary) !important; /* #E6EBF1 */
-  border-color: var(--border-default) !important;       /* #C8D4E0 */
+  background-color: var(--surface-elevated) !important;
+  /* #F0F3F7 */
+  border: 1px solid var(--border-default) !important;
+  /* #C5D0DC */
+}
+
+html.light #how button.bg-slate-950\/40 span.text-slate-400 {
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+}
+
+html.light #how button.bg-slate-950\/40 span.text-slate-500 {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+html.light #how button.bg-slate-950\/40 span.text-slate-600 {
+  color: var(--text-muted) !important;
+  /* #647C91 */
+}
+
+html.light #how button.bg-slate-950\/40 .bg-white\/5 {
+  background-color: var(--surface-secondary) !important;
+  /* #DCE4ED */
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+
+html.light #how button.bg-slate-900\/60:hover,
+html.light #how button.bg-slate-950\/40:hover {
+  background-color: #FFFFFF !important;
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 4px 14px rgba(20, 40, 61, 0.08) !important;
+}
+
+html.light #how button.bg-slate-900\/60:hover span.text-slate-200,
+html.light #how button.bg-slate-950\/40:hover span.text-slate-400 {
+  color: var(--accent-primary) !important;
 }
 
 /* Central Pipeline HUD Card: Deep Navy Feature Surface #14283D */
 html.light #how .glass-card {
-  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
-  border-color: var(--surface-navy-soft) !important; /* #203B55 */
+  background-color: var(--surface-navy) !important;
+  /* Deep Navy #14283D */
+  border-color: var(--surface-navy-soft) !important;
+  /* #203B55 */
   box-shadow: 0 16px 45px rgba(20, 40, 61, 0.22) !important;
   color: var(--text-inverse) !important;
 }
+
 html.light #how .glass-card h3,
 html.light #how .glass-card .font-display,
 html.light #how .glass-card .text-white {
-  color: var(--text-inverse) !important; /* #F5F8FC */
+  color: var(--text-inverse) !important;
+  /* #FFFFFF */
 }
+
 html.light #how .glass-card p,
 html.light #how .glass-card .text-slate-300,
 html.light #how .glass-card .text-slate-400 {
   color: #AABBCD !important;
 }
+
+html.light #how .glass-card .inline-block.rounded-full {
+  background-color: var(--surface-navy-soft) !important;
+  /* #203B55 */
+  border: 1px solid rgba(8, 127, 155, 0.35) !important;
+  color: #83E8F5 !important;
+}
+
 html.light #how .glass-card .bg-slate-900\/60,
 html.light #how .glass-card .bg-slate-950\/85 {
-  background-color: var(--surface-navy-soft) !important; /* #203B55 */
+  background-color: var(--surface-navy-soft) !important;
+  /* #203B55 */
   border-color: rgba(200, 212, 224, 0.18) !important;
 }
+
 html.light #how .glass-card .text-cyan-300 {
   color: #00D9FF !important;
 }
 
-/* ── Alternating Section Depth in Light Mode ── */
-html.light #demo {
-  background-color: rgba(220, 228, 237, 0.35);
-  border-top: 1px solid var(--border-default);
-  border-bottom: 1px solid var(--border-default);
+html.light #how .glass-card button:disabled {
+  color: #647C91 !important;
+  opacity: 0.65 !important;
 }
 
+html.light #how .glass-card button:not(:disabled) {
+  color: #FFFFFF !important;
+}
+
+html.light #how .glass-card button:not(:disabled):hover {
+  color: #83E8F5 !important;
+}
+
+/* ── Organic Flowing Waves in Light Mode ── */
+html.light .light-only-wave {
+  display: block !important;
+  --wave-fill: #E6EBF1;
+  color: #E6EBF1;
+}
+
+/* ── Organic Flowing Curved Section Transition Borders in Dark Mode ── */
+html:not(.light) .light-only-wave,
+html.dark .light-only-wave,
+[data-theme="dark"] .light-only-wave {
+  display: block !important;
+  --wave-fill: rgba(8, 21, 34, 0.70);
+  --wave-stroke: rgba(0, 217, 255, 0.20);
+  color: rgba(8, 21, 34, 0.70);
+}
+
+.wave-divider-enter {
+  margin-bottom: -1px;
+}
+
+.wave-divider-exit {
+  margin-top: -1px;
+}
+
+/* Vertical separation between Hero bottom frame and Live Interpreter curved boundary */
+html:not(.light) #hero + .light-only-wave,
+html.dark #hero + .light-only-wave,
+[data-theme="dark"] #hero + .light-only-wave {
+  margin-top: 2.75rem !important;
+}
+
+/* ── Section 3: Gesture Wheel in Light Mode (Surface Layering & 3D Depth) ── */
+html.light #gestures {
+  background: radial-gradient(ellipse 85% 65% at 50% 50%, rgba(213, 242, 247, 0.45) 0%, rgba(220, 228, 237, 0.70) 55%, #E6EBF1 100%) !important;
+  position: relative !important;
+}
+
+/* Subtle cool-blue shading behind the 3D wheel */
+html.light #gestures::after {
+  content: '';
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  max-width: 1000px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(8, 127, 155, 0.07) 0%, rgba(213, 242, 247, 0.35) 45%, transparent 70%);
+  filter: blur(52px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Top Controls Bar (Letters/Words tabs, 3D Wheel/Grid switch, Search bar) */
+html.light #gestures .glass-card {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  box-shadow: 0 4px 18px rgba(20, 40, 61, 0.06) !important;
+}
+
+/* Category Tabs (Letters vs Words) */
+html.light #gestures .glass-card button.text-slate-400 {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+  font-weight: 500 !important;
+}
+
+html.light #gestures .glass-card button.text-slate-400:hover {
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+/* View Mode Switcher (3D Wheel vs Grid) */
+html.light #gestures button.bg-cyan-400\/20 {
+  background-color: var(--surface-navy) !important;
+  /* Deep Navy #14283D */
+  color: #FFFFFF !important;
+  border: 1px solid var(--accent-primary) !important;
+  box-shadow: 0 2px 8px rgba(20, 40, 61, 0.18) !important;
+}
+
+html.light #gestures button.bg-cyan-400\/20 svg {
+  color: #83E8F5 !important;
+  /* Subtle cyan accent */
+}
+
+html.light #gestures button.text-slate-400 {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+html.light #gestures button.text-slate-400:hover {
+  color: var(--accent-primary) !important;
+}
+
+html.light #gestures input {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light #gestures input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+html.light #gestures input:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px rgba(8, 127, 155, 0.18) !important;
+}
+
+html.light #gestures .relative button.text-slate-400 {
+  color: var(--text-secondary) !important;
+}
+
+html.light #gestures .relative button.text-slate-400:hover {
+  color: var(--accent-primary) !important;
+}
+
+/* Active Spotlight Banner above Wheel (Approved Deep Navy Feature Surface) */
+html.light #gestures .glass-card.max-w-2xl {
+  background-color: var(--surface-navy) !important;
+  border-color: var(--surface-navy-soft) !important;
+  box-shadow: 0 16px 45px rgba(20, 40, 61, 0.22) !important;
+  color: var(--text-inverse) !important;
+}
+
+html.light #gestures .glass-card.max-w-2xl .font-display,
+html.light #gestures .glass-card.max-w-2xl .text-white {
+  color: #FFFFFF !important;
+}
+
+html.light #gestures .glass-card.max-w-2xl p,
+html.light #gestures .glass-card.max-w-2xl .text-slate-300 {
+  color: #DCE4ED !important;
+}
+
+html.light #gestures .glass-card.max-w-2xl .bg-cyan-400\/15 {
+  background-color: rgba(0, 217, 255, 0.15) !important;
+  border-color: rgba(0, 217, 255, 0.40) !important;
+  color: #00D9FF !important;
+}
+
+/* Atmospheric stage edge vignettes in Light Mode: seamless light blend */
+html.light #gestures .pointer-events-none.absolute.inset-y-0.left-0 {
+  background: linear-gradient(to right, #E6EBF1 0%, rgba(230, 235, 241, 0.85) 45%, transparent 100%) !important;
+}
+
+html.light #gestures .pointer-events-none.absolute.inset-y-0.right-0 {
+  background: linear-gradient(to left, #E6EBF1 0%, rgba(230, 235, 241, 0.85) 45%, transparent 100%) !important;
+}
+
+/* Active / Front Card: Deep Navy #14283D with restrained cyan active highlight */
+html.light .wheel-active-card {
+  background: linear-gradient(165deg, #18314B 0%, #14283D 65%, #0F1E2E 100%) !important;
+  border: 1.5px solid rgba(8, 127, 155, 0.50) !important;
+  box-shadow: 0 20px 48px rgba(20, 40, 61, 0.32), 0 0 24px rgba(8, 127, 155, 0.22) !important;
+  color: #FFFFFF !important;
+}
+
+html.light .wheel-active-card .font-display {
+  color: #FFFFFF !important;
+}
+
+html.light .wheel-active-card .font-mono {
+  color: #00D9FF !important;
+}
+
+html.light .wheel-active-card p,
+html.light .wheel-active-card span.text-slate-400,
+html.light .wheel-active-card span.text-slate-300 {
+  color: #DCE4ED !important;
+}
+
+html.light .wheel-active-card .bg-cyan-400\/15 {
+  background-color: rgba(0, 217, 255, 0.15) !important;
+  border-color: rgba(0, 217, 255, 0.45) !important;
+  color: #00D9FF !important;
+}
+
+/* Side Cards: Crisp Platinum & Elevated Surface #F0F3F7 / White */
+html.light .wheel-side-card {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F3F6FA 100%) !important;
+  border: 1px solid var(--border-default) !important;
+  box-shadow: 0 6px 20px rgba(20, 40, 61, 0.08) !important;
+  color: var(--text-primary) !important;
+}
+
+html.light .wheel-side-card .font-display {
+  color: var(--text-primary) !important;
+  /* #14283D */
+}
+
+html.light .wheel-side-card .font-mono {
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+html.light .wheel-side-card p,
+html.light .wheel-side-card span.text-slate-400,
+html.light .wheel-side-card span.text-slate-300 {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+html.light .wheel-side-card .bg-cyan-400\/15 {
+  background-color: var(--accent-soft) !important;
+  /* #D5F2F7 */
+  border-color: rgba(8, 127, 155, 0.30) !important;
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+/* Navigation prev/next buttons and guide pill */
+html.light #gestures .glass-card button,
+html.light #gestures button.glass-card {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 4px 12px rgba(20, 40, 61, 0.07) !important;
+}
+
+html.light #gestures button.glass-card:hover {
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+}
+
+html.light #gestures button.glass-card span {
+  color: inherit !important;
+}
+
+html.light #gestures .glass-card.hidden.sm\:flex {
+  background-color: var(--surface-elevated) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+
+html.light #gestures .glass-card.hidden.sm\:flex span.text-slate-300 {
+  color: var(--text-secondary) !important;
+}
+
+html.light #gestures .glass-card.hidden.sm\:flex span.text-cyan-300 {
+  color: var(--accent-primary) !important;
+}
+
+/* A–Z Fast Selector Ribbon: Crisp white buttons with Deep Navy letters */
+html.light #gestures .mt-6 button:not(.bg-cyan-400):not(.bg-gradient-to-br) {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-default) !important;
+  /* #C5D0DC */
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+  box-shadow: 0 1px 3px rgba(20, 40, 61, 0.05) !important;
+}
+
+html.light #gestures .mt-6 button:not(.bg-cyan-400):not(.bg-gradient-to-br):hover {
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+  background-color: var(--surface-elevated) !important;
+}
+
+/* Side Card "Hover to sign" badge — Platinum with Deep Navy text */
+html.light .wheel-side-card span.text-slate-300,
+html.light .wheel-side-card span[class*="bg-white\/\[0\.06\]"] {
+  background-color: var(--surface-secondary) !important;
+  /* #DCE4ED */
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+  color: var(--text-primary) !important;
+  /* #14283D */
+}
+
+/* Grid Mode Library Cards */
+html.light #gestures .grid .glass-card {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+html.light #gestures .grid .glass-card:hover {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 10px 30px rgba(8, 127, 155, 0.14) !important;
+}
+
+html.light #gestures .grid .glass-card .font-display {
+  color: var(--text-primary) !important;
+}
+
+html.light #gestures .grid .glass-card p {
+  color: var(--text-secondary) !important;
+}
+
+/* ── Section 4: Team Section Background (Surface Layering & Shading matching Live Interpreter & Gesture Library) ── */
 html.light #team {
-  background-color: rgba(220, 228, 237, 0.35);
-  border-top: 1px solid var(--border-default);
-  border-bottom: 1px solid var(--border-default);
+  background: radial-gradient(ellipse 85% 65% at 50% 50%, rgba(213, 242, 247, 0.45) 0%, rgba(220, 228, 237, 0.70) 55%, #E6EBF1 100%) !important;
+  position: relative !important;
+}
+
+/* Subtle cool-blue radial shading behind the team section */
+html.light #team::after {
+  content: '';
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1100px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(8, 127, 155, 0.07) 0%, rgba(213, 242, 247, 0.35) 45%, transparent 70%);
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Dark Mode: Live Recognition Section Background (Connected to Curve) ── */
+html:not(.light) #demo,
+html.dark #demo,
+[data-theme="dark"] #demo {
+  margin-top: 0 !important;
+  background: radial-gradient(ellipse 85% 65% at 50% 50%, rgba(11, 38, 52, 0.45) 0%, rgba(8, 21, 34, 0.70) 55%, rgba(8, 21, 34, 0.70) 100%) !important;
+  position: relative !important;
+}
+
+/* ── Dark Mode: Surface Layering for Gesture Library & Team ── */
+html:not(.light) #gestures,
+html.dark #gestures,
+[data-theme="dark"] #gestures,
+html:not(.light) #team,
+html.dark #team,
+[data-theme="dark"] #team {
+  margin-top: 0 !important;
+  background: radial-gradient(ellipse 85% 65% at 50% 50%, rgba(11, 38, 52, 0.45) 0%, rgba(8, 21, 34, 0.70) 55%, rgba(8, 21, 34, 0.70) 100%) !important;
+  position: relative !important;
+}
+
+/* Subtle cool-cyan/electric-blue atmospheric shading in Dark Mode */
+html:not(.light) #demo::after,
+html.dark #demo::after,
+[data-theme="dark"] #demo::after,
+html:not(.light) #gestures::after,
+html.dark #gestures::after,
+[data-theme="dark"] #gestures::after,
+html:not(.light) #team::after,
+html.dark #team::after,
+[data-theme="dark"] #team::after {
+  content: '';
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1100px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(0, 217, 255, 0.04) 0%, rgba(22, 139, 255, 0.02) 45%, transparent 70%);
+  filter: blur(52px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Position atmospheric glow in Live Recognition lower to match shifted background */
+html:not(.light) #demo::after,
+html.dark #demo::after,
+[data-theme="dark"] #demo::after {
+  top: 38% !important;
+}
+
+/* ── Dark Mode: Subtly Darker Borders for Live Interpreter, Gesture Library & Team ── */
+html:not(.light) #demo .border-white\/12,
+html.dark #demo .border-white\/12,
+[data-theme="dark"] #demo .border-white\/12,
+html:not(.light) #demo .camera-panel-card,
+html.dark #demo .camera-panel-card,
+[data-theme="dark"] #demo .camera-panel-card,
+html:not(.light) #demo .translation-panel-card,
+html.dark #demo .translation-panel-card,
+[data-theme="dark"] #demo .translation-panel-card,
+html:not(.light) #gestures .border-white\/12,
+html.dark #gestures .border-white\/12,
+[data-theme="dark"] #gestures .border-white\/12,
+html:not(.light) #gestures .card-3d-crisp,
+html.dark #gestures .card-3d-crisp,
+[data-theme="dark"] #gestures .card-3d-crisp,
+html:not(.light) #team .border-white\/12,
+html.dark #team .border-white\/12,
+[data-theme="dark"] #team .border-white\/12,
+html:not(.light) #team .border-white\/10,
+html.dark #team .border-white\/10,
+[data-theme="dark"] #team .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.075) !important;
 }
 
 /* Team Accordion Gallery Container in Light Mode */
 html.light #team .bg-slate-950\/60 {
-  background-color: var(--surface-primary) !important; /* #DCE4ED */
-  border-color: var(--border-default) !important;       /* #C8D4E0 */
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+  box-shadow: 0 14px 40px rgba(20, 40, 61, 0.08) !important;
 }
 
-/* ── Feature Panel: Team Active Member Spotlight in Deep Navy #14283D ── */
+/* ── Feature Panel: Team Active Member Spotlight — Matching Roadmap Card Palette ── */
 html.light #team .glass-glow {
-  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
-  border-color: var(--surface-navy-soft) !important; /* #203B55 */
-  box-shadow: 0 20px 55px rgba(20, 40, 61, 0.25) !important;
-  color: var(--text-inverse) !important;
+  background-color: #FFFFFF !important;
+  /* White card background */
+  border-color: var(--border-default) !important;
+  /* Platinum border #C5D0DC */
+  box-shadow: 0 14px 40px rgba(20, 40, 61, 0.08) !important;
+  color: var(--text-primary) !important;
 }
+
+html.light #team .glass-glow.border-cyan-400\/50 {
+  border-color: rgba(8, 127, 155, 0.45) !important;
+  box-shadow: 0 16px 45px rgba(20, 40, 61, 0.09), 0 0 25px rgba(8, 127, 155, 0.12) !important;
+}
+
+html.light #team .glass-glow .border-b {
+  border-color: var(--border-default) !important;
+}
+
 html.light #team .glass-glow h3,
 html.light #team .glass-glow .font-display,
 html.light #team .glass-glow .text-white {
-  color: var(--text-inverse) !important; /* #F5F8FC */
-}
-html.light #team .glass-glow p,
-html.light #team .glass-glow .text-slate-300 {
-  color: #DCE4ED !important;
-}
-html.light #team .glass-glow .text-slate-400 {
-  color: #AABBCD !important;
-}
-html.light #team .glass-glow .text-cyan-300 {
-  color: #00D9FF !important;
-}
-html.light #team .glass-glow .bg-white\/\[0\.03\] {
-  background-color: var(--surface-navy-soft) !important; /* #203B55 */
-  border-color: rgba(200, 212, 224, 0.16) !important;
-}
-html.light #team .glass-glow .glass-frosted {
-  background-color: var(--surface-navy-soft) !important; /* #203B55 */
-  border-color: rgba(200, 212, 224, 0.16) !important;
-  color: var(--text-inverse) !important;
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
 }
 
-/* ── Feature Panel: Contact Form Card in Deep Navy #14283D ── */
-html.light #contact form.glass-card {
-  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
-  border-color: var(--surface-navy-soft) !important; /* #203B55 */
-  box-shadow: 0 20px 55px rgba(20, 40, 61, 0.25) !important;
-  color: var(--text-inverse) !important;
+html.light #team .glass-glow p,
+html.light #team .glass-glow .text-slate-300 {
+  color: var(--text-secondary) !important;
+  /* Muted Blue #425B72 */
 }
+
+html.light #team .glass-glow .text-slate-400 {
+  color: var(--text-muted) !important;
+  /* #6B8299 */
+}
+
+html.light #team .glass-glow .text-cyan-300,
+html.light #team .glass-glow .text-cyan-200 {
+  color: var(--accent-primary) !important;
+  /* Cyan/Teal #087F9B */
+}
+
+html.light #team .glass-glow .bg-cyan-400 {
+  background-color: var(--accent-primary) !important;
+}
+
+html.light #team .glass-glow .border-cyan-400\/40 {
+  background-color: var(--accent-soft) !important;
+  /* Soft Cyan #D5F2F7 */
+  border-color: rgba(8, 127, 155, 0.35) !important;
+  color: var(--accent-primary) !important;
+}
+
+html.light #team .glass-glow .bg-white\/10 {
+  background-color: var(--surface-elevated) !important;
+  /* #F0F3F7 */
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+html.light #team .glass-glow .bg-gradient-to-r.border-cyan-400\/40 {
+  background: linear-gradient(90deg, #D5F2F7 0%, #E6EBF1 100%) !important;
+  border-color: rgba(8, 127, 155, 0.35) !important;
+  color: var(--accent-primary) !important;
+  box-shadow: 0 2px 10px rgba(8, 127, 155, 0.12) !important;
+}
+
+html.light #team .glass-glow .bg-gradient-to-r.border-cyan-400\/40 * {
+  color: var(--accent-primary) !important;
+}
+
+html.light #team .glass-glow .bg-white\/\[0\.03\] {
+  background-color: var(--surface-elevated) !important;
+  /* Soft Elevated #F0F3F7 */
+  border-color: var(--border-default) !important;
+  /* Platinum #C5D0DC */
+  box-shadow: inset 0 1px 3px rgba(20, 40, 61, 0.03) !important;
+}
+
+html.light #team .glass-glow .bg-white\/\[0\.03\] h4,
+html.light #team .glass-glow .bg-white\/\[0\.03\] .text-cyan-300 {
+  color: var(--accent-primary) !important;
+  /* Cyan/Teal #087F9B */
+}
+
+html.light #team .glass-glow .bg-white\/\[0\.03\] li {
+  color: var(--text-secondary) !important;
+  /* Muted Blue #425B72 */
+}
+
+html.light #team .glass-glow .bg-white\/\[0\.03\] .border-t {
+  border-color: var(--border-default) !important;
+}
+
+html.light #team .glass-glow .bg-white\/\[0\.03\] .text-slate-500 {
+  color: var(--text-muted) !important;
+  /* #6B8299 */
+}
+
+html.light #team .glass-glow .glass-frosted {
+  background-color: var(--surface-elevated) !important;
+  /* #F0F3F7 */
+  border-color: var(--border-default) !important;
+  /* Platinum #C5D0DC */
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+  box-shadow: 0 2px 6px rgba(20, 40, 61, 0.05) !important;
+}
+
+html.light #team .glass-glow .glass-frosted svg,
+html.light #team .glass-glow .glass-frosted .text-cyan-300 {
+  color: var(--accent-primary) !important;
+  /* Cyan/Teal #087F9B */
+}
+
+html.light #team .glass-glow .glass-frosted:hover {
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+  background-color: #FFFFFF !important;
+}
+
+/* College Affiliation Ribbon */
+html.light #team .glass-card.mt-10 {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+  box-shadow: 0 6px 20px rgba(20, 40, 61, 0.07) !important;
+}
+
+html.light #team .glass-card.mt-10 span.text-slate-400 {
+  color: var(--text-secondary) !important;
+}
+
+html.light #team .glass-card.mt-10 span.text-cyan-300 {
+  color: var(--accent-primary) !important;
+}
+
+/* Future Roadmap Cards: White with Platinum borders & Soft Cyan details */
+html.light #team .mt-20 .glass-card {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
+  box-shadow: 0 8px 25px rgba(20, 40, 61, 0.07) !important;
+}
+
+html.light #team .mt-20 .glass-card:hover {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 14px 35px rgba(8, 127, 155, 0.14) !important;
+}
+
+html.light #team .mt-20 .glass-card h4,
+html.light #team .mt-20 .glass-card .font-display {
+  color: var(--text-primary) !important;
+}
+
+html.light #team .mt-20 .glass-card p {
+  color: var(--text-secondary) !important;
+}
+
+html.light #team .mt-20 .glass-card .bg-cyan-400\/15,
+html.light #team .mt-20 .glass-card .bg-cyan-500\/15 {
+  background-color: var(--accent-soft) !important;
+  border-color: rgba(8, 127, 155, 0.35) !important;
+  color: var(--accent-primary) !important;
+}
+
+/* ── Dark Mode: Team Description Cards — Matching Existing Dark Mode Card Palette ── */
+/* 1. Main Member Spotlight Card, Roadmap Cards & Affiliation Ribbon */
+html:not(.light) #team .glass-glow,
+html.dark #team .glass-glow,
+[data-theme="dark"] #team .glass-glow,
+html:not(.light) #team .mt-20 .glass-card,
+html.dark #team .mt-20 .glass-card,
+[data-theme="dark"] #team .mt-20 .glass-card,
+html:not(.light) #team .glass-card.mt-10,
+html.dark #team .glass-card.mt-10,
+[data-theme="dark"] #team .glass-card.mt-10,
+html:not(.light) #team .bg-slate-950\/60,
+html.dark #team .bg-slate-950\/60,
+[data-theme="dark"] #team .bg-slate-950\/60 {
+  background-color: var(--bg-card) !important;
+  border-color: rgba(255, 255, 255, 0.075) !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.14), inset 0 0 25px 0 rgba(0, 217, 255, 0.04), var(--shadow-card) !important;
+  backdrop-filter: blur(30px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+}
+
+/* 2. Leader Spotlight Highlight Border & Luminous Glow */
+html:not(.light) #team .glass-glow.border-cyan-400\/50,
+html.dark #team .glass-glow.border-cyan-400\/50,
+[data-theme="dark"] #team .glass-glow.border-cyan-400\/50 {
+  border-color: rgba(0, 217, 255, 0.30) !important;
+  box-shadow: 0 20px 60px rgba(0, 217, 255, 0.20), inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 25px 0 rgba(0, 217, 255, 0.06), var(--shadow-card) !important;
+}
+
+/* 3. Inner Architectural Contributions Box: Subtle Dark Teal Surface Tone */
+html:not(.light) #team .glass-glow .bg-white\/\[0\.03\],
+html.dark #team .glass-glow .bg-white\/\[0\.03\],
+[data-theme="dark"] #team .glass-glow .bg-white\/\[0\.03\] {
+  background-color: rgba(8, 22, 34, 0.65) !important;
+  border-color: rgba(0, 217, 255, 0.14) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 217, 255, 0.03) !important;
+}
+
+/* 4. Internal Divider Lines */
+html:not(.light) #team .glass-glow .border-b,
+html.dark #team .glass-glow .border-b,
+[data-theme="dark"] #team .glass-glow .border-b,
+html:not(.light) #team .glass-glow .border-t,
+html.dark #team .glass-glow .border-t,
+[data-theme="dark"] #team .glass-glow .border-t,
+html:not(.light) #team .mt-20 .glass-card .border-t,
+html.dark #team .mt-20 .glass-card .border-t,
+[data-theme="dark"] #team .mt-20 .glass-card .border-t {
+  border-color: rgba(0, 217, 255, 0.12) !important;
+}
+
+/* 5. Clear Description Text Readability */
+html:not(.light) #team .glass-glow p,
+html.dark #team .glass-glow p,
+[data-theme="dark"] #team .glass-glow p,
+html:not(.light) #team .glass-glow .text-slate-300,
+html.dark #team .glass-glow .text-slate-300,
+[data-theme="dark"] #team .glass-glow .text-slate-300,
+html:not(.light) #team .mt-20 .glass-card p,
+html.dark #team .mt-20 .glass-card p,
+[data-theme="dark"] #team .mt-20 .glass-card p {
+  color: #DCE4ED !important;
+}
+
+/* 6. Roadmap Card Hover State: Luminous Accent Matching Site-Wide Cards */
+html:not(.light) #team .mt-20 .glass-card:hover,
+html.dark #team .mt-20 .glass-card:hover,
+[data-theme="dark"] #team .mt-20 .glass-card:hover {
+  background-color: var(--bg-card-hover) !important;
+  border-color: var(--border-highlight) !important;
+  box-shadow: 0 0 30px rgba(0, 217, 255, 0.22), var(--shadow-card) !important;
+}
+
+/* ── Contact Form Card in Light Mode: Clean White with Soft Elevated Inputs ── */
+html.light #contact form.glass-card {
+  background-color: #FFFFFF !important;
+  border-color: var(--border-default) !important;
+  box-shadow: var(--shadow-card) !important;
+  color: var(--text-primary) !important;
+}
+
 html.light #contact form.glass-card .font-sans,
 html.light #contact form.glass-card label {
-  color: #AABBCD !important;
+  color: var(--text-secondary) !important;
 }
+
 html.light #contact form.glass-card input,
 html.light #contact form.glass-card textarea {
-  background-color: var(--surface-navy-soft) !important; /* #203B55 */
-  color: #F5F8FC !important;
-  border-color: rgba(200, 212, 224, 0.20) !important;
+  background-color: var(--surface-elevated) !important;
+  /* #F0F3F7 */
+  color: var(--text-primary) !important;
+  /* #14283D */
+  border-color: var(--border-default) !important;
+  /* #C5D0DC */
 }
+
 html.light #contact form.glass-card input:focus,
 html.light #contact form.glass-card textarea:focus {
-  border-color: #087F9B !important;
-  box-shadow: 0 0 0 3px rgba(8, 127, 155, 0.25) !important;
-  background-color: #14283D !important;
+  border-color: var(--accent-primary) !important;
+  /* #087F9B */
+  box-shadow: 0 0 0 3px rgba(8, 127, 155, 0.18) !important;
+  background-color: #FFFFFF !important;
 }
 
 /* Contact Quote Card: Deep Navy Highlight */
@@ -997,76 +2084,337 @@ html.light #contact .flex-1.glass-card {
   border-color: var(--surface-navy-soft) !important;
   color: var(--text-inverse) !important;
 }
+
 html.light #contact .flex-1.glass-card p.font-display {
   color: var(--text-inverse) !important;
 }
+
 html.light #contact .flex-1.glass-card p.text-slate-300 {
-  color: #AABBCD !important;
+  color: #DCE4ED !important;
 }
 
-/* ── Model Section Feature Card: Deep Navy Highlight with Cyan Accents ── */
-html.light #model .grid > div:first-child .glass-card {
-  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
-  border-color: var(--surface-navy-soft) !important; /* #203B55 */
-  box-shadow: 0 16px 40px rgba(20, 40, 61, 0.20) !important;
+/* Contact Info Cards (Email & Institution): Crisp White with Deep Navy text & Soft Cyan icons */
+html.light #contact .space-y-4 .glass-card:not(.flex-1) {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-default) !important;
+  /* #C5D0DC */
+  box-shadow: var(--shadow-card) !important;
 }
-html.light #model .grid > div:first-child .glass-card .font-mono {
-  color: #AABBCD !important;
+
+html.light #contact .space-y-4 .glass-card:not(.flex-1) .text-white,
+html.light #contact .space-y-4 .glass-card:not(.flex-1) .text-slate-200 {
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
 }
-html.light #model .grid > div:first-child .glass-card .grad-text {
-  background: linear-gradient(110deg, #F5F8FC 0%, #00D9FF 50%, #168BFF 100%) !important;
+
+html.light #contact .space-y-4 .glass-card:not(.flex-1) .text-cyan-300\/80 {
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+html.light #contact .space-y-4 .glass-card:not(.flex-1) span.rounded-xl {
+  background-color: var(--accent-soft) !important;
+  /* #D5F2F7 */
+  border: 1px solid rgba(8, 127, 155, 0.35) !important;
+}
+
+html.light #contact .space-y-4 .glass-card:not(.flex-1) svg {
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+/* ── Model Section Cards: Crisp White with Deep Navy numbers and Teal labels ── */
+html.light #model .glass-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-default) !important;
+  /* #C5D0DC */
+  box-shadow: var(--shadow-card) !important;
+}
+
+html.light #model .glass-card .font-display,
+html.light #model .glass-card .text-white {
+  color: var(--text-primary) !important;
+  /* Deep Navy #14283D */
+}
+
+html.light #model .glass-card .text-cyan-300,
+html.light #model .glass-card .text-cyan-300\/80 {
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+}
+
+html.light #model .glass-card .text-slate-500,
+html.light #model .glass-card .font-mono {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+html.light #model .glass-card .grad-text {
+  background: var(--grad-text) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
 }
-html.light #model .grid > div:first-child .glass-card circle[stroke="currentColor"] {
-  stroke: rgba(200, 212, 224, 0.15) !important;
+
+html.light #model .glass-card circle[stroke="currentColor"] {
+  stroke: var(--border-default) !important;
 }
 
-/* Live Demo Camera Viewport Background in Light Mode */
-html.light #demo .scanline.bg-slate-950 {
-  background-color: #081522 !important; /* Keep camera feed container dark contrast */
+/* ── Section Eyebrow Chips in Light Mode ── */
+html.light span.glass {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-default) !important;
+  color: var(--accent-primary) !important;
+  /* #087F9B */
+  box-shadow: 0 2px 8px rgba(20, 40, 61, 0.05) !important;
 }
 
-/* ── Deep Navy Anchor Footer in Light Mode ── */
+html.light span.glass .status-dot {
+  background-color: var(--accent-primary) !important;
+  box-shadow: 0 0 6px rgba(8, 127, 155, 0.4) !important;
+}
+
+/* ── Navbar Controls in Light Mode ── */
+html.light header nav {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid var(--border-default) !important;
+  box-shadow: 0 8px 30px rgba(20, 40, 61, 0.08) !important;
+}
+
+html.light header nav span.bg-white\/10 {
+  background-color: var(--surface-secondary) !important;
+  /* Platinum #DCE4ED */
+  border: 1px solid rgba(8, 127, 155, 0.25) !important;
+}
+
+html.light header nav a {
+  color: var(--text-secondary) !important;
+  /* #425B72 */
+}
+
+html.light header nav a:hover {
+  color: var(--accent-primary) !important;
+}
+
+html.light header nav a.font-semibold {
+  color: var(--text-primary) !important;
+  /* #14283D */
+}
+
+html.light header a.glass-card,
+html.light header button.glass-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 2px 8px rgba(20, 40, 61, 0.05) !important;
+}
+
+html.light header a.glass-card:hover,
+html.light header button.glass-card:hover {
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+}
+
+/* ── Section 5: Deep Navy Anchor Footer in Light Mode (Subtle Tonal Depth & Ambient Glow) ── */
 html.light footer {
-  background-color: var(--surface-navy) !important; /* Deep Navy #14283D */
-  color: var(--text-inverse) !important;            /* Light #F5F8FC */
-  border-top-color: var(--surface-navy-soft) !important; /* #203B55 */
+  background: radial-gradient(ellipse 90% 70% at 50% 10%, #1A3249 0%, #14283D 55%, #0F1E2E 100%) !important;
+  color: var(--text-inverse) !important;
+  /* Light #FFFFFF */
+  position: relative !important;
+  border-top: 1px solid rgba(8, 127, 155, 0.35) !important;
 }
+
+/* Restrained luminous cyan hairline accent on top edge of footer */
+html.light footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(8, 127, 155, 0.35) 15%, rgba(0, 217, 255, 0.85) 50%, rgba(8, 127, 155, 0.35) 85%, transparent 100%);
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Soft cyan/blue ambient glow positioned behind the watermark */
+html.light footer .footer-ambient-glow {
+  position: absolute;
+  bottom: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  max-width: 1050px;
+  height: 250px;
+  background: radial-gradient(ellipse 70% 50% at 50% 85%, rgba(0, 217, 255, 0.055) 0%, rgba(22, 139, 255, 0.025) 45%, transparent 75%);
+  filter: blur(48px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Headings in White */
 html.light footer h1,
 html.light footer h2,
 html.light footer h3,
 html.light footer h4,
 html.light footer .font-display,
 html.light footer .text-white {
-  color: var(--text-inverse) !important;            /* #F5F8FC */
+  color: var(--text-inverse) !important;
+  /* #FFFFFF */
 }
+
+/* Readable Platinum & Light Secondary Text (Contrast > 8:1 on Deep Navy) */
 html.light footer p,
 html.light footer .text-slate-400,
-html.light footer .text-slate-300,
-html.light footer a.text-slate-400 {
-  color: #AABBCD !important;
+html.light footer .text-slate-300 {
+  color: #DCE4ED !important;
 }
+
+html.light footer a.text-slate-400 {
+  color: #DCE4ED !important;
+}
+
+html.light footer a.text-slate-400:hover {
+  color: #00D9FF !important;
+}
+
+/* Restrained Cyan Accents */
 html.light footer .text-cyan-300,
 html.light footer .text-cyan-400,
-html.light footer .text-cyan-300\/80 {
-  color: #00D9FF !important;                        /* Vibrant cyan accent on Navy */
+html.light footer .text-cyan-300\/80,
+html.light footer .font-mono.tracking-\[0\.24em\] {
+  color: #00D9FF !important;
 }
-html.light footer .glass-card {
-  background-color: rgba(32, 59, 85, 0.65) !important;
-  border-color: rgba(200, 212, 224, 0.18) !important;
-  color: #F5F8FC !important;
+
+/* Back to Top Button */
+html.light footer button.glass-card {
+  background-color: #203B55 !important;
+  border-color: rgba(200, 212, 224, 0.20) !important;
+  color: #FFFFFF !important;
 }
+
+html.light footer button.glass-card:hover {
+  border-color: #00D9FF !important;
+  color: #00D9FF !important;
+}
+
+/* Capstone Project Card */
+html.light footer .rounded-xl.bg-slate-950\/60 {
+  background-color: #203B55 !important;
+  border-color: rgba(200, 212, 224, 0.20) !important;
+}
+
+html.light footer .rounded-xl.bg-slate-950\/60 p {
+  color: #DCE4ED !important;
+}
+
+/* Social Icon Cards */
+html.light footer .footer-columns a.glass-card {
+  background-color: #203B55 !important;
+  border-color: rgba(200, 212, 224, 0.22) !important;
+  color: #DCE4ED !important;
+}
+
+html.light footer .footer-columns a.glass-card:hover {
+  border-color: #00D9FF !important;
+  color: #00D9FF !important;
+  background-color: rgba(0, 217, 255, 0.16) !important;
+}
+
+/* Clear Column Separation */
+@media (min-width: 768px) {
+  html.light footer .footer-columns>div:not(:first-child) {
+    padding-left: 2rem;
+    border-left: 1px solid rgba(220, 228, 237, 0.12);
+  }
+}
+
+/* Marquee Track & Watermark */
 html.light footer .marquee-track span {
   color: #AABBCD !important;
 }
+
 html.light footer .watermark {
   -webkit-text-stroke: 1px rgba(255, 255, 255, 0.05) !important;
   opacity: 0.08 !important;
 }
 
+/* Light Mode: Oversized Background Typography Watermark (Lighter Navy Family Blend) */
+html.light footer .footer-watermark {
+  color: #365370 !important;
+  -webkit-text-fill-color: #365370 !important;
+  opacity: 0.18 !important;
+  -webkit-text-stroke: 0 !important;
+  text-stroke: 0 !important;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── Section 5: Deep Midnight Navy Footer in Dark Mode (Visually Cohesive & Slightly Deeper) ── */
+html:not(.light) footer,
+html.dark footer,
+[data-theme="dark"] footer {
+  background: radial-gradient(ellipse 90% 70% at 50% 10%, rgba(10, 23, 36, 0.90) 0%, rgba(7, 18, 29, 0.94) 55%, rgba(5, 11, 18, 0.97) 100%) !important;
+  color: #EAF6FA !important;
+  position: relative !important;
+  border-top: 1px solid rgba(0, 217, 255, 0.18) !important;
+}
+
+/* Luminous cyan hairline accent on top edge of footer in Dark Mode */
+html:not(.light) footer::before,
+html.dark footer::before,
+[data-theme="dark"] footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 217, 255, 0.15) 15%, rgba(0, 217, 255, 0.65) 50%, rgba(0, 217, 255, 0.15) 85%, transparent 100%);
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Soft cyan/blue ambient glow behind the watermark in Dark Mode */
+html:not(.light) footer .footer-ambient-glow,
+html.dark footer .footer-ambient-glow,
+[data-theme="dark"] footer .footer-ambient-glow {
+  position: absolute;
+  bottom: 45px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  max-width: 1050px;
+  height: 250px;
+  background: radial-gradient(ellipse 70% 50% at 50% 85%, rgba(0, 217, 255, 0.04) 0%, rgba(22, 139, 255, 0.018) 45%, transparent 75%);
+  filter: blur(48px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Dark Mode: Restrained Dark-on-Dark Typography Watermark */
+html:not(.light) footer .footer-watermark,
+html.dark footer .footer-watermark,
+[data-theme="dark"] footer .footer-watermark {
+  color: #162E47 !important;
+  background: linear-gradient(180deg, rgba(131, 232, 245, 0.22) 0%, rgba(22, 139, 255, 0.14) 40%, rgba(14, 32, 51, 0.08) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke: 0 !important;
+  text-stroke: 0 !important;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Cursor refinement in Light Mode */
+html.light .has-cursor div.mix-blend-difference {
+  mix-blend-mode: normal !important;
+  border-color: rgba(8, 127, 155, 0.50) !important;
+  background-color: rgba(8, 127, 155, 0.06) !important;
+}
+
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -1079,35 +2427,79 @@ html.light footer .watermark {
 
 /* ── Raw keyframes ── */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes wave {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
+
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
 }
 
 @keyframes scan {
-  0% { top: 8%; opacity: 0; }
-  12% { opacity: 1; }
-  88% { opacity: 1; }
-  100% { top: 88%; opacity: 0; }
+  0% {
+    top: 8%;
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  88% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 88%;
+    opacity: 0;
+  }
 }
 
 @keyframes pulseGlow {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.06); }
+
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
 }
 
 @keyframes shimmer {
-  from { background-position: -200% 0; }
-  to { background-position: 200% 0; }
+  from {
+    background-position: -200% 0;
+  }
+
+  to {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes gridPan {
-  from { background-position: 0 0; }
-  to { background-position: 0 48px; }
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 0 48px;
+  }
 }
 
 /* Pipeline Section */
@@ -1124,6 +2516,7 @@ html.light footer .watermark {
   .pipeline-section {
     min-height: 220vh;
   }
+
   .pipeline-container {
     position: sticky;
     top: 5rem;

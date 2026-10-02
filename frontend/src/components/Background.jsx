@@ -4,7 +4,9 @@
 import { useEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext.jsx';
 
-function Particles({ className = '', isDark = true }) {
+export function Particles({ className = '', count = 52, isDark: propIsDark }) {
+  const themeContext = useTheme();
+  const isDark = propIsDark !== undefined ? propIsDark : themeContext?.isDark ?? true;
   const ref = useRef(null);
   const themeRef = useRef(isDark);
 
@@ -47,10 +49,19 @@ function Particles({ className = '', isDark = true }) {
     let shiftY = 0;
 
     const onMouseMove = (e) => {
-      hasMouse = true;
-      lastMoveTime = performance.now();
-      targetMouse.x = e.clientX;
-      targetMouse.y = e.clientY;
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      if (mx >= -80 && mx <= rect.width + 80 && my >= -80 && my <= rect.height + 80) {
+        hasMouse = true;
+        lastMoveTime = performance.now();
+        targetMouse.x = mx;
+        targetMouse.y = my;
+      } else {
+        hasMouse = false;
+        targetMouse.x = w / 2;
+        targetMouse.y = h / 2;
+      }
     };
 
     const onMouseLeave = () => {
@@ -64,7 +75,7 @@ function Particles({ className = '', isDark = true }) {
       document.addEventListener('mouseleave', onMouseLeave);
     }
 
-    const COUNT = 52;
+    const COUNT = count;
     const pts = Array.from({ length: COUNT }, (_, i) => ({
       x: Math.random() * (w || 1),
       y: Math.random() * (h || 1),

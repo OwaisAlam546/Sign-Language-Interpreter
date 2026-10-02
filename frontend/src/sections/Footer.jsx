@@ -30,13 +30,21 @@ export default function Footer() {
       <Marquee words={['SignSpeak AI', 'Accessible', 'Real-Time', 'AI', 'Mohammed Owais Alam', 'BCA Final Project']} variant="solid" speed={26} className="opacity-70" />
 
       <div className="relative px-5 pb-10 pt-14 md:px-10">
-        {/* watermark */}
-        <span className="watermark bottom-[-20px] left-1/2 -translate-x-1/2 whitespace-nowrap text-[18vw] leading-none opacity-40 text-cyan-400/5" aria-hidden="true">
-          SIGNSPEAK
-        </span>
+        {/* Soft cyan/blue ambient glow behind the watermark */}
+        <div className="footer-ambient-glow" aria-hidden="true" />
 
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+        {/* Background Typography Watermark sitting flush just above copyright bar */}
+        <div
+          className="footer-watermark-wrap pointer-events-none absolute inset-x-0 bottom-[38px] sm:bottom-[44px] md:bottom-[48px] z-0 select-none overflow-hidden flex items-center justify-center px-4 sm:px-8 md:px-12"
+          aria-hidden="true"
+        >
+          <span className="footer-watermark font-display font-black tracking-tight sm:tracking-normal uppercase whitespace-nowrap text-center text-[clamp(2.8rem,11vw,9.6rem)] leading-none select-none">
+            SIGNSPEAK AI
+          </span>
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <div className="footer-columns grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
             {/* brand */}
             <div>
               <div className="flex items-center gap-3">
@@ -89,10 +97,10 @@ export default function Footer() {
                       rel="noreferrer"
                       onMouseEnter={() => setHoveredSocial(i)}
                       className={`glass-card grid h-12 w-12 place-items-center rounded-2xl border transition-all duration-300 origin-center ${isHovered
-                          ? 'scale-125 z-20 border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.55)] ring-2 ring-cyan-400/40 -translate-y-1'
-                          : isOtherHovered
-                            ? 'scale-90 opacity-35 border-white/8 bg-slate-950/60 text-slate-500 blur-[0.2px]'
-                            : 'scale-100 border-white/12 bg-slate-950/80 text-slate-300 shadow-md'
+                        ? 'scale-125 z-20 border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.55)] ring-2 ring-cyan-400/40 -translate-y-1'
+                        : isOtherHovered
+                          ? 'scale-90 opacity-35 border-white/8 bg-slate-950/60 text-slate-500 blur-[0.2px]'
+                          : 'scale-100 border-white/12 bg-slate-950/80 text-slate-300 shadow-md'
                         }`}
                       aria-label={item.label}
                     >

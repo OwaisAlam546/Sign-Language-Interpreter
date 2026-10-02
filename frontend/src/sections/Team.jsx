@@ -105,8 +105,8 @@ export default function Team() {
   }));
 
   return (
-    <section id="team" className="relative z-10 px-4 py-20 md:px-8 md:py-28">
-      <div className="mx-auto max-w-6xl">
+    <section id="team" className="relative z-10 px-4 py-20 md:px-8 md:py-28 overflow-hidden">
+      <div className="relative z-10 mx-auto max-w-6xl">
         <SectionHeading
           eyebrow="The Team"
           title="Engineered by Visionaries."

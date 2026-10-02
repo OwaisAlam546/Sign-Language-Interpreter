@@ -10,10 +10,11 @@ import Model from './sections/Model.jsx';
 import Team from './sections/Team.jsx';
 import Contact from './sections/Contact.jsx';
 import Footer from './sections/Footer.jsx';
+import WaveDivider from './components/WaveDivider.jsx';
 
 export default function App() {
   return (
-    <div className="noise relative min-h-screen overflow-x-clip text-slate-100">
+    <div className="noise relative min-h-screen overflow-x-clip text-[var(--text-main)]">
       <Background />
       <Cursor />
       <ScrollProgress />
@@ -21,11 +22,17 @@ export default function App() {
 
       <main className="relative z-10">
         <Hero />
+        <WaveDivider className="light-only-wave" flip={false} height={44} />
         <LiveDemo />
+        <WaveDivider className="light-only-wave" flip={true} height={44} />
         <HowItWorks />
+        <WaveDivider className="light-only-wave" flip={false} height={44} />
         <SupportedGestures />
+        <WaveDivider className="light-only-wave" flip={true} height={44} />
         <Model />
+        <WaveDivider className="light-only-wave" flip={false} height={44} />
         <Team />
+        <WaveDivider className="light-only-wave" flip={true} height={44} />
         <Contact />
       </main>
 

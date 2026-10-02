@@ -7,6 +7,7 @@ import { FiSearch, FiChevronLeft, FiChevronRight, FiGrid, FiRotateCw, FiMove, Fi
 import HandSkeleton, { TwoHandWordSign, isTwoHandedWord, evaluateWordSign, BONES, OPEN_LANDMARKS } from '../components/HandSkeleton.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
+import { Particles } from '../components/Background.jsx';
 import { LETTERS, WORDS } from '../lib/data.js';
 
 // Helper for responsive word title typography
@@ -1231,7 +1232,8 @@ export default function SupportedGestures() {
 
   return (
     <section id="gestures" className="relative z-10 px-4 py-24 md:px-8 md:py-32 overflow-hidden">
-      <div className="mx-auto max-w-7xl">
+      <Particles className="pointer-events-none absolute inset-0 z-0 opacity-35 dark:opacity-25" count={34} />
+      <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="Interactive Sign Library"
           title="26 Letters. 15 Words. Live Animated Signs."
@@ -1475,15 +1477,17 @@ export default function SupportedGestures() {
                         }}
                       >
                         <div
-                          className={`card-3d-crisp card-border-glow group relative h-full w-full rounded-2xl px-4 py-3.5 sm:px-4.5 sm:py-4 text-center transition-all duration-200 cursor-pointer flex flex-col shadow-2xl ${isHovered ? 'overflow-visible' : 'overflow-hidden'
-                            } ${isSearchMatch
+                          className={`card-3d-crisp card-border-glow group relative h-full w-full rounded-2xl px-4 py-3.5 sm:px-4.5 sm:py-4 text-center transition-all duration-200 cursor-pointer flex flex-col shadow-2xl ${
+                            isActive || isHovered || isSearchMatch ? 'wheel-active-card' : 'wheel-side-card'
+                          } ${isHovered ? 'overflow-visible' : 'overflow-hidden'} ${
+                            isSearchMatch
                               ? 'border-cyan-400 ring-2 ring-cyan-400/80 shadow-[0_0_35px_rgba(34,211,238,0.5)] bg-slate-900/95 brightness-110 z-30 is-hovered'
                               : isHovered
                                 ? 'border-cyan-400/80 ring-1 ring-cyan-400/40 shadow-[0_0_25px_rgba(34,211,238,0.25)] z-20 is-hovered'
                                 : isActive
                                   ? 'border-cyan-400/40 shadow-[0_0_15px_rgba(34,211,238,0.15)] border-white/12'
                                   : 'border-white/12 bg-slate-950/90'
-                            }`}
+                          }`}
                         >
                           {/* Specular top rim reflection */}
                           <div

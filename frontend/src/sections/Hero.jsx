@@ -73,7 +73,7 @@ export default function Hero() {
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 status-dot" /> Rule Engine · Live
             </span>
             <span className="hidden sm:inline">MediaPipe · 21 Landmarks</span>
-            <span className="hidden md:inline">Ramaiah College · BCA VI</span>
+            <span className="hidden md:inline">Ramaiah College · BCA V</span>
           </motion.div>
 
           {/* giant headline */}
