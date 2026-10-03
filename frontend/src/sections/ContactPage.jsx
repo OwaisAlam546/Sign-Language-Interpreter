@@ -104,7 +104,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="relative pt-20 sm:pt-24 lg:pt-20 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="relative pt-24 sm:pt-28 pb-10 sm:pb-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Ambient Cyber Neon Glow Background */}
       <div
         className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 h-[350px] w-[680px] max-w-full rounded-full bg-gradient-to-b from-[#00D9FF]/12 via-[#168BFF]/8 to-transparent blur-[110px]"

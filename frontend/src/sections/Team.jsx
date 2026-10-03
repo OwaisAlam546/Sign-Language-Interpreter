@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FiGithub, FiLinkedin, FiMail, FiAward, FiStar, FiCpu, FiLayout, FiCheckCircle } from 'react-icons/fi';
 import Reveal from '../components/Reveal.jsx';
+import SectionHeading from '../components/SectionHeading.jsx';
 import AccordionGallery from '../components/AccordionGallery/AccordionGallery.jsx';
 import { FUTURE } from '../lib/data.js';
 
@@ -103,21 +104,13 @@ export default function Team() {
   }));
 
   return (
-    <section id="team" className="relative z-10 px-4 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 overflow-hidden">
+    <section id="team" className="relative z-10 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 overflow-hidden">
       <div className="relative z-10 mx-auto max-w-5xl">
-        {/* ── Compact Introduction ── */}
-        <div className="relative z-10 mb-6 sm:mb-8 md:mb-9 text-center flex flex-col items-center gap-2.5 sm:gap-3">
-          <Reveal>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-[2.65rem] font-bold tracking-tight text-white leading-tight">
-              Meet the People Behind <span className="grad-text">SignSpeak AI</span>
-            </h2>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className="max-w-xl text-sm sm:text-base text-slate-300/90 leading-relaxed">
-              The team building accessible communication through AI and computer vision.
-            </p>
-          </Reveal>
-        </div>
+        <SectionHeading
+          eyebrow="Core Contributors"
+          title="Meet the People Behind SignSpeak AI"
+          sub="The team building accessible communication through AI and computer vision."
+        />
 
         {/* ── React Bits <AccordionGallery /> ── */}
         <Reveal>
@@ -152,7 +145,7 @@ export default function Team() {
         <Reveal delay={0.15}>
           <div className="relative mt-5 sm:mt-6">
             <div
-              className={`glass-glow relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-7 bg-slate-950/90 border transition-all duration-500 backdrop-blur-2xl shadow-2xl ${activeMember.isLeader
+              className={`glass-glow relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 bg-slate-950/90 border transition-all duration-500 backdrop-blur-2xl shadow-2xl ${activeMember.isLeader
                   ? 'border-cyan-400/50 shadow-[0_20px_60px_rgba(34,211,238,0.2)]'
                   : 'border-white/12'
                 }`}

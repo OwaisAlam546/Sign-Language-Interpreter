@@ -1247,7 +1247,7 @@ export default function SupportedGestures() {
   const activeSpotlightItem = hoveredId ? rawItems.find((it) => it.id === hoveredId) || currentActiveItem : currentActiveItem;
 
   return (
-    <section id="gestures" className="relative z-10 px-4 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 overflow-hidden">
+    <section id="gestures" className="relative z-10 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 overflow-hidden">
       <Particles className="pointer-events-none absolute inset-0 z-0 opacity-35 dark:opacity-25" count={34} />
       <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeading
@@ -1258,7 +1258,7 @@ export default function SupportedGestures() {
 
         {/* Controls Bar: Tabs, View Mode Switcher, Search */}
         <Reveal>
-          <div className="mx-auto mb-5 sm:mb-6 flex max-w-4xl flex-col items-center justify-between gap-3.5 sm:gap-4 sm:flex-row">
+          <div className="mx-auto mb-4 sm:mb-5 flex max-w-4xl flex-col items-center justify-between gap-3 sm:gap-4 sm:flex-row">
             {/* Category Tabs: Letters vs Words */}
             <div className="glass-card flex rounded-full p-1.5 shadow-2xl border border-white/12 bg-slate-950/80 backdrop-blur-xl">
               {[

@@ -37,6 +37,20 @@
   --map-card-bg: rgba(6, 16, 26, 0.88);
   --bg-input: rgba(5, 8, 13, 0.75);
   --text-muted: #64748B;
+
+  /* Global Responsive Scale Tokens */
+  --max-content-width: 80rem;
+  --max-content-focused: 72rem;
+  --section-py: clamp(2rem, 3.8vw, 3.5rem);
+  --section-gap-heading: clamp(1rem, 1.8vw, 1.5rem);
+  --section-gap-content: clamp(1.25rem, 2vw, 1.75rem);
+  --card-padding-sm: 0.75rem;
+  --card-padding-md: clamp(0.875rem, 1.3vw, 1.25rem);
+  --card-padding-lg: clamp(1.25rem, 1.8vw, 1.65rem);
+  --card-radius-sm: 0.75rem;
+  --card-radius-md: 1rem;
+  --card-radius-lg: 1.25rem;
+  --card-radius-xl: 1.5rem;
 }
 
 :root[data-theme="light"],
@@ -2474,14 +2488,14 @@ html:not(.light) footer .footer-ambient-glow,
 html.dark footer .footer-ambient-glow,
 [data-theme="dark"] footer .footer-ambient-glow {
   position: absolute;
-  bottom: 45px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  width: 85%;
-  max-width: 1050px;
-  height: 250px;
+  width: 80%;
+  max-width: 850px;
+  height: 120px;
   background: radial-gradient(ellipse 70% 50% at 50% 85%, rgba(0, 217, 255, 0.04) 0%, rgba(22, 139, 255, 0.018) 45%, transparent 75%);
-  filter: blur(48px);
+  filter: blur(36px);
   pointer-events: none;
   z-index: 0;
 }

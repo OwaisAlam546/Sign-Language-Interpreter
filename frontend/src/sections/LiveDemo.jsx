@@ -595,7 +595,7 @@ export default function LiveDemo() {
   const letter = gesture || '–', waveSeed = letter.charCodeAt(0) || 45;
 
   return (
-    <section id="demo" className="relative z-10 px-4 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 overflow-hidden">
+    <section id="demo" className="relative z-10 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 overflow-hidden">
       <Particles className="pointer-events-none absolute inset-0 z-0 opacity-35 dark:opacity-25" count={34} />
       <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeading
@@ -606,7 +606,7 @@ export default function LiveDemo() {
 
         {/* Controls Bar */}
         <Reveal>
-          <div className="mb-5 sm:mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="mb-4 sm:mb-5 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap gap-2.5">
               <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
                 <span
@@ -695,7 +695,7 @@ export default function LiveDemo() {
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
           {/* Left: Camera Viewport Card */}
           <Reveal delay={0.1}>
-            <div className="camera-panel-card glass-glow relative overflow-hidden rounded-3xl p-5 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
+            <div className="camera-panel-card glass-glow relative overflow-hidden rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
               <div className="scanline relative aspect-[4/3] overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-white/12">
                 <video
                   ref={videoRef}
@@ -760,7 +760,7 @@ export default function LiveDemo() {
 
           {/* Right: Live Translation Output Card */}
           <Reveal delay={0.2}>
-            <div className="translation-panel-card glass-glow flex h-full min-w-0 flex-col justify-between rounded-3xl p-5 sm:p-7 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
+            <div className="translation-panel-card glass-glow flex h-full min-w-0 flex-col justify-between rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 shadow-2xl bg-slate-950/90 border border-white/12 backdrop-blur-2xl">
               <div>
                 <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
                   <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-300 font-semibold">

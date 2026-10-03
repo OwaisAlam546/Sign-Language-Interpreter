@@ -15,6 +15,7 @@ import {
   FiActivity,
 } from 'react-icons/fi';
 import HandSkeleton from '../components/HandSkeleton.jsx';
+import SectionHeading from '../components/SectionHeading.jsx';
 
 const LANDMARK_NAMES = [
   'P00: WRIST',
@@ -698,26 +699,18 @@ export default function HowItWorks() {
     <section
       id="how"
       ref={containerRef}
-      className="pipeline-section relative z-10 px-4 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24"
+      className="pipeline-section relative z-10 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12"
     >
       {/* Container pins on tall viewports, flows naturally on compact laptop viewports */}
-      <div className="pipeline-container mx-auto max-w-6xl">
-        {/* Compact Section Header */}
-        <div className="relative z-10 mb-6 sm:mb-8 md:mb-9 flex flex-col items-center gap-2.5 sm:gap-3 text-center">
-          <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[11px] sm:text-xs uppercase tracking-[0.22em] text-cyan-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 status-dot" />
-            The Pipeline
-          </span>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-[2.6rem] lg:text-[2.85rem] font-semibold tracking-tight text-white leading-tight">
-            HOW SIGNS BECOME MEANING
-          </h2>
-          <p className="max-w-xl text-xs sm:text-sm md:text-base text-slate-400">
-            From optical camera photons to synthetic voice in six continuous neural stages.
-          </p>
-        </div>
+      <div className="pipeline-container mx-auto max-w-5xl">
+        <SectionHeading
+          eyebrow="The Pipeline"
+          title="HOW SIGNS BECOME MEANING"
+          sub="From optical camera photons to synthetic voice in six continuous neural stages."
+        />
 
         {/* Single Horizontal Connected Pipeline Bar (scaled +10-15%) */}
-        <div className="relative mb-4 sm:mb-5 rounded-2xl border border-white/10 bg-slate-950/75 p-2 sm:p-3 backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.55)]">
+        <div className="relative mb-3.5 sm:mb-4 rounded-xl sm:rounded-2xl border border-white/10 bg-slate-950/75 p-2 sm:p-2.5 backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.55)]">
           <div className="flex items-center justify-between gap-1 sm:gap-2">
             {STEPS.map((step, idx) => {
               const Icon = step.icon;
@@ -800,7 +793,7 @@ export default function HowItWorks() {
         </div>
 
         {/* ONE Central Visualization Area (scaled +10-15%) */}
-        <div className="glass-card relative overflow-hidden rounded-2xl md:rounded-3xl border border-white/12 bg-slate-950/90 p-5 sm:p-6 md:p-7 backdrop-blur-2xl shadow-[0_24px_55px_rgba(0,0,0,0.85)]">
+        <div className="glass-card relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/12 bg-slate-950/90 p-4 sm:p-5 md:p-6 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
           {/* Ambient Glow Blob */}
           <div
             className={`pointer-events-none absolute -right-20 -top-20 -z-0 h-64 w-64 rounded-full bg-gradient-to-br ${currentStep.color} opacity-20 blur-3xl transition-all duration-700`}
@@ -837,10 +830,10 @@ export default function HowItWorks() {
                 <div className="inline-block rounded-full bg-white/5 px-3 py-1 font-mono text-xs uppercase tracking-wider text-slate-300 border border-white/10 mb-2.5">
                   {currentStep.tag}
                 </div>
-                <h3 className="font-display text-xl sm:text-2xl md:text-[1.65rem] font-semibold text-white tracking-tight leading-tight">
+                <h3 className="font-display text-lg sm:text-xl md:text-2xl font-semibold text-white tracking-tight leading-tight">
                   {currentStep.headline}
                 </h3>
-                <p className="mt-2.5 text-xs sm:text-sm md:text-[15px] leading-relaxed text-slate-300">
+                <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-300">
                   {currentStep.desc}
                 </p>
               </div>
@@ -905,7 +898,7 @@ export default function HowItWorks() {
 
             {/* Right Column: Dynamic Visual HUD Console */}
             <div className="lg:col-span-7">
-              <div className="relative h-[255px] sm:h-[280px] md:h-[305px] w-full rounded-2xl border border-white/10 bg-slate-950/85 p-3.5 sm:p-4 overflow-hidden flex items-center justify-center">
+              <div className="relative h-[230px] sm:h-[255px] md:h-[275px] w-full rounded-2xl border border-white/10 bg-slate-950/85 p-3.5 sm:p-4 overflow-hidden flex items-center justify-center">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeStep}
