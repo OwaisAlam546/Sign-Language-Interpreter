@@ -182,8 +182,8 @@ export const TEAM = [
 // Future-work roadmap (shown compactly inside the Team section).
 export const FUTURE = [
   {
-    title: 'Regional Language Support',
-    text: 'Extend text and speech output to Hindi and Kannada for broader accessibility across India.',
+    title: 'Regional Language Support (Hindi)',
+    text: 'Extend text and speech output to Hindi for broader accessibility across India.',
     tag: 'Phase 2',
   },
   {

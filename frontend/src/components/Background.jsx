@@ -312,14 +312,14 @@ export default function Background() {
 
   return (
     <div
-      className={`pointer-events-none fixed inset-0 z-0 overflow-hidden transition-colors duration-500 ${
+      className={`pointer-events-none fixed inset-0 z-0 overflow-hidden transition-colors duration-300 ${
         isDark ? 'bg-[#05080D]' : 'bg-[#FFFFFF]'
       }`}
       aria-hidden="true"
     >
       {/* Background base mesh & subtle controlled depth - #05080D in dark, pure #FFFFFF in light */}
       <div
-        className="absolute inset-0 transition-opacity duration-500"
+        className="absolute inset-0 transition-opacity duration-300"
         style={{
           background: isDark
             ? 'radial-gradient(ellipse 65% 45% at 50% 18%, rgba(0, 217, 255, 0.045) 0%, rgba(8, 21, 34, 0.16) 35%, rgba(5, 8, 13, 0.95) 65%, #05080D 100%)'
@@ -328,16 +328,19 @@ export default function Background() {
       />
 
       {/* Whisper-soft atmospheric accents with scroll parallax (Dark mode only) */}
-      {isDark && (
-        <div ref={orbsRef} className="absolute inset-0 will-change-transform">
-          {/* Top subtle cyan accent */}
-          <div className="absolute -left-[5%] top-[-5%] h-[28vw] w-[28vw] rounded-full blur-[120px] animate-orb bg-[#00D9FF]/[0.035]" />
-          {/* Mid-right faint Electric Blue accent */}
-          <div className="absolute right-[-5%] top-[25%] h-[24vw] w-[24vw] rounded-full blur-[120px] animate-orb [animation-delay:-5s] bg-[#168BFF]/[0.025]" />
-          {/* Bottom subtle cyan foundation */}
-          <div className="absolute bottom-[-10%] left-[20%] h-[26vw] w-[26vw] rounded-full blur-[130px] animate-orb [animation-delay:-14s] bg-[#00D9FF]/[0.02]" />
-        </div>
-      )}
+      <div
+        ref={orbsRef}
+        className={`absolute inset-0 will-change-transform transition-opacity duration-300 pointer-events-none ${
+          isDark ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        {/* Top subtle cyan accent */}
+        <div className="absolute -left-[5%] top-[-5%] h-[28vw] w-[28vw] rounded-full blur-[120px] animate-orb bg-[#00D9FF]/[0.035]" />
+        {/* Mid-right faint Electric Blue accent */}
+        <div className="absolute right-[-5%] top-[25%] h-[24vw] w-[24vw] rounded-full blur-[120px] animate-orb [animation-delay:-5s] bg-[#168BFF]/[0.025]" />
+        {/* Bottom subtle cyan foundation */}
+        <div className="absolute bottom-[-10%] left-[20%] h-[26vw] w-[26vw] rounded-full blur-[130px] animate-orb [animation-delay:-14s] bg-[#00D9FF]/[0.02]" />
+      </div>
 
       {/* Animated neural grid - subtle non-intrusive technical overlay */}
       <div className={`ai-grid absolute inset-0 animate-grid-pan ${isDark ? 'opacity-25' : 'opacity-15'}`} />
@@ -349,12 +352,12 @@ export default function Background() {
       <div
         className={`absolute bottom-0 left-1/2 h-px w-[120%] -translate-x-1/2 bg-gradient-to-r from-transparent ${
           isDark ? 'via-[#00D9FF]/20' : 'via-[#C8D4E0]/50'
-        } to-transparent transition-colors duration-500`}
+        } to-transparent transition-colors duration-300`}
       />
       <div
         className={`absolute top-0 left-1/2 h-px w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent ${
           isDark ? 'via-[#00D9FF]/10' : 'via-[#C8D4E0]/30'
-        } to-transparent transition-colors duration-500`}
+        } to-transparent transition-colors duration-300`}
       />
 
       {/* Floating technical geometric accents */}
@@ -372,14 +375,14 @@ export default function Background() {
       } animate-float lg:block [animation-delay:-3s]`} />
 
       {/* Vignette preserving depth and contrast in dark mode */}
-      {isDark && (
-        <div
-          className="absolute inset-0 transition-opacity duration-500"
-          style={{
-            background: 'radial-gradient(ellipse at center, transparent 35%, rgba(5, 8, 13, 0.82) 65%, #05080D 95%)',
-          }}
-        />
-      )}
+      <div
+        className={`absolute inset-0 transition-opacity duration-300 pointer-events-none ${
+          isDark ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 35%, rgba(5, 8, 13, 0.82) 65%, #05080D 95%)',
+        }}
+      />
     </div>
   );
 }

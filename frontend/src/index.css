@@ -117,7 +117,7 @@ html.light {
 /* ─────────────────────────── Base & Reset ─────────────────────────── */
 html {
   background: var(--bg-main);
-  transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html.has-cursor,
@@ -131,7 +131,20 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Fast, smooth, GPU-friendly theme transitions for theme surfaces without layout reflow */
+html,
+body,
+header nav,
+footer,
+.glass-card,
+.glass-frosted {
+  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 ::selection {

@@ -161,7 +161,7 @@ export default function Navbar() {
             <button
               onClick={toggleTheme}
               type="button"
-              className="glass-card relative flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border-subtle)] text-[var(--accent-cyan)] transition-all duration-300 hover:border-[var(--accent-cyan)] hover:shadow-glow focus:outline-none focus:ring-2 focus:ring-[var(--accent-cyan)]/40 cursor-pointer"
+              className="glass-card relative flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--border-subtle)] text-[var(--accent-cyan)] transition-colors duration-200 hover:border-[var(--accent-cyan)] hover:shadow-glow focus:outline-none focus:ring-2 focus:ring-[var(--accent-cyan)]/40 cursor-pointer"
               title={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
               aria-label={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
             >

@@ -21,65 +21,139 @@ export default function GlobalWorldMap() {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
 
+  // Constants for map coordinates and zoom bounds
+  const MIN_ZOOM = 1.0;
+  const MAX_ZOOM = 4.0;
+  const MAP_WIDTH = 1000;
+  const MAP_HEIGHT = 500;
+
+  // Clamps pan coordinates so the 1000x500 map never leaves empty void inside the viewport
+  const clampPan = useCallback((px, py, z) => {
+    const minX = MAP_WIDTH * (1 - z);
+    const maxX = 0;
+    const minY = MAP_HEIGHT * (1 - z);
+    const maxY = 0;
+    return {
+      x: Math.min(maxX, Math.max(minX, px)),
+      y: Math.min(maxY, Math.max(minY, py)),
+    };
+  }, []);
+
   // Zoom and pan state
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredHub, setHoveredHub] = useState(null);
   const [activeContinent, setActiveContinent] = useState('All');
+
+  // Synchronized refs to guarantee fresh values during rapid gestures and wheel events
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+  const panRef = useRef(pan);
+  panRef.current = pan;
+
+  const dragRef = useRef({
+    startX: 0,
+    startY: 0,
+    originPan: { x: 0, y: 0 },
+    hasMoved: false,
+  });
 
   // Continents list for quick filter highlight
   const continents = ['All', 'Asia', 'Europe', 'North America', 'South America', 'Africa', 'Oceania'];
 
+  // Smooth zoom to target scale while preserving geographic point under focus coordinates
+  const zoomTo = useCallback(
+    (targetZoom, focusSvgX = MAP_WIDTH / 2, focusSvgY = MAP_HEIGHT / 2) => {
+      const curZoom = zoomRef.current;
+      const curPan = panRef.current;
+      const nextZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Number(targetZoom.toFixed(2))));
+
+      // Find the SVG map coordinate currently at the focus point
+      const mapX = (focusSvgX - curPan.x) / curZoom;
+      const mapY = (focusSvgY - curPan.y) / curZoom;
+
+      // Calculate the next pan so the same map coordinate stays at the focus point
+      const desiredPanX = focusSvgX - mapX * nextZoom;
+      const desiredPanY = focusSvgY - mapY * nextZoom;
+
+      const clamped = clampPan(desiredPanX, desiredPanY, nextZoom);
+
+      setZoom(nextZoom);
+      setPan(clamped);
+    },
+    [clampPan]
+  );
+
   // Zoom handlers
-  const handleZoomIn = () => {
-    setZoom((z) => Math.min(Number((z * 1.3).toFixed(2)), 4.5));
+  const handleZoomIn = (e) => {
+    e?.stopPropagation?.();
+    zoomTo(zoomRef.current * 1.35);
   };
 
-  const handleZoomOut = () => {
-    setZoom((z) => Math.max(Number((z / 1.3).toFixed(2)), 0.8));
+  const handleZoomOut = (e) => {
+    e?.stopPropagation?.();
+    zoomTo(zoomRef.current / 1.35);
   };
 
-  const handleReset = () => {
+  const handleReset = (e) => {
+    e?.stopPropagation?.();
     setZoom(1);
     setPan({ x: 0, y: 0 });
   };
 
-  const handleFocusIndia = () => {
+  const handleFocusIndia = (e) => {
+    e?.stopPropagation?.();
     // Bengaluru coordinates: x: 708.84, y: 205.37
-    // In a 1000x500 box, centering Bengaluru with zoom ~ 2.4x:
-    // targetCenterX = 500, targetCenterY = 250
-    // newX = 500 - (708.84 * 2.4), newY = 250 - (205.37 * 2.4)
+    // Zoom in cleanly (2.4x) and center directly on Bengaluru HQ in the 1000x500 box
     const targetZoom = 2.4;
-    const targetPanX = 500 - 708.84 * targetZoom;
-    const targetPanY = 250 - 205.37 * targetZoom;
+    const desiredPanX = (MAP_WIDTH / 2) - BENGALURU_HUB.x * targetZoom;
+    const desiredPanY = (MAP_HEIGHT / 2) - BENGALURU_HUB.y * targetZoom;
+    const clamped = clampPan(desiredPanX, desiredPanY, targetZoom);
+
     setZoom(targetZoom);
-    setPan({ x: targetPanX, y: targetPanY });
+    setPan(clamped);
   };
 
-  // Drag / Pan handlers
+  // Drag / Pan handlers with 1:1 screen-to-SVG coordinate scaling
   const handlePointerDown = (e) => {
     // Only drag with left mouse button or touch
     if (e.button && e.button !== 0) return;
     setIsDragging(true);
-    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      originPan: { ...panRef.current },
+      hasMoved: false,
+    };
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
   };
 
   const handlePointerMove = (e) => {
     if (!isDragging) return;
-    const newX = e.clientX - dragStart.x;
-    const newY = e.clientY - dragStart.y;
-    // Restrain pan bounds based on zoom
-    const maxPanX = 500 * zoom;
-    const minPanX = -500 * zoom;
-    const maxPanY = 250 * zoom;
-    const minPanY = -250 * zoom;
-    setPan({
-      x: Math.max(minPanX, Math.min(maxPanX, newX)),
-      y: Math.max(minPanY, Math.min(maxPanY, newY)),
-    });
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+
+    if (!dragRef.current.hasMoved && Math.hypot(dx, dy) > 3) {
+      dragRef.current.hasMoved = true;
+    }
+
+    // Convert screen pixel delta to SVG viewport coordinates
+    const rect = svgRef.current?.getBoundingClientRect();
+    const scaleFactorX = rect && rect.width > 0 ? MAP_WIDTH / rect.width : 1;
+    const scaleFactorY = rect && rect.height > 0 ? MAP_HEIGHT / rect.height : 1;
+
+    const deltaSvgX = dx * scaleFactorX;
+    const deltaSvgY = dy * scaleFactorY;
+
+    const newPan = clampPan(
+      dragRef.current.originPan.x + deltaSvgX,
+      dragRef.current.originPan.y + deltaSvgY,
+      zoomRef.current
+    );
+    setPan(newPan);
   };
 
   const handlePointerUp = (e) => {
@@ -89,7 +163,7 @@ export default function GlobalWorldMap() {
     } catch {}
   };
 
-  // Wheel zoom with full scroll isolation
+  // Wheel zoom with cursor focus and full scroll isolation
   const handleWheel = useCallback(
     (e) => {
       e.preventDefault();
@@ -101,13 +175,19 @@ export default function GlobalWorldMap() {
 
       if (!e.deltaY) return;
 
-      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.88;
-      setZoom((prevZoom) => {
-        const nextZoom = Math.max(0.8, Math.min(4.5, Number((prevZoom * zoomFactor).toFixed(2))));
-        return nextZoom;
-      });
+      const rect = svgRef.current?.getBoundingClientRect();
+      let focusSvgX = MAP_WIDTH / 2;
+      let focusSvgY = MAP_HEIGHT / 2;
+      if (rect && rect.width > 0 && rect.height > 0) {
+        focusSvgX = Math.max(0, Math.min(MAP_WIDTH, ((e.clientX - rect.left) / rect.width) * MAP_WIDTH));
+        focusSvgY = Math.max(0, Math.min(MAP_HEIGHT, ((e.clientY - rect.top) / rect.height) * MAP_HEIGHT));
+      }
+
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+      const targetZoom = zoomRef.current * zoomFactor;
+      zoomTo(targetZoom, focusSvgX, focusSvgY);
     },
-    []
+    [zoomTo]
   );
 
   useEffect(() => {
@@ -122,8 +202,8 @@ export default function GlobalWorldMap() {
       ref={containerRef}
       data-lenis-prevent
       data-lenis-prevent-wheel
-      className="relative w-full rounded-3xl border border-[var(--border-subtle)] bg-[var(--map-card-bg)] shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl overflow-hidden select-none transition-colors duration-500 flex flex-col overscroll-contain"
-      style={{ minHeight: '520px', overscrollBehavior: 'contain' }}
+      className="relative w-full rounded-3xl border border-[var(--border-subtle)] bg-[var(--map-card-bg)] shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl overflow-hidden select-none transition-colors duration-500 flex flex-col flex-1 min-h-[350px] sm:min-h-[390px] lg:min-h-[410px] overscroll-contain"
+      style={{ overscrollBehavior: 'contain' }}
     >
       {/* Top Map Bar with Title & Connectivity Status */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-[var(--border-subtle)] bg-[var(--bg-card)]/70 backdrop-blur-md z-20">
@@ -171,7 +251,7 @@ export default function GlobalWorldMap() {
 
       {/* Main Interactive SVG Map Viewport */}
       <div
-        className={`relative flex-1 w-full overflow-hidden ${
+        className={`relative flex-1 w-full overflow-hidden min-h-[280px] sm:min-h-[320px] lg:min-h-[340px] ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
         onPointerDown={handlePointerDown}
@@ -183,7 +263,7 @@ export default function GlobalWorldMap() {
           ref={svgRef}
           viewBox="0 0 1000 500"
           className="w-full h-full block"
-          style={{ minHeight: '440px', touchAction: 'none' }}
+          style={{ touchAction: 'none' }}
         >
           <defs>
             {/* Dark & Light Gradients */}
@@ -261,7 +341,8 @@ export default function GlobalWorldMap() {
             transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}
             style={{
               transformOrigin: '0 0',
-              transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              willChange: 'transform',
             }}
           >
             {/* 1. All Geographically Accurate Country Paths */}
@@ -307,7 +388,13 @@ export default function GlobalWorldMap() {
             {/* 3. Global Intercontinental Network Lines */}
             <g id="network-connections">
               {NETWORK_CONNECTIONS.map((conn) => {
-                const isIndiaConn = conn.from.id === 'blr' || conn.to.id === 'blr';
+                const isIndiaConn =
+                  conn.from.id === 'blr' ||
+                  conn.to.id === 'blr' ||
+                  conn.from.id === 'del' ||
+                  conn.to.id === 'del' ||
+                  conn.from.id === 'bom' ||
+                  conn.to.id === 'bom';
 
                 return (
                   <g key={conn.id}>
@@ -508,11 +595,16 @@ export default function GlobalWorldMap() {
         </svg>
 
         {/* Floating Zoom & Map Controls (Bottom Left inside map) */}
-        <div className="absolute bottom-4 left-4 z-20 flex items-center gap-1.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)]/90 p-1.5 shadow-2xl backdrop-blur-xl">
+        <div
+          className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-20 flex items-center gap-1.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)]/90 p-1.5 shadow-2xl backdrop-blur-xl"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           <button
             type="button"
             onClick={handleZoomIn}
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-[var(--text-main)] transition-colors hover:bg-[var(--accent-cyan)]/20 hover:text-[var(--accent-cyan)]"
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-[var(--text-main)] transition-colors hover:bg-[var(--accent-cyan)]/20 hover:text-[var(--accent-cyan)] cursor-pointer"
             title="Zoom In"
             aria-label="Zoom in"
           >
@@ -521,7 +613,8 @@ export default function GlobalWorldMap() {
           <button
             type="button"
             onClick={handleZoomOut}
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-[var(--text-main)] transition-colors hover:bg-[var(--accent-cyan)]/20 hover:text-[var(--accent-cyan)]"
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-[var(--text-main)] transition-colors hover:bg-[var(--accent-cyan)]/20 hover:text-[var(--accent-cyan)] cursor-pointer"
             title="Zoom Out"
             aria-label="Zoom out"
           >
@@ -531,7 +624,8 @@ export default function GlobalWorldMap() {
           <button
             type="button"
             onClick={handleReset}
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-[var(--text-main)] transition-colors hover:bg-[var(--accent-cyan)]/20 hover:text-[var(--accent-cyan)]"
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-[var(--text-main)] transition-colors hover:bg-[var(--accent-cyan)]/20 hover:text-[var(--accent-cyan)] cursor-pointer"
             title="Reset View"
             aria-label="Reset view"
           >
@@ -541,8 +635,9 @@ export default function GlobalWorldMap() {
           <button
             type="button"
             onClick={handleFocusIndia}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-mono font-semibold text-[var(--accent-cyan)] bg-[var(--accent-cyan)]/10 hover:bg-[var(--accent-cyan)]/25 transition-all"
-            title="Focus India (Bengaluru)"
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-mono font-semibold text-[var(--accent-cyan)] bg-[var(--accent-cyan)]/10 hover:bg-[var(--accent-cyan)]/25 transition-all cursor-pointer"
+            title="Focus India (Bengaluru HQ)"
             aria-label="Focus India"
           >
             <FiMaximize2 className="h-3 w-3" />

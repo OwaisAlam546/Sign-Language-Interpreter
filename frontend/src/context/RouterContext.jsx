@@ -8,8 +8,14 @@ const RouterContext = createContext({
 export function RouterProvider({ children }) {
   const [path, setPath] = useState(() => {
     if (typeof window !== 'undefined') {
-      const p = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
-      return p === '' ? '/' : p;
+      // On initial load or refresh, always default to Home page ('/')
+      const currentPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+      if (currentPath === '/contact') {
+        try {
+          window.history.replaceState({}, '', '/');
+        } catch {}
+      }
+      return '/';
     }
     return '/';
   });
