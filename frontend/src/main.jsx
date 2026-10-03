@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
+import AppErrorBoundary from './components/AppErrorBoundary.jsx';
 import SmoothScroll from './components/SmoothScroll.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { RouterProvider } from './context/RouterContext.jsx';
@@ -11,9 +12,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider>
       <RouterProvider>
-        <SmoothScroll>
-          <App />
-        </SmoothScroll>
+        <AppErrorBoundary>
+          <SmoothScroll>
+            <App />
+          </SmoothScroll>
+        </AppErrorBoundary>
       </RouterProvider>
     </ThemeProvider>
   </React.StrictMode>

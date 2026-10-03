@@ -35,10 +35,20 @@ Health gate first: `curl http://localhost:8000/health` → `{"success":true,...}
 ## Design notes
 
 - **Graceful degradation everywhere** — no model file → rule engine;
+
+For labeled landmark evaluation, create JSONL records with `label` and either
+`landmarks` or `frames`, then run `python scripts/evaluate_landmarks.py samples.jsonl`.
+The report includes accuracy, per-label precision/recall, and confusion errors;
+it does not claim production accuracy without representative signer samples.
   no OpenCV → simulated camera; no gTTS → deterministic tone WAV. The
   demo always runs; every optional extra upgrades a single capability.
 - **Load once** — model, camera and TTS are singletons built in the
   FastAPI lifespan, not per request.
+- **Word model gate** — a sequence classifier may emit isolated-word signs
+  only when its label sidecar and `models/vocabulary.json` contain the same
+  real trained classes. The checked-in toy trainer is alphabet-only; do not
+  add word labels without real labeled motion sequences and signer-separated
+  evaluation. Continuous sentence translation is not provided.
 - **Response envelope** — identical `{success, data}` /
   `{success, error: {code, message}}` contract as the gateway.
 - **Camera** — primary capture is client-side browser MediaPipe (WebSocket

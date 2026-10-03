@@ -13,7 +13,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { HAND_CONNECTIONS, HAND_COLORS } from '../lib/handTopology.js';
 
 const HandOverlay = forwardRef(function HandOverlay(
-  { mirror, className = '' },
+  { mirror, className = '', sourceWidth = 640, sourceHeight = 480 },
   ref,
 ) {
   const canvasRef = useRef(null);
@@ -21,15 +21,22 @@ const HandOverlay = forwardRef(function HandOverlay(
   const mirrorRef = useRef(mirror);
   useEffect(() => { mirrorRef.current = mirror; }, [mirror]);
 
-  // Keep the canvas at the parent's display size × devicePixelRatio
-  // once — the webcam window is a fixed aspect box, so no resize loop.
+  // Keep the canvas at the parent's display size × devicePixelRatio. The
+  // video uses object-cover, so this must also be recalculated when the
+  // responsive panel changes size.
   useEffect(() => {
     const canvas = canvasRef.current;
     const box = boxRef.current;
-    const dpr = window.devicePixelRatio || 1;
-    const { clientWidth: w, clientHeight: h } = box;
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.round(box.clientWidth * dpr));
+      canvas.height = Math.max(1, Math.round(box.clientHeight * dpr));
+    };
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(box);
+    window.addEventListener('resize', resize);
+    return () => { observer.disconnect(); window.removeEventListener('resize', resize); };
   }, []);
 
   useImperativeHandle(ref, () => ({
@@ -41,6 +48,22 @@ const HandOverlay = forwardRef(function HandOverlay(
       const w = box.clientWidth;
       const h = box.clientHeight;
       const dpr = window.devicePixelRatio || 1;
+      if (!w || !h) return;
+
+      // Match CSS object-fit: cover. MediaPipe coordinates are relative to
+      // the source video; map them through the same crop before drawing.
+      const sourceAspect = sourceWidth / sourceHeight;
+      const boxAspect = w / h;
+      const scale = boxAspect > sourceAspect ? w / sourceWidth : h / sourceHeight;
+      const renderedWidth = sourceWidth * scale;
+      const renderedHeight = sourceHeight * scale;
+      const offsetX = (w - renderedWidth) / 2;
+      const offsetY = (h - renderedHeight) / 2;
+      const mapPoint = (point) => ({ x: offsetX + point.x * renderedWidth, y: offsetY + point.y * renderedHeight });
+      const mapBox = (bbox) => {
+        const topLeft = mapPoint({ x: bbox.x, y: bbox.y });
+        return { x: topLeft.x, y: topLeft.y, w: bbox.w * renderedWidth, h: bbox.h * renderedHeight };
+      };
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
@@ -57,14 +80,15 @@ const HandOverlay = forwardRef(function HandOverlay(
       hands.forEach((hand, i) => {
         const color = HAND_COLORS[i % HAND_COLORS.length];
         const lms = hand.landmarks;
+        const mapped = lms.map(mapPoint);
 
         // ── skeleton (official connections) ──
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         for (const [a, b] of HAND_CONNECTIONS) {
           ctx.beginPath();
-          ctx.moveTo(lms[a].x * w, lms[a].y * h);
-          ctx.lineTo(lms[b].x * w, lms[b].y * h);
+          ctx.moveTo(mapped[a].x, mapped[a].y);
+          ctx.lineTo(mapped[b].x, mapped[b].y);
           ctx.strokeStyle = color;
           ctx.globalAlpha = 0.85;
           ctx.stroke();
@@ -74,7 +98,7 @@ const HandOverlay = forwardRef(function HandOverlay(
         ctx.globalAlpha = 1;
         lms.forEach((p, k) => {
           ctx.beginPath();
-          ctx.arc(p.x * w, p.y * h, k === 0 ? 4.5 : 3, 0, Math.PI * 2);
+          ctx.arc(mapped[k].x, mapped[k].y, k === 0 ? 4.5 : 3, 0, Math.PI * 2);
           ctx.fillStyle = '#FFFFFF';
           ctx.fill();
           ctx.strokeStyle = color;
@@ -83,7 +107,7 @@ const HandOverlay = forwardRef(function HandOverlay(
         });
 
         // ── bounding box ──
-        const { x, y, w: bw, h: bh } = hand.bbox;
+        const { x, y, w: bw, h: bh } = mapBox(hand.bbox);
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.6;
         ctx.globalAlpha = 0.9;
@@ -102,10 +126,10 @@ const HandOverlay = forwardRef(function HandOverlay(
         const tw = ctx.measureText(label).width;
         const chipH = 20;
         const chipW = tw + pad * 2;
-        const chipX = Math.min(Math.max(x * w, 6), w - chipW - 6);
+        const chipX = Math.min(Math.max(x, 6), w - chipW - 6);
         // Prefer directly above the box, then move the chip down in its own
         // column until it no longer covers another hand's label.
-        let chipY = Math.max(y * h - chipH - pad, 6);
+        let chipY = Math.max(y - chipH - pad, 6);
         while (labelRects.some((rect) => overlaps({ x: chipX, y: chipY, w: chipW, h: chipH }, rect)) && chipY + chipH + 6 < h) {
           chipY += chipH + 6;
         }
