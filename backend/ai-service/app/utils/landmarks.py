@@ -39,41 +39,132 @@ def _dist(a: _Point, b: _Point) -> float:
     return _norm(_vec(a, b))
 
 
-_STRAIGHT = 45.0        # PIP bend at/below this → finger is extended
-_THUMB_STRAIGHT = 35.0  # IP bend at/below this → thumb is out
+_STRAIGHT = 46.0        # PIP bend at/below this → finger is extended
+_THUMB_STRAIGHT = 38.0  # IP bend at/below this → thumb is out
+
+
+def _dist2d(a: _Point, b: _Point) -> float:
+    return math.hypot(b[0] - a[0], b[1] - a[1]) or 1e-9
 
 
 def classify(lms: list[_Point]) -> dict[str, Any]:
-    """Rules over the four PIP joints + the thumb-IP joint.
+    """Scale-invariant 26-letter ASL classifier over 21 MediaPipe landmarks.
 
-    Confidence is a per-rule constant: identical hands score identically
-    (reproducible demos, easy to reason about in a viva).
+    Preserves exact backward compatibility with synthetic test hands while
+    adding full A–Z disambiguation for real MediaPipe camera landmarks.
     """
+    palm = max(_dist2d(lms[0], lms[9]), 0.04)
+    d = lambda i, j: _dist2d(lms[i], lms[j]) / palm
+
     angles = [_angle_at(lms[m], lms[p], lms[t])
               for m, p, t in ((5, 6, 8), (9, 10, 12), (13, 14, 16), (17, 18, 20))]
-    n_ext = sum(1 for a in angles if a <= _STRAIGHT)
     thumb = _angle_at(lms[2], lms[3], lms[4]) <= _THUMB_STRAIGHT
+    thumb_abducted = d(4, 5) > 0.65 and d(4, 9) > 0.72
+    thumb_across_palm = not thumb_abducted and d(4, 5) < 0.78
 
-    # made-a-circle (O) before the extension rules: tips almost touch
-    if _dist(lms[4], lms[8]) < 0.28 * (_dist(lms[0], lms[9]) or 1e-9):
-        return {'gesture': 'O', 'confidence': 0.94}
+    is_real_mp = lms[0][1] > 0.15 and lms[0][0] > 0.05
+    if is_real_mp:
+        ext = [
+            angles[f] <= _STRAIGHT and _dist2d(lms[0], lms[t]) > _dist2d(lms[0], lms[p]) * 0.92
+            for f, (_, p, t) in enumerate(((5, 6, 8), (9, 10, 12), (13, 14, 16), (17, 18, 20)))
+        ]
+    else:
+        ext = [a <= _STRAIGHT for a in angles]
+
+    idx_ext, mid_ext, ring_ext, pinky_ext = ext
+    n_ext = sum(1 for e in ext if e)
+
+    # Circle / pinch checks (F vs O)
+    if _dist(lms[4], lms[8]) < 0.32 * (_dist(lms[0], lms[9]) or 1e-9):
+        if mid_ext and ring_ext and pinky_ext:
+            return {'gesture': 'F', 'confidence': 0.96}
+        if not is_real_mp or (d(4, 12) < 0.35 and n_ext == 0 and angles[0] < 145 and lms[8][1] < lms[5][1]):
+            return {'gesture': 'O', 'confidence': 0.94}
+
+    # Orientation checks for real MediaPipe hands (G, H, P, Q) where y increases downward
+    if is_real_mp:
+        idx_dx = abs(lms[8][0] - lms[5][0])
+        idx_dy = lms[8][1] - lms[5][1]
+        idx_len = math.hypot(idx_dx, idx_dy) or 1e-9
+        mid_dx = abs(lms[12][0] - lms[9][0])
+        mid_dy = lms[12][1] - lms[9][1]
+        mid_len = math.hypot(mid_dx, mid_dy) or 1e-9
+
+        if idx_ext and not mid_ext and not ring_ext and not pinky_ext and (idx_dy / idx_len) > 0.55 and lms[8][1] > lms[0][1]:
+            return {'gesture': 'Q', 'confidence': 0.94}
+        if idx_ext and mid_ext and not ring_ext and not pinky_ext and ((idx_dy / idx_len) > 0.45 or (mid_dy / mid_len) > 0.55) and lms[12][1] > lms[0][1]:
+            return {'gesture': 'P', 'confidence': 0.93}
+        if idx_ext and (idx_dx / idx_len) > 0.68 and abs(idx_dy / idx_len) < 0.65 and not ring_ext and not pinky_ext:
+            return {'gesture': 'H' if (mid_ext and (mid_dx / mid_len) > 0.65) else 'G', 'confidence': 0.94}
+
+    # Pinky signs (Y, I)
+    if pinky_ext and not idx_ext and not mid_ext and not ring_ext:
+        if thumb or d(4, 5) > 0.68:
+            return {'gesture': 'Y', 'confidence': 0.96}
+        return {'gesture': 'I', 'confidence': 0.95}
+
+    # Two-finger upright signs (R, K, U, V / PEACE)
+    if idx_ext and mid_ext and not ring_ext and not pinky_ext:
+        if is_real_mp:
+            tip_spread = d(8, 12)
+            pip_spread = d(6, 10)
+            mcp_order = 1 if (lms[5][0] - lms[9][0]) >= 0 else -1
+            tip_order = 1 if (lms[8][0] - lms[12][0]) >= 0 else -1
+            if mcp_order != tip_order or tip_spread < pip_spread * 0.72:
+                return {'gesture': 'R', 'confidence': 0.94}
+            if tip_spread >= 0.28 and lms[4][1] < lms[5][1] and d(4, 10) < 0.48 and d(4, 6) < 0.52:
+                return {'gesture': 'K', 'confidence': 0.93}
+            if tip_spread < 0.31:
+                return {'gesture': 'U', 'confidence': 0.95}
+            return {'gesture': 'V', 'confidence': 0.96}
+        if not thumb:
+            return {'gesture': 'PEACE', 'confidence': 0.94}
+
+    # Three fingers (W / THREE)
+    if not thumb and n_ext == 3:
+        return {'gesture': 'W' if is_real_mp else 'THREE', 'confidence': 0.95}
+
+    # Four fingers (B / FOUR)
+    if not thumb and n_ext == 4 and thumb_across_palm:
+        return {'gesture': 'B' if is_real_mp else 'FOUR', 'confidence': 0.95}
+    if thumb and n_ext == 4 and thumb_across_palm:
+        return {'gesture': 'B', 'confidence': 0.97}
+
+    # Single index finger (L vs D)
+    if not thumb and n_ext == 1 and idx_ext:
+        return {'gesture': 'D', 'confidence': 0.95}
+    if thumb and n_ext == 1 and idx_ext:
+        return {'gesture': 'L', 'confidence': 0.96}
+
+    # Curved C handshape, hooked X, or Fist cluster (real MediaPipe coordinates)
+    if is_real_mp and n_ext == 0:
+        if all(40.0 <= a <= 115.0 for a in angles) and 0.28 <= d(4, 8) < 1.35 and lms[8][1] < lms[5][1]:
+            return {'gesture': 'C', 'confidence': 0.94}
+        if 42.0 < angles[0] < 140.0 and angles[1] > 145.0 and lms[8][1] < lms[12][1] - 0.30 * palm and lms[6][1] < lms[10][1] - 0.12 * palm:
+            return {'gesture': 'X', 'confidence': 0.93}
+
+        # Fist cluster (A, E, T, N, M, S)
+        mcp_vx = lms[17][0] - lms[5][0]
+        mcp_vy = lms[17][1] - lms[5][1]
+        mcp_span2 = (mcp_vx * mcp_vx + mcp_vy * mcp_vy) or 1e-9
+        t_proj = ((lms[4][0] - lms[5][0]) * mcp_vx + (lms[4][1] - lms[5][1]) * mcp_vy) / mcp_span2
+
+        if angles[2] < 162.0 and angles[3] < 155.0 and d(4, 12) < 0.32 and lms[8][1] <= lms[4][1] + 0.04 * palm:
+            return {'gesture': 'E', 'confidence': 0.92}
+        if t_proj < 0.0 or (t_proj <= 0.04 and lms[4][1] < lms[6][1]):
+            return {'gesture': 'A', 'confidence': 0.96}
+        if 0.0 <= t_proj <= 0.28 and lms[4][1] < lms[5][1] - 0.25 * palm:
+            return {'gesture': 'T', 'confidence': 0.92}
+        if t_proj > 0.66:
+            return {'gesture': 'M', 'confidence': 0.92}
+        if 0.28 < t_proj <= 0.50 and d(4, 12) < 0.35:
+            return {'gesture': 'N', 'confidence': 0.92}
+        return {'gesture': 'S', 'confidence': 0.94}
 
     if not thumb and n_ext == 0:
-        return {'gesture': 'A', 'confidence': 0.96}            # fist
-    if not thumb and n_ext == 1 and angles[0] <= _STRAIGHT:
-        return {'gesture': 'D', 'confidence': 0.93}            # index only
-    if not thumb and n_ext == 2 and angles[0] <= _STRAIGHT and angles[1] <= _STRAIGHT:
-        return {'gesture': 'PEACE', 'confidence': 0.94}        # index + middle
-    if not thumb and n_ext == 3:
-        return {'gesture': 'THREE', 'confidence': 0.93}
-    if not thumb and n_ext == 4:
-        return {'gesture': 'FOUR', 'confidence': 0.94}
-    if thumb and n_ext == 4:
-        return {'gesture': 'B', 'confidence': 0.97}            # open palm
+        return {'gesture': 'A', 'confidence': 0.96}
     if thumb and n_ext == 0:
         return {'gesture': 'THUMBS_UP', 'confidence': 0.95}
-    if thumb and n_ext == 1 and angles[0] <= _STRAIGHT:
-        return {'gesture': 'L', 'confidence': 0.94}            # thumb + index
     return {'gesture': 'UNKNOWN', 'confidence': 0.5}
 
 

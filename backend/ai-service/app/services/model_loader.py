@@ -72,8 +72,10 @@ class RuleEngine(BaseEngine):
         for v in votes:
             by_label[v['gesture']] = by_label.get(v['gesture'], 0.0) + v['confidence']
         winner = max(by_label, key=by_label.get)
+        confidence = round(by_label[winner] / len(votes), 4)
+        by_label['UNKNOWN'] = max(0.0, 1.0 - confidence)
         return {'gesture': winner,
-                'confidence': round(by_label[winner] / len(votes), 4),
+                'confidence': confidence,
                 'probs': by_label,
                 'engine': 'rule'}
 

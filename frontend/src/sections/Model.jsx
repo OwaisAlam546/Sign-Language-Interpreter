@@ -79,7 +79,7 @@ export default function Model() {
         <SectionHeading
           eyebrow="Model Performance"
           title="Numbers That Speak"
-          sub="The bundled model covers A–Z plus synthetic HELLO. Independent signer/video accuracy evaluation is required before performance can be claimed."
+          sub="The local browser model covers static A–Z letters. Dynamic signs and word-level recognition require an independently evaluated sequence model, so performance remains unclaimed until signer/video testing is completed."
         />
 
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_1.2fr]">

@@ -117,8 +117,8 @@ export const MODEL = {
   f1: null,
   latencyMs: null,
   fps: 30,
-  classes: 27, // A–Z + synthetic HELLO
-  dataset: 'Kaggle ASL Alphabet stills + synthetic HELLO',
+  classes: 26, // The local ONNX model covers static A–Z letters.
+  dataset: 'Kaggle ASL Alphabet stills · local static-letter model',
   samples: 'not recorded',
   epochs: 'not recorded',
   trainSplit: 'not independently evaluated',
@@ -133,7 +133,7 @@ export const CONFUSION_HEAT = [
 
 export const TECH_STACK = [
   { name: 'React', role: 'Interface', color: '#61DAFB' },
-  { name: 'Flask', role: 'Backend', color: '#FFFFFF' },
+  { name: 'FastAPI', role: 'Backend', color: '#FFFFFF' },
   { name: 'FastAPI', role: 'Backend', color: '#009688' },
   { name: 'TensorFlow', role: 'Deep Learning', color: '#FF6F00' },
   { name: 'Keras', role: 'Model', color: '#D00000' },
@@ -146,9 +146,9 @@ export const TECH_STACK = [
 export const ARCH_STEPS = [
   { label: 'Frontend', sub: 'React · Live UI', color: 'from-sky-400 to-cyan-400' },
   { label: 'REST API', sub: 'HTTP · JSON', color: 'from-cyan-400 to-teal-400' },
-  { label: 'Flask', sub: 'OpenCV preprocessing', color: 'from-teal-400 to-emerald-400' },
+  { label: 'FastAPI', sub: 'Inference gateway', color: 'from-teal-400 to-emerald-400' },
   { label: 'MediaPipe', sub: '21 landmark extraction', color: 'from-emerald-400 to-green-400' },
-  { label: 'TensorFlow · LSTM', sub: 'Gesture classification', color: 'from-green-400 to-orange-400' },
+  { label: 'ONNX · Alphabet', sub: 'Static-letter classification', color: 'from-green-400 to-orange-400' },
   { label: 'Speech Engine', sub: 'TTS Output', color: 'from-orange-400 to-rose-400' },
 ];
 
@@ -159,7 +159,7 @@ export const TEAM = [
     role: 'Developer — Model Training & Backend',
     initials: 'MO',
     gradient: 'from-sky-400 to-cyan-400',
-    points: ['LSTM model training', 'Flask API integration', 'Dataset curation'],
+    points: ['Model integration', 'FastAPI integration', 'Dataset curation'],
   },
   {
     name: 'Niranjan M',

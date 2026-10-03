@@ -6,15 +6,9 @@
 #  data extracted from the Kaggle "asl-alphabet" dataset
 #  (grassknoted) by scripts/extract_asl_landmarks.py — MediaPipe
 #  Hands (21×3 landmarks) per image, repeated WINDOW=12 times to
-#  match the (12, 63) shape the service expects. All 26 letters
-#  A–Z are covered by real data; HELLO is KEPT as a synthetic
-#  dynamic word class because we have NO real word-motion data
-#  for it (see the decision note in step 4's task description).
-#
-#  CLASSES = [A..Z, HELLO]  (PEACE dropped — no real data, and it
-#  is just a static hand shape already covered by the 26 letters'
-#  geometry; keeping it would double-count a pose we can't verify
-#  against real motion data).
+#  match the (12, 63) shape the service expects. This trainer covers
+#  A–Z only. Word classes are excluded until real labeled word-sign
+#  motion sequences are available.
 #
 #  Artifacts written:
 #    models/signspeak_toy.keras        — loadable by KerasEngine
@@ -30,20 +24,15 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import numpy as np
-from app.utils.landmarks import generate_hand
 
 random.seed(7)
 np.random.seed(7)
 
 WINDOW = 12
 
-# ── Real letter classes (A–Z) + one synthetic dynamic word ──────
+# ── Real letter classes (A–Z) only ────────────────────────────
 LETTERS = [chr(c) for c in range(ord('A'), ord('Z') + 1)]
-# HELLO is kept because the existing smoke suite / UI exercises it, but it
-# is a SYNTHETIC sequence (open↔fist alternation) — we have no real motion
-# data for any word-sign. The 8-word set {hello, sorry, yes, no, please,
-# good, help} is explicitly NOT covered (see final report).
-CLASSES = LETTERS + ['HELLO']
+CLASSES = LETTERS
 
 # ── Load the extracted real-data landmark dataset ─────────────
 DATA_DIR = ROOT / 'data'
@@ -61,29 +50,13 @@ y_real = np.load(y_path).astype(np.int32)     # (N,) 0..25
 # Sanity: the extracted labels must match our letter ordering
 assert y_real.max() < len(LETTERS), f'label range {y_real.max()} >= {len(LETTERS)}'
 
-CLS_LETTER = len(LETTERS)                      # index of HELLO = 26
-SAMPLES_WORD = 1000                            # synthetic word samples
 
-# ── Build the (letter, word) dataset ──────────────────────────
-# Real letters come from the Kaggle extraction. The word class HELLO is
-# generated with the SAME generator the smoke suite uses, so the
-# anti-drift parity gate below stays valid.
+# ── Build the real letter dataset ─────────────────────────────
 X, y = [], []
 for label_idx, label in enumerate(LETTERS):
     mask = (y_real == label_idx)
     X.append(X_real[mask])
     y.append(np.full(mask.sum(), label_idx, dtype=np.int32))
-# HELLO: dynamic open↔fist alternation, identical to the smoke suite.
-# generate_hand() returns (21, 3) per frame → flatten each to 63.
-from app.services.sequence_buffer import flatten  # noqa: E402
-hello_seqs = []
-for s in range(SAMPLES_WORD):
-    seq = [generate_hand('open' if (i // 3) % 2 == 0 else 'fist', seed=s * 100 + i)
-           for i in range(WINDOW)]
-    hello_seqs.append(np.asarray([flatten(h) for h in seq], dtype=np.float32))
-X.append(np.asarray(hello_seqs, dtype=np.float32))
-y.append(np.full(SAMPLES_WORD, CLS_LETTER, dtype=np.int32))
-
 X = np.concatenate(X, axis=0)
 y = np.concatenate(y, axis=0)
 
@@ -132,11 +105,8 @@ print('saved models/signspeak_toy.keras + models/signspeak_toy_labels.json')
 
 # ── smoke-parity gate: verify the trained model recognizes REAL
 # extracted landmark sequences (the distribution it was trained on).
-# NOTE: we cannot use the synthetic generate_hand() frames here because the
-# model is trained on REAL MediaPipe landmarks (normalized [0,1] image space),
-# which have a completely different scale/offset than the synthetic generator.
-# The production pipeline feeds the model real MediaPipe landmarks, so the
-# gate must too. HELLO stays synthetic (trained that way, no real word data).
+# The production pipeline feeds the model real MediaPipe landmarks, so this
+# parity gate uses those same real extracted samples.
 from app.services.sequence_buffer import SequenceBuffer  # noqa: E402
 
 SEQ = SequenceBuffer(WINDOW)
@@ -156,16 +126,6 @@ def probe_real(expect_idx):
     status = 'OK' if correct >= max(1, n_try // 2) else 'MISMATCH'
     print(f'smoke-parity {status}: {cls:>6} → {correct}/{n_try} correct')
     return correct >= max(1, n_try // 2)
-
-
-def probe_hello():
-    frames = [generate_hand('open' if (i // 3) % 2 == 0 else 'fist', seed=i)
-              for i in range(WINDOW)]
-    p = model.predict(np.asarray([SEQ.from_frames(frames)], dtype=np.float32), verbose=0)[0]
-    got = CLASSES[int(p.argmax())]
-    status = 'OK' if got == 'HELLO' else 'MISMATCH'
-    print(f'smoke-parity {status}: {"HELLO":>6} → {got}')
-    return got == 'HELLO'
 
 
 # ── Per-class accuracy on the held-out validation split ───────
@@ -208,7 +168,7 @@ for (ti, pi), cnt in top_conf:
 # extracted landmark sequences. Non-fatal: a single thinly-sampled
 # letter (e.g. M with only 101 real frames) can trip a strict first-5
 # sample check without meaning the model is broken — so we WARN, not exit.
-parity = all([probe_real(i) for i in range(len(LETTERS))] + [probe_hello()])
+parity = all(probe_real(i) for i in range(len(LETTERS)))
 if not parity:
     print('\nWARNING: smoke-parity gate tripped on a held-out real-letter sample.')
     print('         This is usually a thinly-sampled letter, not a broken model.')

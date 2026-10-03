@@ -70,7 +70,7 @@ export default function Hero() {
           <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}
             className="mb-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-white/8 pb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-slate-400">
             <span className="flex items-center gap-2 text-cyan-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 status-dot" /> Rule Engine · Live
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 status-dot" /> Pretrained Model · Live
             </span>
             <span className="hidden sm:inline">MediaPipe · 21 Landmarks</span>
             <span className="hidden md:inline">Ramaiah College · BCA VI</span>
@@ -127,9 +127,9 @@ export default function Hero() {
 
           {/* stats band */}
           <motion.div variants={fadeUp} initial="hidden" animate="show" custom={6}
-            className="glass-card mt-14 grid max-w-xl grid-cols-2 gap-y-8 rounded-3xl px-6 py-6 sm:grid-cols-4 sm:divide-x sm:divide-white/10 border border-white/12 bg-slate-950/90 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65)]">
+            className="glass-card mt-14 grid w-full max-w-xl grid-cols-2 gap-x-4 gap-y-7 rounded-3xl px-5 py-6 sm:grid-cols-4 sm:divide-x sm:divide-white/10 sm:px-6 border border-white/12 bg-slate-950/90 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65)]">
             <Stat value="—" label="Accuracy Pending" />
-            <Stat value={27} label="Bundled Labels" />
+            <Stat value={26} label="Local Letters" />
             <Stat value={12} suffix=" Frames" label="Model Window" />
             <Stat value="Live" label="Camera Tracking" />
           </motion.div>
@@ -185,7 +185,7 @@ export default function Hero() {
                   </div>
                 </div>
                 <span className="rounded-full bg-cyan-400/15 px-3 py-1 font-mono text-[10px] text-cyan-300 border border-cyan-400/35 font-medium">
-                  30 FPS
+                  ON-DEVICE
                 </span>
               </div>
 
@@ -205,7 +205,7 @@ export default function Hero() {
 
               {/* footer chips */}
               <div className="mt-4 flex flex-wrap gap-2">
-                {['MediaPipe Hands', '21 Landmarks', 'Rules + LSTM', 'TTS Engine'].map((c) => (
+                {['MediaPipe Hands', '21 Landmarks', 'ONNX Alphabet', 'TTS Engine'].map((c) => (
                   <span key={c} className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-mono text-[10px] text-slate-400">{c}</span>
                 ))}
               </div>

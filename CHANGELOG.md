@@ -1,65 +1,49 @@
 # Changelog
 
-This file records the sign-recognition work in this repository. Dates refer to
-the local project date.
+All notable project changes are recorded here.
 
-## 2026-08-30 — Baseline audit (before remediation)
+## Unreleased
 
-### Recognition limitations found
+### Word-recognition safety and scope
 
-- The browser live demo detected hands with MediaPipe but classified poses with
-  a nine-rule geometry classifier; it did not call the server LSTM.
-- The demo could therefore emit only `A`, `B`, `D`, `L`, `O`, `V`, `U`, `3`,
-  and `4`, while the UI claimed alphabet and word recognition.
-- Several rule labels were not valid ASL mappings, including thumbs-up being
-  emitted as `U` and an open thumb being treated as `B`.
-- The shipped sequence model has 27 labels (`A`–`Z` and synthetic `HELLO`),
-  not the 41 classes claimed in the frontend.
-- The training extractor converts each still image into twelve repeated frames.
-  It cannot validate or learn motion signs (for example J/Z) or real word
-  signs; no independent signer/video evaluation set is supplied in this repo.
+- Removed the synthetic open/fist `HELLO` class from `scripts/train_toy_model.py` and its model smoke tests. Re-training that script now emits only the 26 alphabet classes; synthetic motion is not treated as ASL word data.
+- The live UI now accepts a multi-letter word only when the active TensorFlow sequence model reports that exact label in `/model-status` vocabulary. The local ONNX alphabet model and unlisted server outputs cannot be committed as words.
+- Kept fingerspelling composition enabled: stable A–Z signs still build text, and a pause resolves matching spellings against the app's word list (otherwise the spelled text remains visible).
+- No isolated-word model was downloaded or trained: this checkout contains no WLASL metadata/videos or real word-sign sequences, and outbound GitHub access was unavailable. Word-level ASL recognition remains unavailable until a real labeled dataset and compatible trained weights are supplied.
 
-### Live-output defects found
+#### Rollback for this change
 
-- A character was committed after only three render frames.
-- The same character could not be entered twice in a word because a neutral
-  pose did not re-arm the transcription state.
-- The first MediaPipe hand was always used, so two hands could make output
-  jump as detector ordering changed.
-- Stale gesture/confidence values remained visible after tracking was lost.
-- Canvas hand-label chips could overlap when hands were close together.
-- Simulated fallback output was presented like genuine recognition.
+After committing this feature as its own commit, roll it back with `git revert <feature-commit-sha>`. This checkout already had unrelated uncommitted edits in several touched files; do not use `git restore` on whole files here, because that would also discard those earlier edits. The feature-specific changes are limited to `frontend/src/sections/LiveDemo.jsx`, `frontend/src/lib/recognitionPolicy.js`, `frontend/scripts/smoke-test.mjs`, `backend/ai-service/scripts/train_toy_model.py`, `backend/ai-service/scripts/smoke_test.py`, `backend/ai-service/README.md`, and this changelog entry.
 
-### Claims needing correction
+### Recognition and model integration
 
-- The frontend contained static, unverified values for accuracy, precision,
-  recall, F1, class count, samples, and word-sign training.
+- Added local ONNX Runtime Web support for the pretrained ASL alphabet model and its A–Z class labels.
+- Configured local ONNX Runtime WebAssembly assets so development does not incorrectly serve the app HTML in place of the WASM runtime.
+- Matched browser model inputs to the pretrained model's reference preprocessing: convert normalized landmarks into camera pixel coordinates, preserve aspect ratio, center and scale the hand to 70% of the input canvas, draw the RGB MediaPipe-style colored skeleton, and resize from 192×192 to 96×96.
+- Select the named `logits` ONNX output when available and fail clearly if its score count does not match the class labels.
+- Average class probabilities across the latest eight model inferences and require ten consecutive matching results at the confidence threshold before committing a letter.
+- Suppress static-letter recognition while the hand is moving and clear stale prediction evidence when tracking is lost or the pose is uncertain.
+- Removed the local hand-written motion shortcut that could turn movement into a guessed word. Word recognition requires a compatible trained sequence model; the local pretrained model recognizes static alphabet signs.
 
-## 2026-08-30 — Remediation
+### Hand tracking and camera pipeline
 
-- Replaced browser geometry-rule classification with 12-frame requests to the
-  gateway's TensorFlow sequence-model endpoint. The live UI now refuses to
-  create text when the model is not loaded, unavailable, or uncertain.
-- Added the Vite development proxy for the gateway API.
-- Raised MediaPipe detector/tracker thresholds and selected one hand by its
-  continuing wrist position instead of trusting the detector's array order.
-- Added confidence, temporal-stability, neutral-pose, and request-order gates.
-  A sign requires four matching predictions; a repeated letter requires a
-  neutral pose; only one request is active at a time.
-- Removed the simulated-recognition fallback and stale prediction display.
-- Changed committed output into wrapping word chips so it cannot truncate or
-  visually overlap previous words.
-- Added collision avoidance for hand-label chips in the canvas overlay.
-- Accuracy claims remain historical/unverified until an independently held-out
-  real-video, signer-separated evaluation is added; they are not used by the
-  live recognition path.
-- Replaced unsupported frontend performance figures and training claims with
-  the actual bundled-label count and an explicit pending-evaluation status.
-- Updated hero, workflow, and README copy so it describes the actual
-  MediaPipe-to-server-model flow and does not present simulated recognition or
-  unmeasured accuracy as a production capability.
-- Made TensorFlow CPU a required AI-service dependency so the shipped Keras
-  sequence model is loaded in normal deployments instead of silently falling
-  back to geometry rules.
-- Forwarded the sequence-voting strategy through the gateway and reject NaN,
-  infinity, and non-numeric landmarks at the AI-service boundary.
+- Configure MediaPipe for one hand, matching the alphabet model's single-hand input, with 0.5 detection, presence, and tracking confidence thresholds.
+- Added a per-landmark 1-Euro filter in pixel space to reduce landmark jitter while retaining responsiveness during movement.
+- Use actual camera frame dimensions for inference and overlay coordinate mapping.
+- Match the overlay to the displayed `object-cover` video crop and resize the overlay canvas with the responsive camera panel.
+- Use only real camera observations for temporal stability; do not pad startup history by repeating copied frames.
+- Measure hand movement against elapsed time and hand size before allowing static letters to commit.
+- Keep the overlay label at `HAND` until the model provides a stable prediction, rather than showing letters from a separate geometric guess.
+
+### Reliability and experience
+
+- Keep hand tracking visible when the alphabet model cannot load and show a clear model error state.
+- Add bounded health/model-status requests, camera retry handling, and safer response parsing.
+- Include a synthetic UI demo and video-file test path for checking the interface without a live webcam.
+- Improve responsive layout, live translation announcements, and alignment of the camera skeleton, bounding box, and hand label.
+
+### Verification and scope
+
+- Frontend smoke checks and production builds pass with the bundled model and local MediaPipe/ONNX Runtime assets.
+- The browser model is for static A–Z signs. Motion-based words require a trained sequence model; the upstream reference uses separate rules for dynamic J/Z.
+- The pretrained model's upstream README reports 93.7% accuracy on its held-out test set and identifies N as a weak class (54% recall). Results can vary with signer, camera framing, lighting, and hand pose.

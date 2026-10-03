@@ -26,12 +26,14 @@ class InferencePipeline:
     def __init__(self, model: ModelManager, window: int = 12,
                  threshold: float = 0.55, alpha: float = 0.6,
                  display_threshold: float = 0.75,
-                 stable_window: int = 8, stable_min: int = 5):
+                 stable_window: int = 8, stable_min: int = 5,
+                 margin_threshold: float = 0.12):
         self._model = model
         self.window = window
         self.threshold = threshold
         self.alpha = alpha
         self.display_threshold = display_threshold
+        self.margin_threshold = margin_threshold
         self._stable_min = stable_min
         self._buf = FrameBuffer(maxlen=max(window * 2, 24),
                                 min_frames=max(2, window // 2))
@@ -63,8 +65,11 @@ class InferencePipeline:
         """Confidence Threshold + Unknown Gesture Detection."""
         top = sorted(self._normalize(probs).items(), key=lambda kv: -kv[1])[:3]
         gesture, confidence = top[0]
+        runner_up = top[1][1] if len(top) > 1 else 0.0
+        margin = confidence - runner_up
         below = confidence < self.threshold
-        if gesture == 'UNKNOWN' or below:
+        ambiguous = margin < self.margin_threshold
+        if gesture == 'UNKNOWN' or below or ambiguous:
             kind = 'unknown'
             if gesture != 'UNKNOWN':
                 gesture = 'UNKNOWN'          # low confidence → unknown
@@ -76,6 +81,8 @@ class InferencePipeline:
             'type': kind,
             'threshold': self.threshold,
             'belowThreshold': below,
+            'margin': round(margin, 4),
+            'ambiguous': ambiguous,
             'scoresTop3': [{'label': g, 'score': round(c, 4)} for g, c in top],
         }
 
@@ -122,6 +129,8 @@ class InferencePipeline:
             'type': gated['type'],
             'threshold': decision['threshold'],
             'belowThreshold': decision['belowThreshold'],
+            'margin': decision['margin'],
+            'ambiguous': decision['ambiguous'],
             'scoresTop3': decision['scoresTop3'],
             'windowSize': len(window),
             'smoothed': False,
@@ -158,6 +167,8 @@ class InferencePipeline:
             'type': gated['type'],
             'threshold': decision['threshold'],
             'belowThreshold': decision['belowThreshold'],
+            'margin': decision['margin'],
+            'ambiguous': decision['ambiguous'],
             'scoresTop3': decision['scoresTop3'],
             'windowSize': self.window,
             'buffered': len(self._buf),

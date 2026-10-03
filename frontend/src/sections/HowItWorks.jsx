@@ -46,14 +46,14 @@ const STEPS = [
     shortTitle: 'Capture',
     tag: 'Webcam input',
     headline: 'Real-Time Webcam Feed Capture',
-    desc: 'The browser requests local video input via navigator.mediaDevices.getUserMedia. Frames are rate-limited to 30 FPS to ensure low-latency inference without blocking the rendering thread.',
+    desc: 'The browser requests local video input via navigator.mediaDevices.getUserMedia. Camera preview runs independently while hand detection and recognition are rate-limited to protect the UI thread.',
     icon: FiVideo,
     color: 'from-sky-400 to-cyan-400',
     accent: '#38bdf8',
     meta: 'Client WebRTC Stream',
     metrics: [
       { label: 'Input', value: 'WebRTC' },
-      { label: 'Framerate', value: '30 FPS' },
+      { label: 'Preview', value: '30 FPS' },
       { label: 'Latency', value: '< 8ms' },
     ],
   },
@@ -92,17 +92,17 @@ const STEPS = [
   {
     n: '04',
     shortTitle: 'Recognize',
-    tag: 'LSTM model',
-    headline: 'Temporal Sequence Classification',
-    desc: 'A rolling buffer of 12 landmark frames is fed to the server bidirectional LSTM model. It evaluates temporal finger trajectories to distinguish gestures across 27 sign classes.',
+    tag: 'Alphabet model',
+    headline: 'Static Letter Classification',
+    desc: 'The local ONNX model evaluates a normalized hand skeleton and confirms one static A–Z letter. A rolling temporal model is optional and is only used when trained server weights are available.',
     icon: FiCpu,
     color: 'from-emerald-400 to-cyan-500',
     accent: '#10b981',
-    meta: 'Bi-LSTM Temporal Voting',
+    meta: 'ONNX Static Classification',
     metrics: [
       { label: 'Sequence', value: '12 Frames' },
-      { label: 'Classes', value: '27 Signs' },
-      { label: 'Inference', value: '11.2ms' },
+      { label: 'Classes', value: '26 Letters' },
+      { label: 'Mode', value: 'On-device' },
     ],
   },
   {
@@ -510,7 +510,7 @@ export default function HowItWorks() {
                 <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
                 ● REC [LIVE_FEED]
               </span>
-              <span className="text-cyan-400 font-medium">1280×720 @ 30 FPS</span>
+              <span className="text-cyan-400 font-medium">640×480 preview · throttled recognition</span>
             </div>
 
             {/* Center viewfinder reticle */}
@@ -547,7 +547,7 @@ export default function HowItWorks() {
             {/* Top HUD */}
             <div className="flex items-center justify-between text-xs text-slate-400 px-3.5 pt-1">
               <span className="text-cyan-300 font-medium">12-FRAME SEQUENCE BUFFER</span>
-              <span className="text-slate-400">BI-LSTM CLASSIFIER</span>
+              <span className="text-slate-400">ONNX STATIC CLASSIFIER</span>
             </div>
 
             {/* Sequence Frame Slots */}
@@ -605,7 +605,7 @@ export default function HowItWorks() {
             <div className="flex items-center justify-between text-[10px] text-slate-500 px-3.5 pb-1">
               <span>INFERENCE: 11.2ms</span>
               <span className="text-cyan-400 font-semibold">PREDICTION: 'H'</span>
-              <span>27 CLASSES</span>
+              <span>26 LETTERS</span>
             </div>
           </div>
         );
@@ -639,8 +639,8 @@ export default function HowItWorks() {
                   <FiCheck className="h-3.5 w-3.5" />
                 </span>
                 <div>
-                  <div className="text-[10px] uppercase tracking-widest text-slate-400">Word Token Committed</div>
-                  <div className="text-lg sm:text-xl font-display font-bold text-white tracking-wide">"HELLO"</div>
+                  <div className="text-[10px] uppercase tracking-widest text-slate-400">Example Token Flow</div>
+                  <div className="text-lg sm:text-xl font-display font-bold text-white tracking-wide">"H E L L O"</div>
                 </div>
                 <span className="ml-2 rounded bg-violet-400/20 px-2.5 py-0.5 text-[10px] text-violet-300 font-mono hidden sm:inline">
                   PAUSE: 800ms
@@ -690,7 +690,7 @@ export default function HowItWorks() {
                   className="flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-rose-500/20 to-violet-500/20 hover:from-rose-500/30 hover:to-violet-500/30 border border-rose-400/40 px-5 py-2.5 text-white font-sans text-xs sm:text-sm font-semibold transition-all duration-300 shadow-[0_0_18px_rgba(244,63,94,0.3)] hover:scale-105 cursor-pointer"
                 >
                   <FiVolume2 className={`h-4.5 w-4.5 text-rose-300 ${isSpeaking ? 'animate-bounce' : ''}`} />
-                  <span>Speak: "HELLO"</span>
+                  <span>Speak: sample text</span>
                 </button>
                 <span className="text-xs text-slate-400">Click to test browser TTS</span>
               </div>
