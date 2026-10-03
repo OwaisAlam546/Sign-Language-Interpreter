@@ -43,7 +43,7 @@ export default function Footer() {
 
   return (
     <footer className="relative z-10 mt-10 overflow-hidden border-t border-white/10">
-      <Marquee words={['SignSpeak AI', 'Accessible', 'Real-Time', 'AI', 'Mohammed Owais Alam', 'BCA Final Project']} variant="solid" speed={26} className="opacity-70" />
+      <Marquee words={['SignSpeak AI', 'Sign. Connect. Communicate.']} variant="solid" speed={26} className="opacity-70" />
 
       <div className="relative px-5 pb-10 pt-14 md:px-10">
         {/* Soft cyan/blue ambient glow behind the watermark */}

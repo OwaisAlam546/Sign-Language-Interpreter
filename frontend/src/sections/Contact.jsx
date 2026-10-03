@@ -65,7 +65,7 @@ export default function Contact() {
   const err = (k) => touched[k] && ((k === 'email' ? emailOk : form[k].length > (k === 'message' ? 4 : 1)) ? null : true);
 
   return (
-    <section id="contact" className="relative z-10 px-5 py-24 md:px-10 md:py-32">
+    <section id="contact" className="relative z-10 px-4 sm:px-6 md:px-8 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24">
       <div className="mx-auto max-w-4xl">
         <SectionHeading
           eyebrow="Get In Touch"

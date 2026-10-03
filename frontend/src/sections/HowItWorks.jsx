@@ -698,12 +698,12 @@ export default function HowItWorks() {
     <section
       id="how"
       ref={containerRef}
-      className="pipeline-section relative z-10 px-4 py-12 md:px-8 md:py-16"
+      className="pipeline-section relative z-10 px-4 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24"
     >
       {/* Container pins on tall viewports, flows naturally on compact laptop viewports */}
       <div className="pipeline-container mx-auto max-w-6xl">
-        {/* Compact Section Header (scaled +12%) */}
-        <div className="relative z-10 mb-4 sm:mb-6 flex flex-col items-center gap-2 text-center">
+        {/* Compact Section Header */}
+        <div className="relative z-10 mb-6 sm:mb-8 md:mb-9 flex flex-col items-center gap-2.5 sm:gap-3 text-center">
           <span className="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[11px] sm:text-xs uppercase tracking-[0.22em] text-cyan-300">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 status-dot" />
             The Pipeline

@@ -18,13 +18,32 @@ const fadeUp = {
   show: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.08 * i } }),
 };
 
-function Stat({ value, decimals = 0, suffix, label }) {
+function Stat({ value, isCounter = false, unit, label, hasDividerSm = true, hasDividerMobile = false }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="font-display text-[clamp(1.7rem,3vw,2.6rem)] font-semibold tracking-tight">
-        <span className="grad-text">{typeof value === 'number' ? <Counter to={value} decimals={decimals} suffix={suffix} /> : value}</span>
+    <div className="relative flex flex-col items-center justify-center text-center px-1.5 sm:px-2">
+      <div className="flex h-10 sm:h-11 items-center justify-center">
+        <span className="inline-flex items-baseline justify-center whitespace-nowrap">
+          <span className="font-display text-2xl sm:text-[1.75rem] font-bold tracking-tight grad-text">
+            {isCounter ? <Counter to={value} /> : value}
+          </span>
+          {unit && (
+            <span className="ml-1 font-mono text-xs sm:text-[13px] font-medium text-cyan-300">
+              {unit}
+            </span>
+          )}
+        </span>
+      </div>
+      <span className="mt-1 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-slate-400 text-center whitespace-nowrap">
+        {label}
       </span>
-      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">{label}</span>
+      {hasDividerSm && (
+        <div
+          className={`absolute right-0 top-1/2 -translate-y-1/2 h-8 w-px bg-white/12 ${
+            hasDividerMobile ? 'block' : 'hidden sm:block'
+          }`}
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 }
@@ -127,11 +146,13 @@ export default function Hero() {
 
           {/* stats band */}
           <motion.div variants={fadeUp} initial="hidden" animate="show" custom={6}
-            className="glass-card mt-14 grid max-w-xl grid-cols-2 gap-y-8 rounded-3xl px-6 py-6 sm:grid-cols-4 sm:divide-x sm:divide-white/10 border border-white/12 bg-slate-950/90 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65)]">
-            <Stat value="—" label="Accuracy Pending" />
-            <Stat value={27} label="Bundled Labels" />
-            <Stat value={12} suffix=" Frames" label="Model Window" />
-            <Stat value="Live" label="Camera Tracking" />
+            className="glass-card mt-12 sm:mt-14 w-full max-w-xl rounded-3xl border border-white/12 bg-slate-950/90 p-4 sm:p-5 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65)]">
+            <div className="grid grid-cols-2 gap-y-5 sm:grid-cols-4 sm:gap-y-0">
+              <Stat value="—" label="Accuracy Pending" hasDividerSm={true} hasDividerMobile={true} />
+              <Stat value={27} isCounter={true} label="Bundled Labels" hasDividerSm={true} hasDividerMobile={false} />
+              <Stat value={12} isCounter={true} unit="Frames" label="Model Window" hasDividerSm={true} hasDividerMobile={true} />
+              <Stat value="Live" label="Camera Tracking" hasDividerSm={false} hasDividerMobile={false} />
+            </div>
           </motion.div>
         </motion.div>
 

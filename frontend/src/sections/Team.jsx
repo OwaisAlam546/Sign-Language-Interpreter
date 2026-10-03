@@ -1,7 +1,5 @@
-// TEAM — interactive AccordionGallery (React Bits integration) showcasing Mohammed Owais Alam as Project Lead in the center.
 import { useState } from 'react';
 import { FiGithub, FiLinkedin, FiMail, FiAward, FiStar, FiCpu, FiLayout, FiCheckCircle } from 'react-icons/fi';
-import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
 import AccordionGallery from '../components/AccordionGallery/AccordionGallery.jsx';
 import { FUTURE } from '../lib/data.js';
@@ -88,7 +86,7 @@ export default function Team() {
     label: (
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
-          <span className="text-base sm:text-xl font-display font-bold text-white tracking-tight drop-shadow-md">
+          <span className="text-base sm:text-lg font-display font-bold text-white tracking-tight drop-shadow-md">
             {m.name}
           </span>
           {m.isLeader && (
@@ -97,7 +95,7 @@ export default function Team() {
             </span>
           )}
         </div>
-        <span className="text-[11px] sm:text-xs font-mono font-medium text-cyan-300/90 tracking-wider">
+        <span className="text-[10px] sm:text-[11px] font-mono font-medium text-cyan-300/90 tracking-wider">
           {m.role}
         </span>
       </div>
@@ -105,20 +103,28 @@ export default function Team() {
   }));
 
   return (
-    <section id="team" className="relative z-10 px-4 py-20 md:px-8 md:py-28 overflow-hidden">
-      <div className="relative z-10 mx-auto max-w-6xl">
-        <SectionHeading
-          eyebrow="The Team"
-          title="Engineered by Visionaries."
-          sub="Guided by our department faculty at Ramaiah College of Arts, Science & Commerce — Autonomous. Led by Mohammed Owais Alam."
-        />
+    <section id="team" className="relative z-10 px-4 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 overflow-hidden">
+      <div className="relative z-10 mx-auto max-w-5xl">
+        {/* ── Compact Introduction ── */}
+        <div className="relative z-10 mb-6 sm:mb-8 md:mb-9 text-center flex flex-col items-center gap-2.5 sm:gap-3">
+          <Reveal>
+            <h2 className="font-display text-3xl sm:text-4xl md:text-[2.65rem] font-bold tracking-tight text-white leading-tight">
+              Meet the People Behind <span className="grad-text">SignSpeak AI</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <p className="max-w-xl text-sm sm:text-base text-slate-300/90 leading-relaxed">
+              The team building accessible communication through AI and computer vision.
+            </p>
+          </Reveal>
+        </div>
 
         {/* ── React Bits <AccordionGallery /> ── */}
         <Reveal>
-          <div className="relative mt-8 sm:mt-12 overflow-hidden rounded-3xl p-2 sm:p-4 bg-slate-950/60 border border-white/10 backdrop-blur-xl shadow-2xl">
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-slate-950/60 border border-white/10 backdrop-blur-xl shadow-2xl">
             {/* Ambient Background Glow for Lead */}
             <div
-              className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 h-80 w-full max-w-lg rounded-full bg-gradient-to-r from-[#00D9FF]/10 via-[#168BFF]/08 to-transparent blur-3xl transition-opacity duration-700 ${activeIdx === 1 ? 'opacity-25' : 'opacity-10'
+              className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-10 h-60 w-full max-w-md rounded-full bg-gradient-to-r from-[#00D9FF]/10 via-[#168BFF]/08 to-transparent blur-3xl transition-opacity duration-700 ${activeIdx === 1 ? 'opacity-25' : 'opacity-10'
                 }`}
               aria-hidden="true"
             />
@@ -126,17 +132,17 @@ export default function Team() {
             <AccordionGallery
               items={galleryItems}
               defaultIndex={1}
-              expandRatio={0.54}
+              expandRatio={0.5}
               trigger="hover"
-              height={480}
-              radius={20}
-              gap={12}
+              height={340}
+              radius={18}
+              gap={10}
               accentColor="#00D9FF"
               overlayColor="#05080D"
               textColor="#ffffff"
-              tilt={6}
-              parallax={0.4}
-              duration={0.55}
+              tilt={5}
+              parallax={0.35}
+              duration={0.5}
               onActiveChange={(idx) => setActiveIdx(idx)}
             />
           </div>
@@ -144,22 +150,22 @@ export default function Team() {
 
         {/* ── Active Member Spotlight Card ── */}
         <Reveal delay={0.15}>
-          <div className="relative mt-8">
+          <div className="relative mt-5 sm:mt-6">
             <div
-              className={`glass-glow relative overflow-hidden rounded-3xl p-6 sm:p-8 md:p-10 bg-slate-950/90 border transition-all duration-500 backdrop-blur-2xl shadow-2xl ${activeMember.isLeader
+              className={`glass-glow relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-7 bg-slate-950/90 border transition-all duration-500 backdrop-blur-2xl shadow-2xl ${activeMember.isLeader
                   ? 'border-cyan-400/50 shadow-[0_20px_60px_rgba(34,211,238,0.2)]'
                   : 'border-white/12'
                 }`}
             >
-              {/* Header Bar: ID, Role, and Lead Badge with proper flow margin — eliminating overlap */}
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="font-mono text-xs uppercase tracking-widest text-slate-400">
+              {/* Header Bar: ID, Role, and Lead Badge with proper flow margin */}
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5 border-b border-white/10 pb-3.5">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-slate-400">
                     {activeMember.id}
                   </span>
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
                   <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${activeMember.isLeader
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 font-mono text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider ${activeMember.isLeader
                         ? 'bg-cyan-400/20 text-cyan-200 border border-cyan-400/40 shadow-glow'
                         : 'bg-white/10 text-slate-300 border border-white/10'
                       }`}
@@ -168,26 +174,26 @@ export default function Team() {
                   </span>
                 </div>
 
-                {/* Leader Ribbon Badge — seamlessly in document flow so it never overlaps the contributions card */}
+                {/* Leader Ribbon Badge */}
                 {activeMember.isLeader && (
-                  <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#00D9FF]/20 via-[#83E8F5]/20 to-[#168BFF]/20 border border-cyan-400/40 px-4 py-1.5 font-mono text-[11px] font-bold tracking-widest text-cyan-300 shadow-glow">
-                    <FiAward className="h-4 w-4 text-cyan-300" />
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#00D9FF]/20 via-[#83E8F5]/20 to-[#168BFF]/20 border border-cyan-400/40 px-3 py-1 font-mono text-[10px] font-bold tracking-widest text-cyan-300 shadow-glow">
+                    <FiAward className="h-3.5 w-3.5 text-cyan-300" />
                     <span>PROJECT LEAD · CORE ARCHITECT</span>
                   </div>
                 )}
               </div>
 
-              <div className="grid gap-6 md:grid-cols-[1.2fr_1fr] items-start">
+              <div className="grid gap-5 md:grid-cols-[1.2fr_1fr] items-start">
                 <div>
-                  <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
+                  <h3 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
                     {activeMember.name}
                   </h3>
 
-                  <p className="mt-3 text-sm sm:text-base leading-relaxed text-slate-300">
+                  <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-300">
                     {activeMember.bio}
                   </p>
 
-                  <div className="mt-6 flex flex-wrap gap-3">
+                  <div className="mt-4 flex flex-wrap gap-2.5">
                     {[
                       { icon: FiGithub, label: 'GitHub', url: activeMember.github },
                       { icon: FiLinkedin, label: 'LinkedIn', url: activeMember.linkedin },
@@ -200,9 +206,9 @@ export default function Team() {
                           href={s.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="glass-frosted glass-interactive inline-flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-xs text-slate-200 transition-all hover:border-cyan-400/40 hover:text-cyan-200"
+                          className="glass-frosted glass-interactive inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-xs text-slate-200 transition-all hover:border-cyan-400/40 hover:text-cyan-200"
                         >
-                          <Icon className="h-3.5 w-3.5 text-cyan-300" />
+                          <Icon className="h-3 w-3 text-cyan-300" />
                           <span>{s.label}</span>
                         </a>
                       );
@@ -211,22 +217,22 @@ export default function Team() {
                 </div>
 
                 {/* Key Architectural Contributions List */}
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 backdrop-blur-md">
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 sm:p-5 backdrop-blur-md">
                   <h4 className="font-mono text-xs uppercase tracking-[0.2em] text-cyan-300 flex items-center gap-2">
                     <FiCheckCircle className="h-3.5 w-3.5" />
                     Key Contributions
                   </h4>
-                  <ul className="mt-4 space-y-3">
+                  <ul className="mt-3 space-y-2">
                     {activeMember.points.map((point) => (
-                      <li key={point} className="flex items-start gap-3 text-sm text-slate-300">
-                        <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-gradient-to-r from-cyan-400 to-sky-400 shadow-[0_0_8px_#22d3ee]" />
+                      <li key={point} className="flex items-start gap-2.5 text-xs sm:text-[13px] text-slate-300">
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-r from-cyan-400 to-sky-400 shadow-[0_0_8px_#22d3ee]" />
                         <span>{point}</span>
                       </li>
                     ))}
                   </ul>
 
                   {activeMember.isLeader && (
-                    <div className="mt-5 pt-4 border-t border-white/10 text-xs font-mono text-slate-400 flex items-center justify-between">
+                    <div className="mt-3.5 pt-2.5 border-t border-white/10 text-[11px] font-mono text-slate-400 flex items-center justify-between">
                       <span className="text-cyan-300">Full-Stack System Owner</span>
                       <span className="text-slate-500">SignSpeak AI Lead</span>
                     </div>
@@ -239,21 +245,21 @@ export default function Team() {
 
         {/* ── College Affiliation Ribbon ── */}
         <Reveal delay={0.25}>
-          <div className="glass-card mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-white/12 bg-slate-950/80 px-6 py-5 text-center shadow-lg backdrop-blur-xl">
-            <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-slate-400">
+          <div className="glass-card mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 rounded-2xl border border-white/12 bg-slate-950/80 px-5 py-3.5 text-center shadow-lg backdrop-blur-xl">
+            <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.22em] text-slate-400">
               Ramaiah College of Arts, Science & Commerce — Autonomous
             </span>
-            <span className="hidden h-4 w-px bg-white/10 md:block" aria-hidden="true" />
-            <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-cyan-300 font-semibold">
+            <span className="hidden h-3.5 w-px bg-white/10 md:block" aria-hidden="true" />
+            <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.22em] text-cyan-300 font-semibold">
               Bachelor of Computer Applications · V Semester
             </span>
           </div>
         </Reveal>
 
         {/* ── Future Work Roadmap ── */}
-        <div className="mt-20">
+        <div className="mt-14 sm:mt-16">
           <Reveal>
-            <div className="mb-8 text-center">
+            <div className="mb-6 text-center">
               <span className="font-mono text-xs uppercase tracking-[0.26em] text-cyan-300 font-semibold">
                 Upcoming Evolution
               </span>
@@ -265,35 +271,35 @@ export default function Team() {
               </p>
             </div>
           </Reveal>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-3">
             {FUTURE.map((f, i) => (
               <Reveal key={f.title} delay={i * 0.1} className="h-full">
-                <div className="glass-card group relative flex h-full flex-col justify-between rounded-3xl border border-white/12 bg-slate-950/90 p-7 shadow-[0_20px_60px_rgba(0,0,0,0.65)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/50 hover:shadow-[0_0_25px_rgba(34,211,238,0.2)]">
+                <div className="glass-card group relative flex h-full flex-col justify-between rounded-2xl border border-white/12 bg-slate-950/90 p-5 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.65)] backdrop-blur-2xl transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/50 hover:shadow-[0_0_25px_rgba(34,211,238,0.2)]">
                   <div>
                     {/* Top Header Row with Milestone Counter & Phase Tag cleanly aligned */}
-                    <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="mb-3.5 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <span className="grid h-7 w-7 place-items-center rounded-lg bg-cyan-400/15 border border-cyan-400/35 font-mono text-[11px] font-bold text-cyan-300">
+                        <span className="grid h-6 w-6 place-items-center rounded-lg bg-cyan-400/15 border border-cyan-400/35 font-mono text-[10px] font-bold text-cyan-300">
                           0{i + 2}
                         </span>
                         <span className="font-mono text-[10px] uppercase tracking-widest text-slate-400 font-medium">
                           Next Stage
                         </span>
                       </div>
-                      <span className="rounded-full bg-cyan-500/15 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-cyan-300 border border-cyan-500/35 font-semibold shrink-0">
+                      <span className="rounded-full bg-cyan-500/15 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-cyan-300 border border-cyan-500/35 font-semibold shrink-0">
                         {f.tag}
                       </span>
                     </div>
 
-                    <h4 className="font-display text-xl font-bold text-white tracking-tight leading-snug">
+                    <h4 className="font-display text-lg font-bold text-white tracking-tight leading-snug">
                       {f.title}
                     </h4>
-                    <p className="mt-3 text-sm leading-relaxed text-slate-300">
+                    <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-slate-300">
                       {f.text}
                     </p>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-white/8 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                  <div className="mt-5 pt-3.5 border-t border-white/8 flex items-center justify-between text-[11px] font-mono text-slate-400">
                     <span className="flex items-center gap-1.5 text-cyan-300 font-medium">
                       <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" /> Planned Phase
                     </span>

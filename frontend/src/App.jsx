@@ -8,6 +8,7 @@ import HowItWorks from './sections/HowItWorks.jsx';
 import SupportedGestures from './sections/SupportedGestures.jsx';
 import Model from './sections/Model.jsx';
 import Team from './sections/Team.jsx';
+import ContactCTA from './sections/ContactCTA.jsx';
 import ContactPage from './sections/ContactPage.jsx';
 import Footer from './sections/Footer.jsx';
 import WaveDivider from './components/WaveDivider.jsx';
@@ -40,6 +41,8 @@ export default function App() {
             <Model />
             <WaveDivider className="light-only-wave" flip={false} height={44} />
             <Team />
+            <WaveDivider className="light-only-wave" flip={true} height={44} />
+            <ContactCTA />
           </>
         )}
       </main>

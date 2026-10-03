@@ -187,7 +187,7 @@ export default function LiveDemo() {
   useEffect(() => () => clearIdle(), []);
   const letter = gesture || '–', waveSeed = letter.charCodeAt(0) || 45;
   return (
-    <section id="demo" className="relative z-10 px-4 py-24 md:px-8 md:py-32 overflow-hidden">
+    <section id="demo" className="relative z-10 px-4 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 overflow-hidden">
       <Particles className="pointer-events-none absolute inset-0 z-0 opacity-35 dark:opacity-25" count={34} />
       <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeading
@@ -198,7 +198,7 @@ export default function LiveDemo() {
 
         {/* Controls Bar */}
         <Reveal>
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="mb-5 sm:mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap gap-2.5">
               <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
                 <span

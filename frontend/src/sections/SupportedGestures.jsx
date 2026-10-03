@@ -1247,7 +1247,7 @@ export default function SupportedGestures() {
   const activeSpotlightItem = hoveredId ? rawItems.find((it) => it.id === hoveredId) || currentActiveItem : currentActiveItem;
 
   return (
-    <section id="gestures" className="relative z-10 px-4 py-24 md:px-8 md:py-32 overflow-hidden">
+    <section id="gestures" className="relative z-10 px-4 pt-10 sm:pt-12 md:pt-14 pb-16 sm:pb-20 md:pb-24 overflow-hidden">
       <Particles className="pointer-events-none absolute inset-0 z-0 opacity-35 dark:opacity-25" count={34} />
       <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeading
@@ -1258,7 +1258,7 @@ export default function SupportedGestures() {
 
         {/* Controls Bar: Tabs, View Mode Switcher, Search */}
         <Reveal>
-          <div className="mx-auto mb-8 flex max-w-4xl flex-col items-center justify-between gap-4 sm:flex-row">
+          <div className="mx-auto mb-5 sm:mb-6 flex max-w-4xl flex-col items-center justify-between gap-3.5 sm:gap-4 sm:flex-row">
             {/* Category Tabs: Letters vs Words */}
             <div className="glass-card flex rounded-full p-1.5 shadow-2xl border border-white/12 bg-slate-950/80 backdrop-blur-xl">
               {[
@@ -1336,7 +1336,7 @@ export default function SupportedGestures() {
 
         {/* Cross-Category Search & Results Highlight Banner */}
         {Boolean(q.trim()) && (
-          <div className="search-suggestion-banner mx-auto mb-6 flex max-w-xl items-center justify-between gap-3 rounded-2xl border border-cyan-400/40 bg-slate-950/90 px-5 py-3 text-xs backdrop-blur-2xl shadow-2xl">
+          <div className="search-suggestion-banner mx-auto mb-4 flex max-w-xl items-center justify-between gap-3 rounded-2xl border border-cyan-400/40 bg-slate-950/90 px-5 py-3 text-xs backdrop-blur-2xl shadow-2xl">
             <span className="text-slate-200">
               {matchingIndices.length > 0 ? (
                 <>
@@ -1376,15 +1376,15 @@ export default function SupportedGestures() {
           <div className="relative">
             {/* Active Gesture Spotlight Banner */}
             {activeSpotlightItem && (
-              <div className="glass-card mx-auto mb-6 flex max-w-2xl items-center justify-between rounded-2xl border border-white/12 bg-slate-950/90 p-4 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.65)]">
-                <div className="flex items-center gap-4">
-                  <div className="relative grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#00D9FF]/20 to-[#168BFF]/25 border border-cyan-400/40 shadow-inner">
+              <div className="glass-card mx-auto mb-3.5 sm:mb-4 flex max-w-2xl items-center justify-between rounded-2xl border border-white/12 bg-slate-950/90 p-3 sm:p-3.5 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.65)]">
+                <div className="flex items-center gap-3 sm:gap-3.5">
+                  <div className="relative grid h-12 w-12 sm:h-13 sm:w-13 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#00D9FF]/20 to-[#168BFF]/25 border border-cyan-400/40 shadow-inner">
                     {activeSpotlightItem.isWord ? (
                       <WordWheelHandSkeleton
                         key={activeSpotlightItem.title}
                         word={activeSpotlightItem.title}
                         isGrid={viewMode === 'grid'}
-                        className="h-12 w-12"
+                        className="h-10 w-10 sm:h-11 sm:w-11"
                         glow={true}
                       />
                     ) : (
@@ -1392,21 +1392,21 @@ export default function SupportedGestures() {
                         key={activeSpotlightItem.pose}
                         pose={activeSpotlightItem.pose}
                         loop={true}
-                        className="h-12 w-12"
+                        className="h-10 w-10 sm:h-11 sm:w-11"
                         glow={true}
                       />
                     )}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-display text-lg font-bold text-white tracking-tight">
+                      <span className="font-display text-base sm:text-lg font-bold text-white tracking-tight">
                         {activeSpotlightItem.title}
                       </span>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-cyan-300 rounded-full bg-cyan-400/15 px-2.5 py-0.5 border border-cyan-400/40 font-medium">
+                      <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-widest text-cyan-300 rounded-full bg-cyan-400/15 px-2.5 py-0.5 border border-cyan-400/40 font-medium">
                         {activeSpotlightItem.isWord ? 'Dynamic Sign' : 'Alphabet Sign'}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-slate-300 line-clamp-1 max-w-sm sm:max-w-md">
+                    <p className="mt-0.5 text-xs text-slate-300 line-clamp-1 max-w-sm sm:max-w-md">
                       {activeSpotlightItem.detail}
                     </p>
                   </div>

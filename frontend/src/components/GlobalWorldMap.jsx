@@ -136,7 +136,7 @@ export default function GlobalWorldMap() {
             Global AI Telemetry Network
           </span>
           <span className="hidden sm:inline-flex items-center rounded-full bg-[var(--accent-cyan)]/10 px-2 py-0.5 font-mono text-[10px] text-[var(--accent-cyan)] border border-[var(--accent-cyan)]/20">
-            24 Active Hubs
+            6 Continents Connected
           </span>
         </div>
 
@@ -307,13 +307,7 @@ export default function GlobalWorldMap() {
             {/* 3. Global Intercontinental Network Lines */}
             <g id="network-connections">
               {NETWORK_CONNECTIONS.map((conn) => {
-                const isIndiaConn =
-                  conn.from.id === 'blr' ||
-                  conn.to.id === 'blr' ||
-                  conn.from.id === 'del' ||
-                  conn.to.id === 'del' ||
-                  conn.from.id === 'bom' ||
-                  conn.to.id === 'bom';
+                const isIndiaConn = conn.from.id === 'blr' || conn.to.id === 'blr';
 
                 return (
                   <g key={conn.id}>
@@ -388,9 +382,9 @@ export default function GlobalWorldMap() {
                     {isHovered && (
                       <g transform="translate(0, -10)" className="pointer-events-none z-30">
                         <rect
-                          x="-40"
+                          x="-48"
                           y="-18"
-                          width="80"
+                          width="96"
                           height="18"
                           rx="4"
                           fill={isDark ? '#081522' : '#FFFFFF'}
@@ -576,7 +570,7 @@ export default function GlobalWorldMap() {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-[#168BFF]"></span>
-            <span>Global AI Edge Nodes (23)</span>
+            <span>Global Continent Nodes (6)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-0.5 w-4 bg-gradient-to-r from-[#00D9FF] to-[#168BFF]"></span>
