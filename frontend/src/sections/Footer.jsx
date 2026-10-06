@@ -7,7 +7,8 @@ const QUICK = [
   ['Live Demo', 'demo'],
   ['How It Works', 'how'],
   ['Gesture Library', 'gestures'],
-  ['Model', 'model'],
+  ['Model Performance', 'model'],
+  ['Model Analytics', 'analytics'],
   ['Team', 'team'],
   ['Contact Us', 'contact'],
 ];
@@ -31,6 +32,8 @@ export default function Footer() {
     e.preventDefault();
     if (id === 'contact') {
       navigate('/contact');
+    } else if (id === 'analytics') {
+      navigate('/analytics');
     } else {
       if (path !== '/') {
         navigate('/', id);

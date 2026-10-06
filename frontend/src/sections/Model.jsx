@@ -7,6 +7,7 @@ import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
 import Counter from '../components/Counter.jsx';
 import { MODEL } from '../lib/data.js';
+import { useRouter } from '../context/RouterContext.jsx';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -211,6 +212,8 @@ function MetricTile({ label, value, decimals = 1, suffix = '%', icon: Icon, desc
 }
 
 export default function Model() {
+  const { navigate } = useRouter();
+
   return (
     <section id="model" className="relative z-10 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
       <div className="mx-auto max-w-5xl">
@@ -282,10 +285,21 @@ export default function Model() {
                 Evaluation results will appear after a verified test run on multi-signer validation sets and real-world conditions.
               </p>
             </div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 px-3 py-0.5 font-mono text-[9px] uppercase tracking-wider text-cyan-300 border border-cyan-400/25 font-semibold shrink-0">
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              Test Suite Ready
-            </span>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 px-3 py-1 font-mono text-[9px] uppercase tracking-wider text-cyan-300 border border-cyan-400/25 font-semibold">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                Test Suite Ready
+              </span>
+              <button
+                type="button"
+                onClick={() => navigate('/analytics')}
+                className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/15 hover:bg-cyan-400/25 border border-cyan-400/40 hover:border-cyan-300 px-3.5 py-1 font-mono text-[10px] uppercase tracking-wider text-cyan-200 hover:text-white transition-all shadow-[0_0_12px_rgba(0,217,255,0.2)] hover:shadow-[0_0_18px_rgba(0,217,255,0.4)] cursor-pointer"
+                aria-label="View detailed model analytics"
+              >
+                <span>View Detailed Analysis</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
           </div>
         </Reveal>
 

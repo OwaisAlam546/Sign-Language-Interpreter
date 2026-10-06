@@ -8,13 +8,9 @@ const RouterContext = createContext({
 export function RouterProvider({ children }) {
   const [path, setPath] = useState(() => {
     if (typeof window !== 'undefined') {
-      // On initial load or refresh, always default to Home page ('/')
       const currentPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
-      if (currentPath === '/contact') {
-        try {
-          window.history.replaceState({}, '', '/');
-        } catch {}
-      }
+      if (currentPath === '/analytics') return '/analytics';
+      if (currentPath === '/contact') return '/contact';
       return '/';
     }
     return '/';

@@ -402,34 +402,64 @@ export default function HowItWorks() {
   const [activeStep, setActiveStep] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const containerRef = useRef(null);
+  const stepBtnRefs = useRef([]);
   const isClickScrollingRef = useRef(false);
   const clickTimeoutRef = useRef(null);
+
+  // Auto-scroll active step into view horizontally if track overflows on narrow widths
+  useEffect(() => {
+    const btn = stepBtnRefs.current[activeStep];
+    if (btn && typeof btn.scrollIntoView === 'function') {
+      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+  }, [activeStep]);
 
   // Synchronize active step with window scroll as user traverses the section
   useEffect(() => {
     const handleScroll = () => {
       if (isClickScrollingRef.current || !containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const containerHeight = containerRef.current.offsetHeight;
+      const section = containerRef.current;
+      const inner = section.querySelector('.pipeline-container');
+      if (!inner) return;
+
+      const sectionRect = section.getBoundingClientRect();
+      const sectionHeight = section.offsetHeight;
+      const innerHeight = inner.offsetHeight;
       const viewportHeight = window.innerHeight;
-      const scrollableDistance = containerHeight - viewportHeight;
 
-      // Only scrub through steps when the section is expanded in pinned scroll mode
-      if (scrollableDistance < viewportHeight * 0.5) return;
+      // Distance the sticky container travels while pinned inside this section
+      const scrollableDistance = sectionHeight - innerHeight;
 
-      const scrolled = -rect.top;
+      // If the section is not pinned / expanded (e.g. mobile fallback or short viewport)
+      if (scrollableDistance < 150) return;
+
+      // Sticky top offset matches CSS clamp(3.5rem, 6vh, 4.75rem)
+      const stickyTop = Math.min(Math.max(56, viewportHeight * 0.06), 76);
+
+      // Scrolled distance through the pinned zone
+      const scrolled = stickyTop - sectionRect.top;
+
+      // Normalized progress: 0 when pinning starts, 1 when section bottom reaches container bottom
       const progress = Math.max(0, Math.min(1, scrolled / scrollableDistance));
+
+      // 6 steps distributed evenly
       const stepIndex = Math.min(5, Math.floor(progress * 6));
       setActiveStep(stepIndex);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
+    if (window.__lenis) {
+      window.__lenis.on('scroll', handleScroll);
+    }
     handleScroll();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
+      if (window.__lenis) {
+        window.__lenis.off('scroll', handleScroll);
+      }
     };
   }, []);
 
@@ -442,16 +472,23 @@ export default function HowItWorks() {
     }, 750);
 
     if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
+    const section = containerRef.current;
+    const inner = section.querySelector('.pipeline-container');
+    if (!inner) return;
+
+    const sectionRect = section.getBoundingClientRect();
     const currentScroll = window.scrollY || window.pageYOffset;
-    const containerTop = currentScroll + rect.top;
-    const containerHeight = containerRef.current.offsetHeight;
+    const sectionTop = currentScroll + sectionRect.top;
+    const sectionHeight = section.offsetHeight;
+    const innerHeight = inner.offsetHeight;
+    const scrollableDistance = sectionHeight - innerHeight;
     const viewportHeight = window.innerHeight;
-    const scrollableDistance = containerHeight - viewportHeight;
+    const stickyTop = Math.min(Math.max(56, viewportHeight * 0.06), 76);
 
     // Only scroll the window to step offset if in pinned scroll mode
-    if (scrollableDistance >= viewportHeight * 0.5) {
-      const targetY = containerTop + (idx / 5) * scrollableDistance;
+    if (scrollableDistance >= 150) {
+      const stepRatio = idx === 0 ? 0 : idx === 5 ? 1 : (idx + 0.5) / 6;
+      const targetY = sectionTop - stickyTop + stepRatio * scrollableDistance;
       if (window.__lenis) {
         window.__lenis.scrollTo(targetY, { duration: 0.6 });
       } else {
@@ -699,7 +736,7 @@ export default function HowItWorks() {
     <section
       id="how"
       ref={containerRef}
-      className="pipeline-section relative z-10 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12"
+      className="pipeline-section relative z-10 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8"
     >
       {/* Container pins on tall viewports, flows naturally on compact laptop viewports */}
       <div className="pipeline-container mx-auto max-w-5xl">
@@ -707,11 +744,12 @@ export default function HowItWorks() {
           eyebrow="The Pipeline"
           title="HOW SIGNS BECOME MEANING"
           sub="From optical camera photons to synthetic voice in six continuous neural stages."
+          className="!mb-2 sm:!mb-3 md:!mb-3.5"
         />
 
         {/* Single Horizontal Connected Pipeline Bar (scaled +10-15%) */}
-        <div className="relative mb-3.5 sm:mb-4 rounded-xl sm:rounded-2xl border border-white/10 bg-slate-950/75 p-2 sm:p-2.5 backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.55)]">
-          <div className="flex items-center justify-between gap-1 sm:gap-2">
+        <div className="relative mb-3 sm:mb-3.5 rounded-xl sm:rounded-2xl border border-white/10 bg-slate-950/75 p-1.5 sm:p-2 backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.55)]">
+          <div className="flex items-center justify-between gap-1 sm:gap-1.5 overflow-x-auto scrollbar-none">
             {STEPS.map((step, idx) => {
               const Icon = step.icon;
               const isActive = idx === activeStep;
@@ -720,9 +758,10 @@ export default function HowItWorks() {
               return (
                 <div key={step.n} className="flex-1 flex items-center min-w-0">
                   <button
+                    ref={(el) => (stepBtnRefs.current[idx] = el)}
                     type="button"
                     onClick={() => handleStepClick(idx)}
-                    className={`group relative flex-1 flex flex-col sm:flex-row items-center gap-1 sm:gap-2.5 px-2 py-2 sm:px-3 sm:py-2.5 md:py-3 rounded-xl transition-all duration-300 cursor-pointer text-center sm:text-left min-w-0 ${isActive
+                    className={`group relative flex-1 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-1.5 py-1.5 sm:px-2.5 sm:py-2 md:py-2.5 rounded-xl transition-all duration-300 cursor-pointer text-center sm:text-left min-w-0 ${isActive
                         ? 'bg-cyan-950/80 border border-cyan-400/80 shadow-[0_0_22px_rgba(34,211,238,0.38)]'
                         : isPast
                           ? 'bg-slate-900/60 border border-cyan-500/30 hover:border-cyan-400/50'
@@ -731,34 +770,34 @@ export default function HowItWorks() {
                   >
                     {/* Step Icon Badge */}
                     <div
-                      className={`grid h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 shrink-0 place-items-center rounded-lg font-mono text-xs sm:text-sm transition-transform duration-300 ${isActive
+                      className={`grid h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 shrink-0 place-items-center rounded-lg font-mono text-xs sm:text-sm transition-transform duration-300 ${isActive
                           ? 'bg-cyan-400 text-slate-950 shadow-[0_0_14px_#22d3ee] scale-105'
                           : isPast
                             ? 'bg-cyan-950/60 text-cyan-300 border border-cyan-500/40'
                             : 'bg-white/5 text-slate-400 border border-white/10 group-hover:text-slate-200'
                         }`}
                     >
-                      <Icon className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" aria-hidden="true" />
+                      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-4.5 md:w-4.5" aria-hidden="true" />
                     </div>
 
                     {/* Step Labels */}
                     <div className="flex flex-col min-w-0 overflow-hidden">
                       <div className="flex items-center justify-center sm:justify-start gap-1">
                         <span
-                          className={`font-mono text-[10px] sm:text-xs font-semibold tracking-wider ${isActive ? 'text-cyan-300' : isPast ? 'text-cyan-400/80' : 'text-slate-500'
+                          className={`font-mono text-[9px] sm:text-[10px] md:text-xs font-semibold tracking-wider ${isActive ? 'text-cyan-300' : isPast ? 'text-cyan-400/80' : 'text-slate-500'
                             }`}
                         >
                           {step.n}
                         </span>
                         <span
-                          className={`text-xs sm:text-sm md:text-[15px] font-semibold truncate ${isActive ? 'text-white' : isPast ? 'text-slate-200' : 'text-slate-400'
+                          className={`text-[11px] sm:text-xs md:text-[13px] font-semibold truncate ${isActive ? 'text-white' : isPast ? 'text-slate-200' : 'text-slate-400'
                             }`}
                         >
                           {step.shortTitle}
                         </span>
                       </div>
                       <span
-                        className={`hidden lg:block text-[11px] truncate max-w-[130px] ${isActive ? 'text-cyan-300/90 font-medium' : isPast ? 'text-slate-400' : 'text-slate-600'
+                        className={`hidden xl:block text-[10px] truncate max-w-[120px] ${isActive ? 'text-cyan-300/90 font-medium' : isPast ? 'text-slate-400' : 'text-slate-600'
                           }`}
                       >
                         {step.tag}
@@ -773,7 +812,7 @@ export default function HowItWorks() {
 
                   {/* Connected Glowing Line between steps */}
                   {idx < STEPS.length - 1 && (
-                    <div className="hidden xs:flex flex-shrink-0 items-center justify-center w-2 sm:w-3 md:w-5 mx-0.5">
+                    <div className="hidden xs:flex flex-shrink-0 items-center justify-center w-1.5 sm:w-2.5 md:w-4 mx-0.5">
                       <div className="h-[2px] w-full bg-white/10 rounded-full overflow-hidden relative">
                         <div
                           className={`h-full transition-all duration-500 ${idx < activeStep
@@ -793,7 +832,7 @@ export default function HowItWorks() {
         </div>
 
         {/* ONE Central Visualization Area (scaled +10-15%) */}
-        <div className="glass-card relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/12 bg-slate-950/90 p-4 sm:p-5 md:p-6 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
+        <div className="glass-card relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/12 bg-slate-950/90 p-3.5 sm:p-4 md:p-5 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
           {/* Ambient Glow Blob */}
           <div
             className={`pointer-events-none absolute -right-20 -top-20 -z-0 h-64 w-64 rounded-full bg-gradient-to-br ${currentStep.color} opacity-20 blur-3xl transition-all duration-700`}
@@ -801,9 +840,9 @@ export default function HowItWorks() {
           />
 
           {/* Top Bar of Central Visualization */}
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3 mb-4 font-mono text-xs">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5 mb-3 font-mono text-xs">
             <div className="flex items-center gap-2 sm:gap-3">
-              <span className="flex items-center gap-1.5 rounded-full bg-cyan-400/10 px-3 py-1 text-cyan-300 border border-cyan-400/25 font-medium">
+              <span className="flex items-center gap-1.5 rounded-full bg-cyan-400/10 px-3 py-0.5 text-cyan-300 border border-cyan-400/25 font-medium">
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 status-dot" />
                 PHASE {currentStep.n} / 06
               </span>
@@ -823,38 +862,38 @@ export default function HowItWorks() {
           </div>
 
           {/* Main Content Grid: Left Technical Details, Right Visual HUD */}
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 items-center">
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 items-center">
             {/* Left Column: Technical Description & Specs */}
-            <div className="lg:col-span-5 flex flex-col justify-between">
+            <div className="md:col-span-5 flex flex-col justify-between">
               <div>
-                <div className="inline-block rounded-full bg-white/5 px-3 py-1 font-mono text-xs uppercase tracking-wider text-slate-300 border border-white/10 mb-2.5">
+                <div className="inline-block rounded-full bg-white/5 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wider text-slate-300 border border-white/10 mb-1.5">
                   {currentStep.tag}
                 </div>
-                <h3 className="font-display text-lg sm:text-xl md:text-2xl font-semibold text-white tracking-tight leading-tight">
+                <h3 className="font-display text-base sm:text-lg md:text-xl font-semibold text-white tracking-tight leading-snug">
                   {currentStep.headline}
                 </h3>
-                <p className="mt-2 text-xs sm:text-sm leading-relaxed text-slate-300">
+                <p className="mt-1.5 text-xs sm:text-[13px] leading-relaxed line-clamp-2 sm:line-clamp-3 text-slate-300">
                   {currentStep.desc}
                 </p>
               </div>
 
               {/* Metrics Pills */}
-              <div className="mt-4 sm:mt-5 grid grid-cols-3 gap-2 sm:gap-2.5">
+              <div className="mt-2.5 sm:mt-3.5 grid grid-cols-3 gap-1.5 sm:gap-2">
                 {currentStep.metrics.map((m) => (
-                  <div key={m.label} className="rounded-xl border border-white/8 bg-slate-900/60 p-2 sm:p-2.5 text-center">
-                    <div className="font-mono text-[10px] uppercase tracking-wider text-slate-400">{m.label}</div>
-                    <div className="mt-1 font-mono text-xs sm:text-sm font-semibold text-cyan-300">{m.value}</div>
+                  <div key={m.label} className="rounded-xl border border-white/8 bg-slate-900/60 p-1.5 sm:p-2 text-center">
+                    <div className="font-mono text-[9px] uppercase tracking-wider text-slate-400">{m.label}</div>
+                    <div className="mt-0.5 font-mono text-xs sm:text-sm font-semibold text-cyan-300">{m.value}</div>
                   </div>
                 ))}
               </div>
 
               {/* Step Navigation Controls */}
-              <div className="mt-4 sm:mt-5 pt-3.5 border-t border-white/8 flex items-center justify-between">
+              <div className="mt-2.5 sm:mt-3.5 pt-2 sm:pt-2.5 border-t border-white/8 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => handleStepClick(Math.max(0, activeStep - 1))}
                   disabled={activeStep === 0}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-mono transition-all ${activeStep === 0
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs sm:text-sm font-mono transition-all ${activeStep === 0
                       ? 'text-slate-600 cursor-not-allowed'
                       : 'text-slate-300 hover:text-cyan-300 hover:bg-white/5 cursor-pointer'
                     }`}
@@ -885,7 +924,7 @@ export default function HowItWorks() {
                   type="button"
                   onClick={() => handleStepClick(Math.min(5, activeStep + 1))}
                   disabled={activeStep === 5}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-mono transition-all ${activeStep === 5
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs sm:text-sm font-mono transition-all ${activeStep === 5
                       ? 'text-slate-600 cursor-not-allowed'
                       : 'text-slate-300 hover:text-cyan-300 hover:bg-white/5 cursor-pointer'
                     }`}
@@ -897,8 +936,8 @@ export default function HowItWorks() {
             </div>
 
             {/* Right Column: Dynamic Visual HUD Console */}
-            <div className="lg:col-span-7">
-              <div className="relative h-[230px] sm:h-[255px] md:h-[275px] w-full rounded-2xl border border-white/10 bg-slate-950/85 p-3.5 sm:p-4 overflow-hidden flex items-center justify-center">
+            <div className="md:col-span-7">
+              <div className="relative h-[200px] xs:h-[220px] sm:h-[240px] md:h-[260px] w-full rounded-2xl border border-white/10 bg-slate-950/85 p-2.5 sm:p-3 overflow-hidden flex items-center justify-center">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeStep}

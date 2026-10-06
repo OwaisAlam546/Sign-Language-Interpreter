@@ -2611,7 +2611,7 @@ html.light .has-cursor div.mix-blend-difference {
   }
 }
 
-/* Pipeline Section */
+/* ─────────────────────────── Pipeline Section Responsive Pinning ─────────────────────────── */
 .pipeline-section {
   min-height: auto;
 }
@@ -2621,14 +2621,16 @@ html.light .has-cursor div.mix-blend-difference {
   top: auto;
 }
 
-@media (min-height: 900px) and (min-width: 1024px) {
+/* Enable sticky horizontal step progression across desktop, laptop, split-screen, and tablet widths */
+@media (min-width: 640px) and (min-height: 480px) {
   .pipeline-section {
-    min-height: 220vh;
+    min-height: 260vh;
   }
 
   .pipeline-container {
     position: sticky;
-    top: 5rem;
+    top: clamp(3.5rem, 6vh, 4.75rem);
+    z-index: 20;
   }
 }
 

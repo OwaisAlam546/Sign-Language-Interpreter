@@ -11,6 +11,7 @@ const LINKS = [
   { id: 'how', label: 'How It Works', isSection: true },
   { id: 'gestures', label: 'Gestures', isSection: true },
   { id: 'model', label: 'Model', isSection: true },
+  { id: 'analytics', label: 'Analytics', isPage: true, to: '/analytics' },
   { id: 'team', label: 'Team', isSection: true },
   { id: 'contact', label: 'Contact Us', isPage: true, to: '/contact' },
 ];
@@ -33,6 +34,11 @@ export default function Navbar() {
     if (path === '/contact') {
       setActive('contact');
       setProgress({ contact: 1 });
+      return;
+    }
+    if (path === '/analytics') {
+      setActive('analytics');
+      setProgress({ analytics: 1 });
       return;
     }
 
