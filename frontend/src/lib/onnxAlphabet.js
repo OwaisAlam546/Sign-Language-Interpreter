@@ -1,4 +1,4 @@
-import * as ort from 'onnxruntime-web';
+import * as ort from 'onnxruntime-web/wasm';
 
 const MODEL_URL = '/models/asl_cnn_model.onnx';
 const LABELS_URL = '/models/class_names.txt';
@@ -33,7 +33,9 @@ let inputCanvas;
 // SharedArrayBuffer or COOP/COEP headers.
 ort.env.wasm.numThreads = 1;
 ort.env.wasm.proxy = false;
-ort.env.wasm.wasmPaths = '/models/onnxruntime/';
+ort.env.wasm.wasmPaths = {
+  wasm: '/models/onnxruntime/ort-wasm-simd-threaded.wasm',
+};
 
 function loadSession() {
   sessionPromise ||= ort.InferenceSession.create(MODEL_URL, {

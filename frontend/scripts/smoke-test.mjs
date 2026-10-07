@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import * as ort from 'onnxruntime-web/wasm';
 import { advanceStability, isAcceptedPrediction } from '../src/lib/recognitionPolicy.js';
 
 const labels = (await readFile(new URL('../public/models/class_names.txt', import.meta.url), 'utf8'))
@@ -7,6 +8,14 @@ const labels = (await readFile(new URL('../public/models/class_names.txt', impor
 assert.deepEqual(labels, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), 'local model labels must be A-Z in order');
 const model = await readFile(new URL('../public/models/asl_cnn_model.onnx', import.meta.url));
 assert.ok(model.length > 100_000, 'local ONNX model is missing or unexpectedly small');
+ort.env.wasm.numThreads = 1;
+ort.env.wasm.proxy = false;
+const ortSession = await ort.InferenceSession.create(model, {
+  executionProviders: ['wasm'],
+  graphOptimizationLevel: 'all',
+  executionMode: 'sequential',
+});
+assert.ok(ortSession.inputNames.includes('input_image'), 'ONNX session missing input_image');
 const task = await readFile(new URL('../public/models/mediapipe/hand_landmarker.task', import.meta.url));
 assert.ok(task.length > 100_000, 'local MediaPipe task asset is missing or unexpectedly small');
 const ortRequiredFiles = [
