@@ -9,8 +9,20 @@ const model = await readFile(new URL('../public/models/asl_cnn_model.onnx', impo
 assert.ok(model.length > 100_000, 'local ONNX model is missing or unexpectedly small');
 const task = await readFile(new URL('../public/models/mediapipe/hand_landmarker.task', import.meta.url));
 assert.ok(task.length > 100_000, 'local MediaPipe task asset is missing or unexpectedly small');
-const ortWasm = await readFile(new URL('../public/models/onnxruntime/ort-wasm-simd-threaded.wasm', import.meta.url));
-assert.deepEqual([...ortWasm.subarray(0, 4)], [0, 97, 115, 109], 'ONNX Runtime WASM has an invalid header');
+const ortRequiredFiles = [
+  'ort-wasm-simd-threaded.mjs',
+  'ort-wasm-simd-threaded.wasm',
+  'ort-wasm-simd-threaded.jsep.mjs',
+  'ort-wasm-simd-threaded.jsep.wasm',
+];
+const ortAssets = {};
+for (const filename of ortRequiredFiles) {
+  const content = await readFile(new URL(`../public/models/onnxruntime/${filename}`, import.meta.url));
+  assert.ok(content.length > 0, `ONNX Runtime asset ${filename} is missing or empty`);
+  ortAssets[filename] = content;
+}
+assert.deepEqual([...ortAssets['ort-wasm-simd-threaded.wasm'].subarray(0, 4)], [0, 97, 115, 109], 'ONNX Runtime WASM has an invalid header');
+assert.deepEqual([...ortAssets['ort-wasm-simd-threaded.jsep.wasm'].subarray(0, 4)], [0, 97, 115, 109], 'ONNX Runtime JSEP WASM has an invalid header');
 const source = await readFile(new URL('../src/sections/LiveDemo.jsx', import.meta.url), 'utf8');
 assert.match(source, /STATUS_TIMEOUT_MS/);
 assert.match(source, /ONNX Static Letters/);
@@ -23,4 +35,4 @@ assert.equal(isAcceptedPrediction({ gesture: 'B', confidence: 0.6, serviceState:
 let stable = { candidate: '', count: 0, last: '' };
 for (let i = 0; i < 4; i += 1) stable = advanceStability(stable, 'B').state;
 assert.equal(advanceStability(stable, 'B').committed, true);
-console.log(`frontend smoke: ${labels.length} labels, ONNX ${model.length} bytes, MediaPipe ${task.length} bytes, ORT WASM ${ortWasm.length} bytes`);
+console.log(`frontend smoke: ${labels.length} labels, ONNX ${model.length} bytes, MediaPipe ${task.length} bytes, ORT assets verified (${ortRequiredFiles.length} files)`);
