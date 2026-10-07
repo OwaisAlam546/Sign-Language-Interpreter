@@ -146,12 +146,18 @@ export default function LiveDemo() {
       localPredictionHistoryRef.current = [];
       stateRef.current.localCandidate = '';
       stateRef.current.localStreak = 0;
+      stateRef.current.last = '';
     }
     const state = stateRef.current;
     state.candidate = '';
     state.count = 0;
     state.neutral += 1;
-    if (state.neutral >= NEUTRAL_PREDICTIONS || noHand) state.armed = true;
+    // Jitter protection: Only re-arm and clear last committed gesture after an actual
+    // release (no hand in frame, or an extended neutral pause of >= 8 frames ~530ms)
+    if (state.neutral >= 8 || noHand) {
+      state.armed = true;
+      state.last = '';
+    }
     if (noHand) finishWord();
   };
 
@@ -190,7 +196,8 @@ export default function LiveDemo() {
 
     const isWord = wordLabels.has(label);
     const requiredStable = data?.source === 'local-onnx' ? 1 : isWord ? 2 : STABLE_PREDICTIONS;
-    if (state.armed && state.count >= requiredStable) {
+    // Commit only if armed, stable, and not already committed for this held gesture
+    if (state.armed && state.count >= requiredStable && label !== state.last) {
       if (isWord) {
         const flushed = recRef.current;
         recRef.current = '';
@@ -205,6 +212,8 @@ export default function LiveDemo() {
       }
       state.last = label;
       state.armed = false;
+      state.count = 0;
+      stateRef.current.localStreak = 0;
     }
   };
 

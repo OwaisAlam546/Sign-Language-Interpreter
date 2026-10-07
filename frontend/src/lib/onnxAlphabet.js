@@ -68,7 +68,7 @@ function normalizeLandmarks(frame, frameWidth, frameHeight) {
   return points.map(([x, y]) => [((x - ox) / box), ((y - oy) / box)]);
 }
 
-function scaled(value) { return Math.max(1, Math.round(value * CANVAS_SIZE / 400)); }
+function scaled(value) { return Math.max(2, Math.round(value * CANVAS_SIZE / 160)); }
 
 function makeInput(frame, frameWidth, frameHeight) {
   renderCanvas ||= document.createElement('canvas');
@@ -91,11 +91,7 @@ function makeInput(frame, frameWidth, frameHeight) {
   });
   LANDMARKS.forEach(({ index, color }) => {
     const [x, y] = points[index];
-    const radius = scaled(5);
-    render.beginPath();
-    render.arc(x, y, Math.max(radius + 1, Math.round(radius * 1.2)), 0, Math.PI * 2);
-    render.fillStyle = '#e0e0e0';
-    render.fill();
+    const radius = scaled(3.5);
     render.beginPath();
     render.arc(x, y, radius, 0, Math.PI * 2);
     render.fillStyle = color;
