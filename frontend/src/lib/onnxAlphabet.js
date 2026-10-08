@@ -1,5 +1,7 @@
 import * as ort from 'onnxruntime-web/wasm';
 
+export const DEBUG_LOCAL_ONNX = true;
+
 const MODEL_URL = '/models/asl_cnn_model.onnx';
 const LABELS_URL = '/models/class_names.txt';
 const CANVAS_SIZE = 192;
@@ -133,6 +135,13 @@ export async function inferAlphabet(frame, frameWidth = 640, frameHeight = 480) 
   const scoreByLabel = Object.fromEntries(probabilities.map(({ label, score }) => [label, score]));
   const best = probabilities[0];
   const second = probabilities[1] || { score: 0 };
+  if (DEBUG_LOCAL_ONNX) {
+    const top5 = probabilities.slice(0, 5);
+    const top5Lines = top5
+      .map((item) => `${item.label} ${(item.score * 100).toFixed(1)}%`)
+      .join('\n');
+    console.log(`TOP 5 RAW MODEL:\n${top5Lines}\nRaw winner: ${best?.label || 'NONE'} (${((best?.score || 0) * 100).toFixed(1)}%)`);
+  }
   return {
     gesture: best?.score >= 0.5 ? best.label : 'UNKNOWN',
     confidence: best?.score || 0,
