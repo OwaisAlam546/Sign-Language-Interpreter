@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import GlobalWorldMap from '../components/GlobalWorldMap.jsx';
+import SpinningGlobe from './analytics/SpinningGlobe.jsx';
 import {
   FiMail,
   FiSend,
@@ -425,23 +425,26 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Interactive World Map (7 cols on lg) */}
+        {/* RIGHT COLUMN: Interactive 3D Earth Globe with Highlighted India (7 cols on lg) */}
         <div className="lg:col-span-7 w-full flex flex-col justify-between space-y-3 sm:space-y-4">
-          <div className="flex-1 flex flex-col min-h-0">
-            <GlobalWorldMap />
+          <div className="glass-card rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-card)]/90 p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl relative overflow-hidden flex flex-col items-center justify-center flex-1 min-h-[460px]">
+            {/* Top decorative gradient line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF9933] to-transparent opacity-80" />
+            <SpinningGlobe highlightIndia={true} />
           </div>
 
           {/* Map Info Bar / Geographic Connectivity Notes */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
             <div className="glass-card flex flex-col justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3 backdrop-blur-xl">
-              <div className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-[var(--accent-cyan)] font-semibold">
-                Central Node
+              <div className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-[#FF9933] font-semibold flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#FF9933] animate-pulse" />
+                <span>Central HQ Node</span>
               </div>
               <div className="mt-0.5 font-display text-xs sm:text-sm font-bold text-[var(--text-main)]">
                 Bengaluru, India
               </div>
               <p className="mt-0.5 text-[10px] sm:text-[11px] text-[var(--text-sub)]">
-                AI Gesture Modeling Hub & Lab
+                AI Gesture Modeling Hub &amp; Lab
               </p>
             </div>
 
