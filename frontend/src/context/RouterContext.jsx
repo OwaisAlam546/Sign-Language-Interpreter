@@ -9,7 +9,7 @@ export function RouterProvider({ children }) {
   const [path, setPath] = useState(() => {
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
-      if (currentPath === '/analytics') return '/analytics';
+      if (currentPath === '/analytics' || currentPath === '/analyst') return '/analytics';
       if (currentPath === '/contact') return '/contact';
       return '/';
     }
@@ -19,7 +19,7 @@ export function RouterProvider({ children }) {
   useEffect(() => {
     const handlePopState = () => {
       const current = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
-      setPath(current === '' ? '/' : current);
+      setPath(current === '/analyst' ? '/analytics' : (current === '' ? '/' : current));
     };
 
     window.addEventListener('popstate', handlePopState);

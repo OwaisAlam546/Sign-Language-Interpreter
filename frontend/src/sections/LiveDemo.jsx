@@ -222,8 +222,15 @@ export default function LiveDemo() {
     busyRef.current = true;
     try {
       if (serviceState !== 'ready') {
-        // Use the downloaded pretrained ONNX alphabet model locally.
-        alphabetModuleRef.current ||= await import('../lib/onnxAlphabet.js');
+        // Use the new 90-feature landmark ONNX alphabet model locally, with fallback to legacy CNN.
+        if (!alphabetModuleRef.current) {
+          try {
+            alphabetModuleRef.current = await import('../lib/onnxAlphabetLandmark.js');
+          } catch (err) {
+            console.warn('Failed to load landmark ONNX model, falling back to legacy CNN model:', err);
+            alphabetModuleRef.current = await import('../lib/onnxAlphabet.js');
+          }
+        }
         if (frames.length >= 8) {
           const recent = frames.slice(-8);
           const motionFrames = recent.slice(-4);
@@ -251,11 +258,23 @@ export default function LiveDemo() {
           }
         }
         const video = videoRef.current;
-        const local = await alphabetModuleRef.current.inferAlphabet(
-          frames[frames.length - 1],
-          video?.videoWidth || 640,
-          video?.videoHeight || 480
-        );
+        let local;
+        try {
+          local = await alphabetModuleRef.current.inferAlphabet(
+            frames[frames.length - 1],
+            video?.videoWidth || 640,
+            video?.videoHeight || 480
+          );
+        } catch (inferenceErr) {
+          console.warn('Primary alphabet inference failed, attempting legacy fallback:', inferenceErr);
+          const fallbackModule = await import('../lib/onnxAlphabet.js');
+          alphabetModuleRef.current = fallbackModule;
+          local = await fallbackModule.inferAlphabet(
+            frames[frames.length - 1],
+            video?.videoWidth || 640,
+            video?.videoHeight || 480
+          );
+        }
         if (version === versionRef.current && local.gesture !== 'UNKNOWN') {
           const history = localPredictionHistoryRef.current;
           history.push(local.scores);

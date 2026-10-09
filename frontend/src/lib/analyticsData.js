@@ -47,6 +47,22 @@ export const ANALYTICS_DATA = {
       description: 'Harmonic mean of precision and recall balancing false alarms and missed gestures.',
       status: 'Not Yet Measured',
     },
+    weightedF1: {
+      label: 'Weighted F1 Score',
+      value: null,
+      unit: '%',
+      decimals: 1,
+      description: 'Sample-count weighted harmonic mean of precision and recall accounting for class support.',
+      status: 'Not Yet Measured',
+    },
+    samplesCount: {
+      label: 'Evaluation Samples',
+      value: null,
+      unit: '',
+      decimals: 0,
+      description: 'Total number of held-out test frames evaluated under the multi-signer benchmark protocol.',
+      status: 'Not Yet Measured',
+    },
     latency: {
       label: 'Inference Latency',
       value: null,
@@ -56,6 +72,100 @@ export const ANALYTICS_DATA = {
       status: 'Not Yet Measured',
     },
   },
+
+  // ── 2b. Model Specifications & Metadata ──
+  modelSpecs: {
+    name: 'Alphabet Landmark MLP',
+    version: 'v1.0.0',
+    artifactName: 'alphabet_landmark_model.onnx',
+    artifactSize: '159 KB',
+    kerasArtifact: 'alphabet_landmark_model.keras (522 KB)',
+    runtimeEngine: 'ONNX Runtime Web (WASM SIMD) + MediaPipe HandLandmarker',
+    inputDimension: '90D Geometric Landmark Vector',
+    outputDimension: '26-Class Softmax Probability Distribution',
+    architectureType: '3-Layer Multi-Layer Perceptron (MLP) with Batch Normalization',
+    layerStructure: [
+      { layer: 'Input Layer', spec: '90 features (63 normalized 3D coordinates + 27 engineered geometric invariants)' },
+      { layer: 'Dense Block 1', spec: '128 units, ReLU activation, Batch Normalization, Dropout (rate=0.2)' },
+      { layer: 'Dense Block 2', spec: '128 units, ReLU activation, Batch Normalization, Dropout (rate=0.2)' },
+      { layer: 'Dense Block 3', spec: '64 units, ReLU activation, Batch Normalization, Dropout (rate=0.1)' },
+      { layer: 'Output Layer', spec: '26 units, Softmax activation (classes A–Z)' },
+    ],
+    featureBreakdown: [
+      { category: 'Base 3D Coordinates', count: '63 dims', detail: '21 MediaPipe hand landmarks (x, y, z) centered at wrist and normalized by hand scale' },
+      { category: 'Finger Curl Ratios', count: '5 dims', detail: 'Tip-to-MCP Euclidean span normalized by bone chain length (thumb, index, middle, ring, pinky)' },
+      { category: 'Finger Joint Angles', count: '5 dims', detail: 'Cosine of PIP joint bending angle between MCP->PIP and PIP->DIP bone vectors' },
+      { category: 'Thumb Relative Distances', count: '9 dims', detail: 'Thumb tip Euclidean distance to index, middle, ring, and pinky MCP, PIP, and Tip landmarks' },
+      { category: 'Thumb Z-Depth', count: '1 dim', detail: 'Relative depth of thumb tip compared to mean finger plane (tucked under vs in front)' },
+      { category: 'Inter-finger Spreads', count: '7 dims', detail: 'Adjacent fingertip spans, peace sign V-spread, hooked X knuckle span, and palm normal vector' },
+    ],
+    datasetSplit: {
+      strategy: 'Stratified train / validation / test partition (seed=42)',
+      trainRatio: '70% (~8,219 samples)',
+      valRatio: '15% (~1,761 samples)',
+      testRatio: '15% (1,762 held-out samples, un-augmented)',
+    },
+  },
+
+  // ── 2c. Critical Handshape Diagnostics ──
+  criticalDiagnostics: [
+    {
+      id: 'fist',
+      title: 'Fist Group Variations',
+      classes: ['A', 'M', 'N', 'S', 'T'],
+      kinematicChallenge: 'Closed fist silhouette where distinguishing feature is subtle thumb tucking: resting beside index (A), under 3 fingers (M), under 2 fingers (N), folded in front across fingers (S), or tucked between index and middle (T).',
+      topologicalMarkers: 'Thumb tip distances to index/middle/ring PIP joints and thumb relative z-depth coordinate.',
+      confusionPairs: [
+        { pair: 'A / M', risk: 'High', description: 'Thumb resting beside index vs folded under 3 fingers; easily confused if camera viewpoint hides thumb knuckle.' },
+        { pair: 'M / N', risk: 'Critical', description: 'Thumb under 3 fingers vs 2 fingers; often indistinguishable in 2D silhouette without precise landmark depth.' },
+        { pair: 'S / T', risk: 'High', description: 'Thumb across front of fingers vs tucked specifically between index and middle finger knuckles.' },
+        { pair: 'A / S', risk: 'Medium', description: 'Thumb alongside index edge vs thumb wrapped across the front face of the fingers.' },
+      ],
+      status: 'Calibration Active · Formal Test Benchmark Awaiting Ingestion',
+    },
+    {
+      id: 'pointing',
+      title: 'Downward & Angled Signs',
+      classes: ['Q', 'P', 'G'],
+      kinematicChallenge: 'G and Q share index finger pointing forward/downward with thumb parallel. P is downward-pointing K handshape. Camera pitch angle and hand tilt create significant perspective distortion.',
+      topologicalMarkers: 'Wrist-to-index angle vector, palm normal z-plane orientation, and middle-finger downward extension.',
+      confusionPairs: [
+        { pair: 'Q / P', risk: 'High', description: 'Downward pointing G handshape vs downward K handshape; dependent on middle finger angle.' },
+        { pair: 'G / P', risk: 'High', description: 'Horizontal index/thumb pointing vs downward angled handshape.' },
+        { pair: 'G / J', risk: 'Medium', description: 'Static horizontal index pose vs starting posture of dynamic J trace.' },
+      ],
+      status: 'Calibration Active · Formal Test Benchmark Awaiting Ingestion',
+    },
+    {
+      id: 'hooked',
+      title: 'Hooked Knuckle Finger',
+      classes: ['X'],
+      kinematicChallenge: 'Index finger hooked/bent at knuckle in otherwise closed fist. In front-facing camera views, the hooked index finger can visually collapse into a flat fist (S), curled fingers (E), or tucked thumb (N).',
+      topologicalMarkers: 'Index PIP joint angle cosine and tip-to-MCP span curl ratio vs middle finger curl.',
+      confusionPairs: [
+        { pair: 'X / S', risk: 'High', description: 'Hooked index finger vs full fist with thumb wrapped across.' },
+        { pair: 'X / E', risk: 'Medium', description: 'Single hooked index vs all four fingertips curled tightly onto thumb.' },
+        { pair: 'X / N', risk: 'Medium', description: 'Hooked index knuckle silhouette vs two fingers folded forward.' },
+      ],
+      status: 'Calibration Active · Formal Test Benchmark Awaiting Ingestion',
+    },
+    {
+      id: 'dynamic',
+      title: 'Dynamic Trajectory Signs',
+      classes: ['J', 'Z'],
+      kinematicChallenge: 'In natural American Sign Language, J and Z are movement-based signs (J traces a curved hook in the air, Z traces a zigzag with index finger). Single-frame static image classifiers capture only an arbitrary temporal freeze-frame of the motion path.',
+      topologicalMarkers: 'Multi-frame temporal motion vector and spatial landmark trajectory tracking.',
+      confusionPairs: [
+        { pair: 'J / I', risk: 'High', description: 'J freeze-frame often looks like static pinky upright (I).' },
+        { pair: 'Z / D', risk: 'High', description: 'Z freeze-frame resembles index pointing upright (D) before or during the zigzag stroke.' },
+      ],
+      status: 'Motion Dependent · Multi-frame Temporal Gating Required',
+    },
+  ],
+
+  // ── 2d. Evaluation History (Registry Ledger) ──
+  // Empty array: genuinely unrecorded until benchmark evaluation scripts are logged to registry.
+  evaluationHistory: [],
 
   // ── 3. Dataset Analysis (Verified Project Data) ──
   dataset: {
