@@ -150,10 +150,10 @@ export default function ContactPage() {
       </div>
 
       {/* Main 2-Column Content Grid: Form (Left) & World Map (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
         {/* LEFT COLUMN: Contact Form Card (5 cols on lg) */}
         <div className="lg:col-span-5 w-full flex flex-col">
-          <div className="glass-card rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 sm:p-5 lg:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl relative overflow-hidden flex flex-col justify-between flex-1">
+          <div className="glass-card rounded-2xl sm:rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 sm:p-5 lg:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl relative overflow-hidden flex flex-col justify-between">
             {/* Top decorative gradient line */}
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00D9FF] to-transparent opacity-80" />
 
@@ -426,8 +426,8 @@ export default function ContactPage() {
         </div>
 
         {/* RIGHT COLUMN: Interactive 3D Earth Globe with Highlighted India (7 cols on lg) */}
-        <div className="lg:col-span-7 w-full flex flex-col justify-between space-y-3 sm:space-y-4">
-          <div className="glass-card rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-card)]/90 p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl relative overflow-hidden flex flex-col items-center justify-center flex-1 min-h-[460px]">
+        <div className="lg:col-span-7 w-full flex flex-col gap-3.5 sm:gap-4">
+          <div className="glass-card rounded-2xl sm:rounded-3xl border border-[var(--border-subtle)] bg-[var(--bg-card)]/90 p-3 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl relative overflow-hidden flex flex-col items-center justify-center">
             {/* Top decorative gradient line */}
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF9933] to-transparent opacity-80" />
             <SpinningGlobe highlightIndia={true} />

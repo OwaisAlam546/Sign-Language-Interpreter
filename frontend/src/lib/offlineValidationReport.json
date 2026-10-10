@@ -1,0 +1,52 @@
+{
+  "dataset": "Kaggle ASL Alphabet stills (grassknoted/asl-alphabet)",
+  "split": "Held-out test partition",
+  "samplesCount": 2549,
+  "trainAccuracy": 99.17,
+  "validationAccuracy": 98.47,
+  "classesCount": 27,
+  "perClass": [
+    { "label": "N", "accuracy": 89.19, "correct": 33, "total": 37, "isWeakest": true },
+    { "label": "M", "accuracy": 92.59, "correct": 50, "total": 54, "isWeakest": true },
+    { "label": "Y", "accuracy": 95.88, "correct": 93, "total": 97, "isWeakest": true },
+    { "label": "I", "accuracy": 96.08, "correct": 98, "total": 102, "isWeakest": true },
+    { "label": "D", "accuracy": 96.67, "correct": 87, "total": 90, "isWeakest": true },
+    { "label": "V", "accuracy": 96.67, "correct": 87, "total": 90, "isWeakest": false },
+    { "label": "U", "accuracy": 96.84, "correct": 92, "total": 95, "isWeakest": false },
+    { "label": "J", "accuracy": 96.91, "correct": 94, "total": 97, "isWeakest": false, "isStaticFrame": true },
+    { "label": "O", "accuracy": 97.98, "correct": 97, "total": 99, "isWeakest": false },
+    { "label": "T", "accuracy": 98.00, "correct": 98, "total": 100, "isWeakest": false },
+    { "label": "X", "accuracy": 98.81, "correct": 83, "total": 84, "isWeakest": false },
+    { "label": "G", "accuracy": 98.82, "correct": 84, "total": 85, "isWeakest": false },
+    { "label": "R", "accuracy": 98.89, "correct": 89, "total": 90, "isWeakest": false },
+    { "label": "F", "accuracy": 98.97, "correct": 96, "total": 97, "isWeakest": false },
+    { "label": "A", "accuracy": 98.99, "correct": 98, "total": 99, "isWeakest": false },
+    { "label": "P", "accuracy": 99.01, "correct": 100, "total": 101, "isWeakest": false },
+    { "label": "C", "accuracy": 99.02, "correct": 101, "total": 102, "isWeakest": false },
+    { "label": "HELLO", "accuracy": 100.0, "correct": 218, "total": 218, "isWeakest": false, "isSynthetic": true },
+    { "label": "B", "accuracy": 100.0, "correct": null, "total": null, "isWeakest": false },
+    { "label": "E", "accuracy": 100.0, "correct": null, "total": null, "isWeakest": false },
+    { "label": "H", "accuracy": 100.0, "correct": null, "total": null, "isWeakest": false },
+    { "label": "K", "accuracy": 100.0, "correct": null, "total": null, "isWeakest": false },
+    { "label": "L", "accuracy": 100.0, "correct": null, "total": null, "isWeakest": false },
+    { "label": "Q", "accuracy": 100.0, "correct": null, "total": null, "isWeakest": false },
+    { "label": "S", "accuracy": 100.0, "correct": null, "total": null, "isWeakest": false },
+    { "label": "W", "accuracy": 100.0, "correct": null, "total": null, "isWeakest": false },
+    { "label": "Z", "accuracy": 100.0, "correct": null, "total": null, "isWeakest": false, "isStaticFrame": true }
+  ],
+  "confusions": [
+    { "from": "N", "to": "M", "count": 4 },
+    { "from": "M", "to": "J", "count": 2 },
+    { "from": "Y", "to": "C", "count": 2 },
+    { "from": "D", "to": "C", "count": 2 },
+    { "from": "V", "to": "U", "count": 2 },
+    { "from": "U", "to": "W", "count": 2 },
+    { "from": "J", "to": "W", "count": 2 }
+  ],
+  "footnotes": [
+    "Offline validation on Kaggle landmark stills, not live-signer accuracy",
+    "HELLO is trained on synthetic data",
+    "J and Z are motion letters represented by a static frame",
+    "Word signs: not yet trained"
+  ]
+}

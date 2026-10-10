@@ -64,6 +64,26 @@ function speak(text) {
   }
 }
 
+function logSessionPrediction(entry) {
+  try {
+    if (typeof window === 'undefined' || !window.sessionStorage) return;
+    const raw = window.sessionStorage.getItem('signspeak_live_session');
+    const records = raw ? JSON.parse(raw) : [];
+    records.push({
+      ts: Date.now(),
+      label: String(entry?.label || '').toUpperCase(),
+      confidence: Number(entry?.confidence || 0),
+      latencyMs: Math.round(Number(entry?.latencyMs || 0)),
+      handsCount: Number(entry?.handsCount || 1),
+      status: entry?.status === 'committed' ? 'committed' : 'rejected',
+    });
+    if (records.length > 200) records.splice(0, records.length - 200);
+    window.sessionStorage.setItem('signspeak_live_session', JSON.stringify(records));
+  } catch {
+    /* ignore session logging errors */
+  }
+}
+
 export default function LiveDemo() {
   const videoRef = useRef(null);
   const overlayRef = useRef(null);
@@ -172,6 +192,13 @@ export default function LiveDemo() {
       wordLabels,
     });
     if (!valid) {
+      logSessionPrediction({
+        label: data?.gesture || 'UNKNOWN',
+        confidence: data?.confidence,
+        latencyMs: data?.latencyMs,
+        handsCount: handsRef.current || 1,
+        status: 'rejected',
+      });
       resetPrediction();
       return;
     }
@@ -198,6 +225,13 @@ export default function LiveDemo() {
     const requiredStable = data?.source === 'local-onnx' ? 1 : isWord ? 2 : STABLE_PREDICTIONS;
     // Commit only if armed, stable, and not already committed for this held gesture
     if (state.armed && state.count >= requiredStable && label !== state.last) {
+      logSessionPrediction({
+        label,
+        confidence: data?.confidence,
+        latencyMs: data?.latencyMs,
+        handsCount: handsRef.current || 1,
+        status: 'committed',
+      });
       if (isWord) {
         const flushed = recRef.current;
         recRef.current = '';
@@ -419,6 +453,13 @@ export default function LiveDemo() {
       setGesture(next);
       setConf(0.99);
       setRec(next);
+      logSessionPrediction({
+        label: next,
+        confidence: 0.99,
+        latencyMs: 12,
+        handsCount: 1,
+        status: 'committed',
+      });
     };
     show();
     demoTimerRef.current = setInterval(show, 1600);

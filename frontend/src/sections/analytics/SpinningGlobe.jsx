@@ -146,7 +146,7 @@ export default function SpinningGlobe({
       canvas.height = rect.height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      baseRadius = Math.min(width, height) * 0.42;
+      baseRadius = Math.min(width, height) * 0.40;
       centerX = width / 2;
       centerY = height / 2;
     };
@@ -199,6 +199,7 @@ export default function SpinningGlobe({
             x: a.x + (b.x - a.x) * t,
             y: a.y + (b.y - a.y) * t,
             z: 0,
+            isClip: true,
           });
         } else if (!aIn && bIn) {
           const t = a.z / (a.z - b.z);
@@ -206,6 +207,7 @@ export default function SpinningGlobe({
             x: a.x + (b.x - a.x) * t,
             y: a.y + (b.y - a.y) * t,
             z: 0,
+            isClip: true,
           });
           out.push(b);
         }
@@ -279,59 +281,41 @@ export default function SpinningGlobe({
       });
 
       // -------------------------------------------------------------
-      // 2. Atmospheric Outer Glow & Intense Crescent Rim (Cyan/Icy-Blue)
+      // 2. Atmospheric Outer Glow (Centered 360-degree Cyan Aura)
       // -------------------------------------------------------------
-      const crescentGlow = ctx.createRadialGradient(
-        centerX + radius * 0.35,
-        centerY - radius * 0.35,
-        radius * 0.75,
-        centerX + radius * 0.2,
-        centerY - radius * 0.2,
-        radius * 1.45
-      );
-      crescentGlow.addColorStop(0, 'rgba(0, 225, 255, 0.38)');
-      crescentGlow.addColorStop(0.35, 'rgba(14, 165, 233, 0.18)');
-      crescentGlow.addColorStop(0.65, 'rgba(56, 189, 248, 0.06)');
-      crescentGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-      ctx.fillStyle = crescentGlow;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius * 1.45, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Ambient outer space haze
       const outerAura = ctx.createRadialGradient(
         centerX,
         centerY,
-        radius * 0.88,
+        radius * 0.94,
         centerX,
         centerY,
-        radius * 1.35
+        radius * 1.34
       );
-      outerAura.addColorStop(0, 'rgba(0, 217, 255, 0.16)');
-      outerAura.addColorStop(0.5, 'rgba(14, 116, 244, 0.08)');
+      outerAura.addColorStop(0, 'rgba(0, 225, 255, 0.28)');
+      outerAura.addColorStop(0.35, 'rgba(14, 165, 233, 0.13)');
+      outerAura.addColorStop(0.75, 'rgba(6, 182, 212, 0.03)');
       outerAura.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
       ctx.fillStyle = outerAura;
       ctx.beginPath();
-      ctx.arc(centerX, centerY, radius * 1.35, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, radius * 1.34, 0, Math.PI * 2);
       ctx.fill();
 
       // -------------------------------------------------------------
-      // 3. Base Planet Sphere Disc (Deep space navy & daylight shading)
+      // 3. Base Planet Sphere Disc (Evenly Illuminated Deep Ocean)
       // -------------------------------------------------------------
       const sphereGrad = ctx.createRadialGradient(
-        centerX + radius * 0.45,
-        centerY - radius * 0.45,
-        radius * 0.1,
+        centerX,
+        centerY,
+        0,
         centerX,
         centerY,
         radius
       );
-      sphereGrad.addColorStop(0, '#0E284A');
-      sphereGrad.addColorStop(0.45, '#051428');
-      sphereGrad.addColorStop(0.85, '#020813');
-      sphereGrad.addColorStop(1, '#010408');
+      sphereGrad.addColorStop(0, '#0c2444');
+      sphereGrad.addColorStop(0.55, '#071830');
+      sphereGrad.addColorStop(0.85, '#041022');
+      sphereGrad.addColorStop(1, '#020914');
 
       ctx.fillStyle = sphereGrad;
       ctx.beginPath();
@@ -364,7 +348,7 @@ export default function SpinningGlobe({
           }
         }
         ctx.strokeStyle = lat === 0 ? 'rgba(0, 217, 255, 0.28)' : 'rgba(148, 163, 184, 0.09)';
-        ctx.lineWidth = lat === 0 ? 1.1 : 0.6;
+        ctx.lineWidth = lat === 0 ? 1.0 : 0.55;
         ctx.stroke();
       });
 
@@ -385,15 +369,14 @@ export default function SpinningGlobe({
           }
         }
         ctx.strokeStyle = 'rgba(148, 163, 184, 0.08)';
-        ctx.lineWidth = 0.6;
+        ctx.lineWidth = 0.55;
         ctx.stroke();
       }
 
       // -------------------------------------------------------------
       // 5. Authentic Natural Earth Continents & Country Borders
       // -------------------------------------------------------------
-      // Pass 1: Shaded continent landmass fills
-      ctx.fillStyle = 'rgba(11, 32, 56, 0.82)';
+      // Pass 1: Shaded continent landmass fills (chords routed along disc perimeter)
       WORLD_POLYGONS.forEach((poly) => {
         const ring = poly.ring;
         const pts3D = ring.map(([lon, lat]) => project3D(lat, lon, radius));
@@ -401,59 +384,93 @@ export default function SpinningGlobe({
         if (clipped.length >= 3) {
           ctx.beginPath();
           ctx.moveTo(clipped[0].x, clipped[0].y);
-          for (let i = 1; i < clipped.length; i++) {
-            ctx.lineTo(clipped[i].x, clipped[i].y);
+          for (let i = 0; i < clipped.length; i++) {
+            const curr = clipped[i];
+            const next = clipped[(i + 1) % clipped.length];
+            if (curr.isClip && next.isClip) {
+              const chord = Math.hypot(curr.x - next.x, curr.y - next.y);
+              if (chord > radius * 0.45) {
+                const a1 = Math.atan2(curr.y - centerY, curr.x - centerX);
+                const a2 = Math.atan2(next.y - centerY, next.x - centerX);
+                let diff = a2 - a1;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                ctx.arc(centerX, centerY, radius, a1, a2, diff < 0);
+                continue;
+              }
+            }
+            if (i < clipped.length - 1) {
+              ctx.lineTo(next.x, next.y);
+            }
           }
           ctx.closePath();
           if (highlightIndia && poly.name === 'India') {
             ctx.fillStyle = 'rgba(255, 153, 51, 0.45)';
             ctx.fill();
-            ctx.fillStyle = 'rgba(11, 32, 56, 0.82)';
           } else {
+            ctx.fillStyle = 'rgba(16, 44, 76, 0.78)';
             ctx.fill();
           }
         }
       });
 
-      // Pass 2: Electric cyan coastlines and country boundary outlines
-      ctx.strokeStyle = 'rgba(0, 217, 255, 0.72)';
-      ctx.lineWidth = 0.9;
+      // Pass 2: Electric cyan coastlines and country boundary outlines (segment-level clipping)
+      ctx.strokeStyle = 'rgba(0, 220, 255, 0.75)';
+      ctx.lineWidth = 0.85;
+      ctx.beginPath();
       WORLD_POLYGONS.forEach((poly) => {
         if (highlightIndia && poly.name === 'India') return;
         const ring = poly.ring;
-        const pts3D = ring.map(([lon, lat]) => project3D(lat, lon, radius));
-        const clipped = clipPolyFront(pts3D);
-        if (clipped.length >= 2) {
-          ctx.beginPath();
-          ctx.moveTo(clipped[0].x, clipped[0].y);
-          for (let i = 1; i < clipped.length; i++) {
-            ctx.lineTo(clipped[i].x, clipped[i].y);
+        const len = ring.length;
+        for (let i = 0; i < len; i++) {
+          const p1 = project3D(ring[i][1], ring[i][0], radius);
+          const p2 = project3D(ring[(i + 1) % len][1], ring[(i + 1) % len][0], radius);
+          if (p1.z >= 0 && p2.z >= 0) {
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+          } else if (p1.z >= 0 && p2.z < 0) {
+            const t = p1.z / (p1.z - p2.z);
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t);
+          } else if (p1.z < 0 && p2.z >= 0) {
+            const t = p1.z / (p1.z - p2.z);
+            ctx.moveTo(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t);
+            ctx.lineTo(p2.x, p2.y);
           }
-          ctx.stroke();
         }
       });
+      ctx.stroke();
 
       // Pass 2b: Prominent glowing saffron/orange outline for India
       if (highlightIndia) {
         const indiaPoly = WORLD_POLYGONS.find((p) => p.name === 'India');
         if (indiaPoly) {
-          const pts3D = indiaPoly.ring.map(([lon, lat]) => project3D(lat, lon, radius));
-          const clipped = clipPolyFront(pts3D);
-          if (clipped.length >= 2) {
-            ctx.save();
-            ctx.strokeStyle = '#FF9933';
-            ctx.lineWidth = 2.4;
-            ctx.shadowColor = '#FF9933';
-            ctx.shadowBlur = 14;
-            ctx.beginPath();
-            ctx.moveTo(clipped[0].x, clipped[0].y);
-            for (let i = 1; i < clipped.length; i++) {
-              ctx.lineTo(clipped[i].x, clipped[i].y);
+          ctx.save();
+          ctx.strokeStyle = '#FF9933';
+          ctx.lineWidth = 2.2;
+          ctx.shadowColor = '#FF9933';
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          const ring = indiaPoly.ring;
+          const len = ring.length;
+          for (let i = 0; i < len; i++) {
+            const p1 = project3D(ring[i][1], ring[i][0], radius);
+            const p2 = project3D(ring[(i + 1) % len][1], ring[(i + 1) % len][0], radius);
+            if (p1.z >= 0 && p2.z >= 0) {
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+            } else if (p1.z >= 0 && p2.z < 0) {
+              const t = p1.z / (p1.z - p2.z);
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t);
+            } else if (p1.z < 0 && p2.z >= 0) {
+              const t = p1.z / (p1.z - p2.z);
+              ctx.moveTo(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t);
+              ctx.lineTo(p2.x, p2.y);
             }
-            ctx.closePath();
-            ctx.stroke();
-            ctx.restore();
           }
+          ctx.stroke();
+          ctx.restore();
         }
       }
 
@@ -477,38 +494,21 @@ export default function SpinningGlobe({
       });
 
       // -------------------------------------------------------------
-      // 7. Spherical Lighting & Atmospheric Crescent Haze
+      // 7. Spherical Limb Atmosphere / Fresnel Glow (Centered 360-degree Rim)
       // -------------------------------------------------------------
       const innerRimGlow = ctx.createRadialGradient(
-        centerX + radius * 0.45,
-        centerY - radius * 0.45,
-        radius * 0.5,
-        centerX + radius * 0.4,
-        centerY - radius * 0.4,
+        centerX,
+        centerY,
+        radius * 0.72,
+        centerX,
+        centerY,
         radius
       );
-      innerRimGlow.addColorStop(0, 'rgba(0, 220, 255, 0.22)');
-      innerRimGlow.addColorStop(0.6, 'rgba(0, 220, 255, 0.05)');
-      innerRimGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      innerRimGlow.addColorStop(0, 'rgba(0, 220, 255, 0.0)');
+      innerRimGlow.addColorStop(0.7, 'rgba(0, 220, 255, 0.08)');
+      innerRimGlow.addColorStop(1, 'rgba(0, 220, 255, 0.25)');
 
       ctx.fillStyle = innerRimGlow;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      const shadowShader = ctx.createRadialGradient(
-        centerX + radius * 0.4,
-        centerY - radius * 0.4,
-        radius * 0.35,
-        centerX - radius * 0.35,
-        centerY + radius * 0.35,
-        radius * 1.15
-      );
-      shadowShader.addColorStop(0, 'rgba(0, 0, 0, 0.0)');
-      shadowShader.addColorStop(0.65, 'rgba(2, 6, 14, 0.45)');
-      shadowShader.addColorStop(1, 'rgba(1, 3, 8, 0.85)');
-
-      ctx.fillStyle = shadowShader;
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
       ctx.fill();
@@ -516,10 +516,10 @@ export default function SpinningGlobe({
       ctx.restore();
 
       // -------------------------------------------------------------
-      // 8. Intense Limb Reflection Ring
+      // 8. Limb Reflection Ring
       // -------------------------------------------------------------
-      ctx.strokeStyle = 'rgba(0, 225, 255, 0.85)';
-      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = 'rgba(0, 225, 255, 0.82)';
+      ctx.lineWidth = 1.4;
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
       ctx.stroke();
@@ -775,10 +775,10 @@ export default function SpinningGlobe({
   const zoomOut = () => setZoomLevel((z) => Math.max(0.75, Number((z - 0.1).toFixed(2))));
 
   return (
-    <div ref={containerRef} className={`relative w-full flex flex-col items-center select-none py-1 ${className}`}>
+    <div ref={containerRef} className={`relative w-full flex flex-col items-center select-none py-0.5 ${className}`}>
       {showControls && (
-        <div className="w-full max-w-2xl flex flex-wrap items-center justify-between gap-3 px-2 mb-2 font-mono text-xs z-20">
-          <div className="flex items-center gap-2">
+        <div className="w-full max-w-2xl flex flex-wrap items-center justify-between gap-2 px-1 mb-1.5 font-mono text-xs z-20">
+          <div className="flex items-center gap-1.5">
             <span className="relative flex h-2 w-2">
               <span
                 className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
@@ -791,14 +791,14 @@ export default function SpinningGlobe({
                 }`}
               />
             </span>
-            <span className="font-bold text-white uppercase tracking-wider text-[11px]">
+            <span className="font-bold text-white uppercase tracking-wider text-[10px] sm:text-[11px]">
               {highlightIndia
                 ? 'Global Network // India HQ Central Node Active'
                 : 'Global Earth // 177 Countries Vector Geography'}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 flex-wrap">
             {REGION_PRESETS.map((p) => {
               const isActive = activeRegion === p.label;
               return (
@@ -806,9 +806,9 @@ export default function SpinningGlobe({
                   key={p.label}
                   type="button"
                   onClick={() => handleSelectRegion(p)}
-                  className={`px-2.5 py-1 rounded-lg border text-[10px] transition-all cursor-pointer ${
+                  className={`px-2 py-0.5 rounded-md border text-[9px] sm:text-[10px] transition-all cursor-pointer ${
                     isActive
-                      ? 'border-cyan-400/60 bg-cyan-500/20 text-cyan-200 font-bold shadow-[0_0_10px_rgba(0,217,255,0.25)]'
+                      ? 'border-cyan-400/60 bg-cyan-500/20 text-cyan-200 font-bold shadow-[0_0_8px_rgba(0,217,255,0.25)]'
                       : 'border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
                   }`}
                 >
@@ -820,14 +820,14 @@ export default function SpinningGlobe({
             <button
               type="button"
               onClick={() => setIsAutoSpin(!isAutoSpin)}
-              className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+              className={`p-1 rounded-md border transition-colors cursor-pointer ${
                 isAutoSpin
                   ? 'border-cyan-400/40 bg-cyan-400/10 text-cyan-300'
                   : 'border-white/10 bg-white/5 text-slate-500 hover:text-white'
               }`}
               title={isAutoSpin ? 'Pause Continuous Spin' : 'Resume Continuous Spin'}
             >
-              <FiRotateCw className={`h-3.5 w-3.5 ${isAutoSpin ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
+              <FiRotateCw className={`h-3 w-3 ${isAutoSpin ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
             </button>
           </div>
         </div>
@@ -835,7 +835,7 @@ export default function SpinningGlobe({
 
       {/* Main Interactive 3D Globe Canvas Area */}
       <div
-        className="relative w-full max-w-[620px] sm:max-w-[700px] lg:max-w-[760px] aspect-square flex items-center justify-center cursor-grab active:cursor-grabbing"
+        className="relative w-full h-[330px] sm:h-[350px] lg:h-[360px] max-w-[560px] flex items-center justify-center cursor-grab active:cursor-grabbing"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -844,68 +844,68 @@ export default function SpinningGlobe({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <canvas ref={canvasRef} className="w-full h-full drop-shadow-[0_0_45px_rgba(0,217,255,0.25)]" />
+        <canvas ref={canvasRef} className="w-full h-full drop-shadow-[0_0_35px_rgba(0,217,255,0.22)]" />
 
         {/* Right-Side Floating Zoom Controls */}
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 z-20">
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex flex-col gap-1 z-20">
           <button
             type="button"
             onClick={zoomIn}
-            className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 bg-slate-950/80 text-slate-300 hover:text-cyan-300 hover:border-cyan-400/50 backdrop-blur-md transition-colors cursor-pointer shadow-lg"
+            className="grid h-6 w-6 place-items-center rounded-md border border-white/10 bg-slate-950/80 text-slate-300 hover:text-cyan-300 hover:border-cyan-400/50 backdrop-blur-md transition-colors cursor-pointer shadow-md"
             title="Zoom in"
           >
-            <FiPlus className="h-3.5 w-3.5" />
+            <FiPlus className="h-3 w-3" />
           </button>
           <button
             type="button"
             onClick={zoomOut}
-            className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 bg-slate-950/80 text-slate-300 hover:text-cyan-300 hover:border-cyan-400/50 backdrop-blur-md transition-colors cursor-pointer shadow-lg"
+            className="grid h-6 w-6 place-items-center rounded-md border border-white/10 bg-slate-950/80 text-slate-300 hover:text-cyan-300 hover:border-cyan-400/50 backdrop-blur-md transition-colors cursor-pointer shadow-md"
             title="Zoom out"
           >
-            <FiMinus className="h-3.5 w-3.5" />
+            <FiMinus className="h-3 w-3" />
           </button>
         </div>
 
-        {/* Circular Compass / Rotation Dial (Bottom-Right, directly matching Reference Image) */}
+        {/* Circular Compass / Rotation Dial (Bottom-Right, Compact) */}
         <div
           onClick={() => {
             rotationRef.current.lon += 45;
           }}
-          className="absolute right-4 bottom-4 flex flex-col items-center gap-1 cursor-pointer group z-20"
+          className="absolute right-3 bottom-2.5 flex flex-col items-center gap-0.5 cursor-pointer group z-20"
           title="Click to advance longitude heading"
         >
-          <div className="relative grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full border border-cyan-400/30 bg-slate-950/80 backdrop-blur-md shadow-[0_0_20px_rgba(0,217,255,0.15)] group-hover:border-cyan-400/60 transition-all">
+          <div className="relative grid h-11 w-11 sm:h-12 sm:w-12 place-items-center rounded-full border border-cyan-400/30 bg-slate-950/80 backdrop-blur-md shadow-[0_0_15px_rgba(0,217,255,0.15)] group-hover:border-cyan-400/60 transition-all">
             <div className="absolute inset-1 rounded-full border border-dashed border-white/15" />
             <div
-              className="absolute w-0.5 h-6 bg-gradient-to-t from-transparent via-cyan-400 to-white -top-1 rounded-full origin-bottom transition-transform"
+              className="absolute w-0.5 h-4.5 sm:h-5 bg-gradient-to-t from-transparent via-cyan-400 to-white -top-0.5 rounded-full origin-bottom transition-transform"
               style={{
                 transform: `rotate(${headingDegrees}deg)`,
                 transformOrigin: 'bottom center',
                 bottom: '50%',
               }}
             />
-            <div className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00D9FF]" />
-            <span className="absolute bottom-1 font-mono text-[8px] text-cyan-300 font-bold">{headingDegrees}°</span>
+            <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#00D9FF]" />
+            <span className="absolute bottom-0.5 font-mono text-[7px] sm:text-[8px] text-cyan-300 font-bold">{headingDegrees}°</span>
           </div>
-          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 group-hover:text-cyan-300 transition-colors">
+          <span className="font-mono text-[8px] uppercase tracking-wider text-slate-400 group-hover:text-cyan-300 transition-colors">
             Rotate
           </span>
         </div>
 
         {/* Floating Node HUD Card on Hover */}
         {hoveredNode && (
-          <div className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 rounded-xl border border-cyan-400/40 bg-slate-950/90 p-3 backdrop-blur-md text-xs font-mono text-slate-200 shadow-2xl z-30 flex flex-col gap-1 min-w-[240px]">
+          <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 rounded-xl border border-cyan-400/40 bg-slate-950/90 p-2.5 backdrop-blur-md text-xs font-mono text-slate-200 shadow-2xl z-30 flex flex-col gap-1 min-w-[220px]">
             <div className="flex items-center justify-between">
               <span className="font-bold text-white flex items-center gap-1.5">
-                <FiMapPin className="h-3.5 w-3.5 text-cyan-400" />
+                <FiMapPin className="h-3 w-3 text-cyan-400" />
                 {hoveredNode.name}
               </span>
-              <span className="text-[10px] text-cyan-300 bg-cyan-400/10 px-1.5 py-0.5 rounded border border-cyan-400/25">
+              <span className="text-[9px] text-cyan-300 bg-cyan-400/10 px-1.5 py-0.5 rounded border border-cyan-400/25">
                 {hoveredNode.ping}
               </span>
             </div>
-            <div className="text-[11px] text-slate-400">{hoveredNode.lang}</div>
-            <div className="text-[10px] text-slate-500 flex items-center justify-between border-t border-white/10 pt-1 mt-1">
+            <div className="text-[10px] text-slate-400">{hoveredNode.lang}</div>
+            <div className="text-[9px] text-slate-500 flex items-center justify-between border-t border-white/10 pt-1 mt-0.5">
               <span>Coord: {hoveredNode.lat.toFixed(2)}°, {hoveredNode.lon.toFixed(2)}°</span>
               <span className="text-emerald-400">Node Online</span>
             </div>
@@ -913,8 +913,8 @@ export default function SpinningGlobe({
         )}
 
         {/* Bottom Interactive Guidance Pill */}
-        <div className="pointer-events-none absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full border border-cyan-400/30 bg-slate-950/80 px-3.5 py-1 backdrop-blur-md text-[10px] font-mono text-cyan-300 shadow-[0_0_15px_rgba(0,217,255,0.2)]">
-          <FiCompass className="h-3 w-3 text-cyan-400" />
+        <div className="pointer-events-none absolute bottom-2 sm:bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-slate-950/85 px-3 py-0.5 backdrop-blur-md text-[9px] font-mono text-cyan-300 shadow-[0_0_12px_rgba(0,217,255,0.18)]">
+          <FiCompass className="h-2.5 w-2.5 text-cyan-400" />
           <span>
             {highlightIndia
               ? 'Drag to rotate · India Highlighted (HQ) · Nocturnal City Lights'
