@@ -7,7 +7,7 @@ import HandOverlay from '../components/HandOverlay.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
 import Reveal from '../components/Reveal.jsx';
 import { Particles } from '../components/Background.jsx';
-import { bboxOf } from '../lib/handClassifier.js';
+import { bboxOf, classifyHand, classifySequence } from '../lib/handClassifier.js';
 import { WORDS } from '../lib/data.js';
 import { isAcceptedPrediction } from '../lib/recognitionPolicy.js';
 import { OneEuroLandmarkFilter } from '../lib/oneEuroLandmarks.js';
@@ -222,7 +222,8 @@ export default function LiveDemo() {
     }
 
     const isWord = wordLabels.has(label);
-    const requiredStable = data?.source === 'local-onnx' ? 1 : isWord ? 2 : STABLE_PREDICTIONS;
+    const isDynamic = label === 'J' || label === 'Z';
+    const requiredStable = (data?.source === 'local-onnx' || isDynamic) ? 1 : isWord ? 2 : 4;
     // Commit only if armed, stable, and not already committed for this held gesture
     if (state.armed && state.count >= requiredStable && label !== state.last) {
       logSessionPrediction({
@@ -256,103 +257,41 @@ export default function LiveDemo() {
     busyRef.current = true;
     try {
       if (serviceState !== 'ready') {
-        // Use the new 90-feature landmark ONNX alphabet model locally, with fallback to legacy CNN.
-        if (!alphabetModuleRef.current) {
-          try {
-            alphabetModuleRef.current = await import('../lib/onnxAlphabetLandmark.js');
-          } catch (err) {
-            console.warn('Failed to load landmark ONNX model, falling back to legacy CNN model:', err);
-            alphabetModuleRef.current = await import('../lib/onnxAlphabet.js');
-          }
+        const lastFrame = frames[frames.length - 1];
+        if (!lastFrame || lastFrame.length < 21) {
+          resetPrediction();
+          return;
         }
-        if (frames.length >= 8) {
-          const recent = frames.slice(-8);
-          const motionFrames = recent.slice(-4);
-          const motionTimes = frameTimes.slice(-motionFrames.length);
-          const sourceWidth = videoRef.current?.videoWidth || 640;
-          const sourceHeight = videoRef.current?.videoHeight || 480;
-          const wristTrack = motionFrames.map((frame) => {
-            const points = frame.map(([x, y]) => [x * sourceWidth, y * sourceHeight]);
-            const xs = points.map(([x]) => x);
-            const ys = points.map(([, y]) => y);
-            const handSize = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 1);
-            return [points[0][0] / handSize, points[0][1] / handSize];
-          });
-          const speeds = wristTrack.slice(1).map((point, index) => {
-            const dt = Math.max((motionTimes[index + 1] - motionTimes[index]) / 1000, 1e-3);
-            return Math.hypot(point[0] - wristTrack[index][0], point[1] - wristTrack[index][1]) / dt;
-          });
-          const moving = speeds.length > 0 && speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length > 1.05;
-          if (moving) {
-            localPredictionHistoryRef.current = [];
-            stateRef.current.localCandidate = '';
-            stateRef.current.localStreak = 0;
-            resetPrediction();
-            return;
-          }
-        }
-        const video = videoRef.current;
-        let local;
-        try {
-          local = await alphabetModuleRef.current.inferAlphabet(
-            frames[frames.length - 1],
-            video?.videoWidth || 640,
-            video?.videoHeight || 480
-          );
-        } catch (inferenceErr) {
-          console.warn('Primary alphabet inference failed, attempting legacy fallback:', inferenceErr);
-          const fallbackModule = await import('../lib/onnxAlphabet.js');
-          alphabetModuleRef.current = fallbackModule;
-          local = await fallbackModule.inferAlphabet(
-            frames[frames.length - 1],
-            video?.videoWidth || 640,
-            video?.videoHeight || 480
-          );
-        }
-        if (version === versionRef.current && local.gesture !== 'UNKNOWN') {
-          const history = localPredictionHistoryRef.current;
-          history.push(local.scores);
-          localPredictionHistoryRef.current = history.slice(-LOCAL_SCORE_WINDOW);
-          const recent = localPredictionHistoryRef.current;
-          const averagedScores = Object.fromEntries(
-            Object.keys(local.scores).map((label) => [
-              label,
-              recent.reduce((sum, scores) => sum + (scores[label] || 0), 0) / recent.length,
-            ])
-          );
-          const [dominant, averageConfidence] = Object.entries(averagedScores).sort((a, b) => b[1] - a[1])[0] || [];
-          const previousLabel = stateRef.current.localCandidate;
-          stateRef.current.localCandidate = dominant;
-          stateRef.current.localStreak = dominant === previousLabel ? (stateRef.current.localStreak || 0) + 1 : 1;
-          if (
-            recent.length === LOCAL_SCORE_WINDOW &&
-            averageConfidence >= LOCAL_COMMIT_CONFIDENCE &&
-            stateRef.current.localStreak >= LOCAL_COMMIT_STREAK
-          ) {
-            acceptPrediction({
-              gesture: dominant,
-              confidence: averageConfidence,
-              source: 'local-onnx',
-              latencyMs: 0,
+
+        // Evaluate sequence for dynamic signs (J, Z) and static gestures
+        const seqResult = classifySequence(frames, secondaryFrames);
+        let result;
+        if (seqResult && ['J', 'Z'].includes(seqResult.gesture) && seqResult.displayed) {
+          result = seqResult;
+        } else {
+          const lms = lastFrame.map(([x, y, z]) => ({ x, y, z }));
+          const staticResult = classifyHand(lms);
+          if (staticResult && staticResult.gesture !== 'UNKNOWN') {
+            result = {
+              gesture: staticResult.gesture,
+              confidence: staticResult.confidence,
+              type: staticResult.type,
               displayed: true,
-            });
-          } else {
-            if (averageConfidence >= 0.5) {
-              recognizedLabelRef.current = dominant;
-              recognizedConfidenceRef.current = averageConfidence;
-              if (lastUiLabelRef.current !== dominant) {
-                lastUiLabelRef.current = dominant;
-                setGesture(dominant);
-              }
-              setConf(averageConfidence);
-            } else {
-              resetPrediction();
-            }
+            };
+          } else if (seqResult && seqResult.gesture !== 'UNKNOWN' && seqResult.displayed) {
+            result = seqResult;
           }
+        }
+
+        if (version === versionRef.current && result && result.gesture !== 'UNKNOWN' && result.displayed !== false) {
+          acceptPrediction({
+            gesture: result.gesture,
+            confidence: result.confidence || 0.94,
+            latencyMs: 8,
+            source: 'local-rules',
+            displayed: true,
+          });
         } else if (version === versionRef.current) {
-          localPredictionHistoryRef.current = [];
-          stateRef.current.localCandidate = '';
-          stateRef.current.localStreak = 0;
           resetPrediction();
         }
         return;

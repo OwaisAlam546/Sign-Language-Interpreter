@@ -136,8 +136,8 @@ const source = await readFile(new URL('../src/sections/LiveDemo.jsx', import.met
 assert.match(source, /STATUS_TIMEOUT_MS/);
 assert.match(source, /ONNX Static Letters/);
 assert.match(source, /Retry camera/);
-assert.match(source, /onnxAlphabetLandmark\.js/);
-assert.match(source, /onnxAlphabet\.js/);
+assert.match(source, /handClassifier\.js/);
+assert.doesNotMatch(source, /onnxAlphabetLandmark\.js/);
 
 assert.equal(isAcceptedPrediction({ gesture: 'B', confidence: 0.9, serviceState: 'local' }), true);
 assert.equal(isAcceptedPrediction({ gesture: 'HELLO', confidence: 0.99, serviceState: 'local', wordLabels: new Set(['HELLO']) }), false);
