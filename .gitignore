@@ -32,5 +32,3 @@ Thumbs.db
 .vscode/
 
 backend/ai-service/data/
-
-backend/ai-service/models/hand_landmarker.task

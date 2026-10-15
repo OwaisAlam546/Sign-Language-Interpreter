@@ -2,8 +2,3 @@
 __pycache__/
 *.pyc
 .env
-models/*.h5
-models/*.keras
-models/*.tflite
-models/*.onnx
-models/*.pkl_*.json
