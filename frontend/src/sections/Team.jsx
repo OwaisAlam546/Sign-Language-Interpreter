@@ -25,7 +25,7 @@ const TEAM_MEMBERS = [
     ],
     bio: 'Engineered the responsive user interface, camera controls, gesture catalog, and client-side Web Speech synthesis closing the loop for hands-free two-way communication.',
     github: 'https://github.com',
-    linkedin: 'https://linkedin.com',
+    linkedin: 'https://www.linkedin.com/in/niranjan-m-108b03345/',
     email: 'mailto:niranjan@example.com',
   },
   {
@@ -68,7 +68,7 @@ const TEAM_MEMBERS = [
     ],
     bio: 'Specialized in computer vision preprocessing, landmark coordinate normalization across 21 hand points, and empirical benchmark testing across lighting and skin tone variations.',
     github: 'https://github.com',
-    linkedin: 'https://linkedin.com',
+    linkedin: 'https://www.linkedin.com/in/raman-bharadwaj-643741374/',
     email: 'mailto:raman@example.com',
   },
 ];
@@ -198,7 +198,7 @@ export default function Team() {
                           key={s.label}
                           href={s.url}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="glass-frosted glass-interactive inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-mono text-xs text-slate-200 transition-all hover:border-cyan-400/40 hover:text-cyan-200"
                         >
                           <Icon className="h-3 w-3 text-cyan-300" />

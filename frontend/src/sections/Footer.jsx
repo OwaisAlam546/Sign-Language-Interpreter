@@ -14,7 +14,7 @@ const QUICK = [
 ];
 
 const SOCIALS = [
-  { icon: FiGithub, href: 'https://github.com', label: 'GitHub' },
+  { icon: FiGithub, href: 'https://github.com/OwaisAlam546/Sign-Language-Interpreter', label: 'GitHub' },
   { icon: FiLinkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
   { icon: FiMail, href: 'mailto:mohdowaisalam177@gmail.com', label: 'Email' },
 ];
@@ -117,7 +117,7 @@ export default function Footer() {
                       key={i}
                       href={item.href}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       onMouseEnter={() => setHoveredSocial(i)}
                       className={`glass-card grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-xl border transition-all duration-300 origin-center ${isHovered
                         ? 'scale-110 z-20 border-cyan-400 bg-cyan-400/20 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.5)] ring-1 ring-cyan-400/40 -translate-y-0.5'
