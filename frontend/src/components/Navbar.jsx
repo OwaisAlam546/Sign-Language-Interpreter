@@ -204,9 +204,9 @@ export default function Navbar() {
             </button>
 
             <a
-              href="https://github.com"
+              href="https://github.com/OwaisAlam546/Sign-Language-Interpreter"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="glass-card hidden rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-[var(--text-sub)] transition-all duration-300 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] hover:shadow-[0_0_15px_var(--glow-cyan)] md:inline-block backdrop-blur-xl"
             >
               GitHub ↗
@@ -284,9 +284,9 @@ export default function Navbar() {
           </button>
 
           <a
-            href="https://github.com"
+            href="https://github.com/OwaisAlam546/Sign-Language-Interpreter"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className={`glass-card mt-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-6 py-2.5 font-mono text-xs uppercase tracking-widest text-[var(--text-sub)] transition-all duration-500 hover:border-[var(--accent-cyan)] hover:text-[var(--accent-cyan)] ${open ? 'opacity-100' : 'opacity-0'}`}
             style={{ transitionDelay: '380ms' }}
           >
