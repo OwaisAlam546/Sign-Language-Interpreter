@@ -49,10 +49,16 @@ export default function Footer() {
 
         {/* Background Typography Watermark sitting flush just above copyright bar */}
         <div
-          className="footer-watermark-wrap pointer-events-none absolute inset-x-0 bottom-[22px] sm:bottom-[26px] z-0 select-none overflow-hidden flex items-center justify-center px-4 sm:px-8"
+          className="footer-watermark-wrap pointer-events-none absolute inset-x-0 bottom-[22px] sm:bottom-[26px] z-0 select-none overflow-visible flex items-center justify-center px-4 sm:px-8"
           aria-hidden="true"
         >
-          <span className="footer-watermark font-display font-black tracking-tight uppercase whitespace-nowrap text-center text-[clamp(1.85rem,5.8vw,4.8rem)] leading-none select-none">
+          <span
+            className="footer-watermark inline-block font-display font-black tracking-tight uppercase whitespace-nowrap text-center text-[clamp(1.85rem,5.8vw,4.8rem)] leading-none select-none origin-bottom"
+            style={{
+              transform: 'scale(1.5, 1.36)',
+              transformOrigin: 'center bottom',
+            }}
+          >
             SIGNSPEAK AI
           </span>
         </div>
