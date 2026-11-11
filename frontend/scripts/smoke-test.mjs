@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import * as ort from 'onnxruntime-web/wasm';
-import { advanceStability, isAcceptedPrediction } from '../src/lib/recognitionPolicy.js';
+import {
+  advanceStability,
+  computeHandMotion,
+  computeWindowMotion,
+  isAcceptedPrediction,
+  STABLE_FRAMES_DYNAMIC,
+  STABLE_FRAMES_STATIC,
+} from '../src/lib/recognitionPolicy.js';
 
 // ==============================================================================
 // 1. Verify Legacy Fallback Assets (asl_cnn_model.onnx must remain intact)
@@ -148,6 +155,23 @@ assert.equal(isAcceptedPrediction({ gesture: 'B', confidence: 0.6, serviceState:
 let stable = { candidate: '', count: 0, last: '' };
 for (let i = 0; i < 4; i += 1) stable = advanceStability(stable, 'B').state;
 assert.equal(advanceStability(stable, 'B').committed, true);
+
+// Verify hand motion calculation during stationary vs transitioning frames
+const dummyHandStationary1 = Array.from({ length: 21 }, (_, i) => [0.5, 0.5 + i * 0.01, 0]);
+const dummyHandStationary2 = Array.from({ length: 21 }, (_, i) => [0.5 + 0.001, 0.5 + i * 0.01 + 0.001, 0]);
+const motionStationary = computeHandMotion(dummyHandStationary2, dummyHandStationary1);
+assert.equal(motionStationary.isMoving, false, 'Stationary hand should not be flagged as moving');
+
+// Transition: fingertips displaced significantly
+const dummyHandMoving = Array.from({ length: 21 }, (_, i) => [
+  0.5 + (i >= 4 && i % 4 === 0 ? 0.15 : 0),
+  0.5 + i * 0.01,
+  0,
+]);
+const motionMoving = computeHandMotion(dummyHandMoving, dummyHandStationary1);
+assert.equal(motionMoving.isMoving, true, 'Transitioning/articulating hand should be flagged as moving');
+const windowMotion = computeWindowMotion([dummyHandStationary1, dummyHandMoving]);
+assert.equal(windowMotion.isMoving, true, 'Window motion should capture transitioning frames');
 
 console.log(`\nFrontend smoke test PASSED:`);
 console.log(`- Landmark ONNX model (${landmarkModelBuffer.length} bytes) verified [1,90] -> [1,26]`);

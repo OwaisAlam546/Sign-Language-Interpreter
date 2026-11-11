@@ -9,7 +9,12 @@ import Reveal from '../components/Reveal.jsx';
 import { Particles } from '../components/Background.jsx';
 import { bboxOf, classifyHand, classifySequence } from '../lib/handClassifier.js';
 import { WORDS } from '../lib/data.js';
-import { isAcceptedPrediction } from '../lib/recognitionPolicy.js';
+import {
+  computeWindowMotion,
+  isAcceptedPrediction,
+  STABLE_FRAMES_DYNAMIC,
+  STABLE_FRAMES_STATIC,
+} from '../lib/recognitionPolicy.js';
 import { OneEuroLandmarkFilter } from '../lib/oneEuroLandmarks.js';
 
 const WASM_URL = '/models/mediapipe';
@@ -158,11 +163,12 @@ export default function LiveDemo() {
   };
 
   const resetPrediction = (noHand = false) => {
-    setGesture('');
-    setConf(0);
     recognizedLabelRef.current = '';
     recognizedConfidenceRef.current = 0;
     if (noHand) {
+      setGesture('');
+      setConf(0);
+      lastUiLabelRef.current = '';
       localPredictionHistoryRef.current = [];
       stateRef.current.localCandidate = '';
       stateRef.current.localStreak = 0;
@@ -173,10 +179,14 @@ export default function LiveDemo() {
     state.count = 0;
     state.neutral += 1;
     // Jitter protection: Only re-arm and clear last committed gesture after an actual
-    // release (no hand in frame, or an extended neutral pause of >= 8 frames ~530ms)
-    if (state.neutral >= 8 || noHand) {
+    // release (no hand in frame, or an extended neutral pause of >= 6 frames ~400ms)
+    if (state.neutral >= 6 || noHand) {
       state.armed = true;
       state.last = '';
+      if (!noHand && state.neutral >= 8) {
+        setGesture('');
+        lastUiLabelRef.current = '';
+      }
     }
     if (noHand) finishWord();
   };
@@ -203,16 +213,36 @@ export default function LiveDemo() {
       return;
     }
     clearIdle();
-    if (lastUiLabelRef.current !== label) {
-      lastUiLabelRef.current = label;
-      setGesture(label);
-    }
+
     recognizedLabelRef.current = label;
     recognizedConfidenceRef.current = data.confidence;
     setConf(data.confidence);
     setLatency(`${Math.round(data.latencyMs || 0)}ms`);
+
+    const isWord = wordLabels.has(label);
+    const isDynamic = label === 'J' || label === 'Z';
+    const isMoving = Boolean(data?.isMoving);
+
+    // Maintain recent predictions rolling window history
+    const history = localPredictionHistoryRef.current;
+    history.push({ label, confidence: data.confidence, isMoving, time: performance.now() });
+    if (history.length > 8) history.shift();
+
+    // Transition handling:
+    // If the hand is in motion (internal finger reconfiguration or rapid translation),
+    // and the sign is a static alphabet letter, treat it as being in a transition state.
+    // Suppress temporary intermediate predictions: do not accumulate streak or flash UI.
+    const isTransitioning = !isDynamic && (isMoving || (history.length >= 3 && history.slice(-3).some((h) => h.isMoving)));
+
     const state = stateRef.current;
     state.neutral = 0;
+
+    if (isTransitioning) {
+      state.count = 0;
+      state.candidate = '';
+      return;
+    }
+
     if (state.candidate === label) {
       state.count += 1;
     } else {
@@ -221,9 +251,17 @@ export default function LiveDemo() {
       if (label !== state.last) state.armed = true;
     }
 
-    const isWord = wordLabels.has(label);
-    const isDynamic = label === 'J' || label === 'Z';
-    const requiredStable = (data?.source === 'local-onnx' || isDynamic) ? 1 : isWord ? 2 : 4;
+    // Display smoothing: update the visible gesture UI only when candidate has held
+    // for at least 2 consecutive frames, or matches the last committed gesture,
+    // eliminating any single-frame visual flicker during transitions.
+    if (state.count >= 2 || label === state.last) {
+      if (lastUiLabelRef.current !== label) {
+        lastUiLabelRef.current = label;
+        setGesture(label);
+      }
+    }
+
+    const requiredStable = isDynamic ? STABLE_FRAMES_DYNAMIC : isWord ? 2 : STABLE_FRAMES_STATIC;
     // Commit only if armed, stable, and not already committed for this held gesture
     if (state.armed && state.count >= requiredStable && label !== state.last) {
       logSessionPrediction({
@@ -256,6 +294,8 @@ export default function LiveDemo() {
     if (busyRef.current) return;
     busyRef.current = true;
     try {
+      const motion = computeWindowMotion(frames);
+
       if (serviceState !== 'ready') {
         const lastFrame = frames[frames.length - 1];
         if (!lastFrame || lastFrame.length < 21) {
@@ -290,6 +330,8 @@ export default function LiveDemo() {
             latencyMs: 8,
             source: 'local-rules',
             displayed: true,
+            isMoving: motion.isMoving,
+            fingerMotion: motion.fingerMotion,
           });
         } else if (version === versionRef.current) {
           resetPrediction();
@@ -305,7 +347,11 @@ export default function LiveDemo() {
       const body = await safeJson(response);
       if (version !== versionRef.current) return;
       if (response.ok && body?.success && body?.data && body.data.gesture !== 'NONE' && body.data.gesture !== 'UNKNOWN') {
-        acceptPrediction(body.data);
+        acceptPrediction({
+          ...body.data,
+          isMoving: motion.isMoving,
+          fingerMotion: motion.fingerMotion,
+        });
       } else {
         resetPrediction();
       }

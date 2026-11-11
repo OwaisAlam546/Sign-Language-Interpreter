@@ -350,12 +350,41 @@ export function classifySequence(frames, secondaryFrames = []) {
   const countOf = (labels) => labels.reduce((s, l) => s + (counts[l] || 0), 0);
 
   // ── 3. DYNAMIC LETTERS (J and Z) ──
-  // J: Pinky extended ('I' handshape) swooping down and curving sideways
-  if (countOf(['I', 'Y']) >= Math.ceil(N * 0.5) && (pinkySpanY > 0.38 || (pinkyPath / palm > 0.55 && pinkySpanX > 0.22))) {
+  // J: Pinky extended ('I' handshape) swooping down and curving sideways.
+  // Crucial: Must start with pinky already extended (never uncurling from a fist like A/S/E/T)
+  // and must trace an actual downward scoop (pinky dips below its start position) and curve.
+  const FIST_LETTERS = ['A', 'S', 'T', 'M', 'N', 'E'];
+  const startsWithFist = perFrame.slice(0, 3).some((p) => FIST_LETTERS.includes(p.gesture));
+  const pinkyDip = (maxPinkyY - first[20].y) / palm;
+  const pinkyUncurlingUpward = (first[20].y - last[20].y) / palm > 0.25;
+
+  if (
+    !startsWithFist &&
+    !pinkyUncurlingUpward &&
+    first[20].y < first[18].y - 0.04 * palm &&
+    countOf(['I', 'Y']) >= Math.ceil(N * 0.60) &&
+    pinkyDip >= 0.12 &&
+    pinkySpanX >= 0.18 &&
+    pinkyPath / palm >= 0.48
+  ) {
     return { gesture: 'J', confidence: 0.94, type: 'letter', displayed: true };
   }
-  // Z: Index finger extended ('D' / 'L' / 'X') tracing horizontal + diagonal strokes
-  if (countOf(['D', 'L', 'X', 'G']) >= Math.ceil(N * 0.5) && idxSpanX > 0.42 && idxPath / palm > 0.65) {
+
+  // Z: Index finger extended ('D' / 'L' / 'X') tracing horizontal + diagonal strokes.
+  // Crucial: Must start with index already extended (never unfolding from a fist or flat hand).
+  const idxDip = (maxIdxY - first[8].y) / palm;
+  const idxUncurlingUpward = (first[8].y - last[8].y) / palm > 0.25;
+
+  if (
+    !startsWithFist &&
+    !idxUncurlingUpward &&
+    perFrame[0].gesture !== 'B' &&
+    first[8].y < first[6].y - 0.04 * palm &&
+    countOf(['D', 'L', 'X', 'G']) >= Math.ceil(N * 0.60) &&
+    idxSpanX >= 0.38 &&
+    idxSpanY >= 0.20 &&
+    idxPath / palm >= 0.60
+  ) {
     return { gesture: 'Z', confidence: 0.94, type: 'letter', displayed: true };
   }
 
@@ -438,12 +467,18 @@ export function classifySequence(frames, secondaryFrames = []) {
     return { gesture: 'UNKNOWN', confidence: 0.5, type: 'unknown', displayed: false };
   }
   const [bestGesture, totalScore] = entries[0];
+  const secondScore = entries[1] ? entries[1][1] : 0;
+  const scoreMargin = entries[1] ? (totalScore - secondScore) / totalScore : 1.0;
   const avgConfidence = Math.min(0.99, totalScore / N);
+  const topFraction = (counts[bestGesture] || 0) / N;
+
   return {
     gesture: bestGesture,
     confidence: Number(avgConfidence.toFixed(4)),
+    margin: Number(scoreMargin.toFixed(4)),
+    fraction: Number(topFraction.toFixed(4)),
     type: bestGesture.length > 1 ? 'word' : 'letter',
-    displayed: avgConfidence >= 0.75,
+    displayed: avgConfidence >= 0.75 && topFraction >= 0.50,
   };
 }
 
