@@ -36,68 +36,131 @@ function scrollToTarget(rawId) {
   }
 
   let cancelled = false;
-  activeScrollCancel = () => {
+
+  const onUserInteract = () => {
     cancelled = true;
+    cleanupUserListeners();
   };
 
+  const cleanupUserListeners = () => {
+    window.removeEventListener('wheel', onUserInteract);
+    window.removeEventListener('touchmove', onUserInteract);
+    window.removeEventListener('keydown', onUserInteract);
+  };
+
+  activeScrollCancel = () => {
+    cancelled = true;
+    cleanupUserListeners();
+  };
+
+  window.addEventListener('wheel', onUserInteract, { passive: true });
+  window.addEventListener('touchmove', onUserInteract, { passive: true });
+  window.addEventListener('keydown', onUserInteract, { passive: true });
+
   const startTime = performance.now();
-  const maxWaitMs = 3000;
+  const maxWaitMs = 3500;
 
   const attemptScroll = () => {
-    if (cancelled) return;
+    if (cancelled) {
+      cleanupUserListeners();
+      return;
+    }
+
     const el = document.getElementById(id);
     if (!el) {
       if (performance.now() - startTime < maxWaitMs) {
         requestAnimationFrame(attemptScroll);
+      } else {
+        cleanupUserListeners();
       }
       return;
     }
 
-    // Refresh ScrollTrigger if available to ensure coordinates are accurate
+    // Always ensure Lenis and ScrollTrigger recognize the full mounted Home page dimensions
+    if (window.__lenis) {
+      window.__lenis.resize();
+    }
     try {
       if (window.ScrollTrigger?.refresh) {
         window.ScrollTrigger.refresh();
       }
     } catch {}
 
-    // Scroll to element accounting for navbar offset
+    const currentScrollY = window.__lenis ? window.__lenis.scroll : window.scrollY;
+    const rect = el.getBoundingClientRect();
+    const absoluteTop = rect.top + currentScrollY;
+    const targetY = Math.max(0, absoluteTop - NAV_OFFSET);
+
+    // Prevent Lenis from clamping prematurely if Home layout height is still expanding from short pages like Contact
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    if (maxScroll < targetY - 50 && performance.now() - startTime < 800) {
+      requestAnimationFrame(attemptScroll);
+      return;
+    }
+
+    // Scroll to the computed target
     if (window.__lenis) {
-      window.__lenis.scrollTo(el, { offset: -NAV_OFFSET, immediate: false });
+      window.__lenis.resize();
+      window.__lenis.scrollTo(targetY, { duration: 0.9, immediate: false });
     } else {
-      const targetY = Math.max(0, el.getBoundingClientRect().top + window.scrollY - NAV_OFFSET);
       window.scrollTo({ top: targetY, behavior: 'smooth' });
     }
 
-    // Compensate for layout shifts (e.g. 3D models, images, or async components rendering above)
-    let shiftChecks = 0;
-    let lastTop = el.getBoundingClientRect().top;
+    // Destination verification & reconciliation loop:
+    // Ensures that section navigation from short pages (such as Contact) or across layout shifts
+    // does not get trapped at Live Demo or intermediate sections.
+    let verificationFrames = 0;
+    const maxVerificationFrames = 75; // ~1.2s total monitoring
+    let settledFrames = 0;
 
-    const checkLayoutShift = () => {
-      if (cancelled) return;
-      shiftChecks++;
+    const verifyArrival = () => {
+      if (cancelled) {
+        cleanupUserListeners();
+        return;
+      }
+
+      verificationFrames++;
       const currentEl = document.getElementById(id);
-      if (!currentEl) return;
+      if (!currentEl) {
+        cleanupUserListeners();
+        return;
+      }
 
-      const currentTop = currentEl.getBoundingClientRect().top;
-      // If layout shifted significantly after scroll began, re-align
-      if (Math.abs(currentTop - lastTop) > 28 && shiftChecks > 3) {
-        if (window.__lenis) {
-          window.__lenis.scrollTo(currentEl, { offset: -NAV_OFFSET, immediate: false });
-        } else {
-          const targetY = Math.max(0, currentEl.getBoundingClientRect().top + window.scrollY - NAV_OFFSET);
-          window.scrollTo({ top: targetY, behavior: 'smooth' });
+      const currentRect = currentEl.getBoundingClientRect();
+      const distanceFromTarget = Math.abs(currentRect.top - NAV_OFFSET);
+
+      if (distanceFromTarget <= 15) {
+        settledFrames++;
+        if (settledFrames >= 5) {
+          // Locked in and settled accurately at target section
+          cleanupUserListeners();
+          return;
+        }
+      } else {
+        settledFrames = 0;
+        // If navigation stalled prematurely (e.g. at Live Demo because of prior short-page limit)
+        // re-measure and re-drive the scroll
+        if (verificationFrames >= 16 && verificationFrames % 10 === 0) {
+          if (window.__lenis) {
+            window.__lenis.resize();
+            const freshScrollY = window.__lenis.scroll;
+            const freshTargetY = Math.max(0, currentEl.getBoundingClientRect().top + freshScrollY - NAV_OFFSET);
+            window.__lenis.scrollTo(freshTargetY, { duration: 0.6, immediate: false });
+          } else {
+            const freshTargetY = Math.max(0, currentEl.getBoundingClientRect().top + window.scrollY - NAV_OFFSET);
+            window.scrollTo({ top: freshTargetY, behavior: 'smooth' });
+          }
         }
       }
-      lastTop = currentTop;
 
-      if (shiftChecks < 16) {
-        requestAnimationFrame(checkLayoutShift);
+      if (verificationFrames < maxVerificationFrames) {
+        requestAnimationFrame(verifyArrival);
+      } else {
+        cleanupUserListeners();
       }
     };
 
-    setTimeout(() => {
-      if (!cancelled) requestAnimationFrame(checkLayoutShift);
-    }, 120);
+    requestAnimationFrame(verifyArrival);
   };
 
   requestAnimationFrame(attemptScroll);
