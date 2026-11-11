@@ -16,11 +16,6 @@ const LINKS = [
   { id: 'contact', label: 'Contact Us', isPage: true, to: '/contact' },
 ];
 
-function scrollTo(id) {
-  if (window.__lenis) window.__lenis.scrollTo(`#${id}`, { offset: -90 });
-  else document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-}
-
 export default function Navbar() {
   const { theme, toggleTheme, isDark } = useTheme();
   const { path, navigate } = useRouter();
@@ -30,50 +25,85 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [progress, setProgress] = useState({});
 
+  // Reset navbar visibility and active tab whenever route changes
   useEffect(() => {
+    setHidden(false);
+    setScrolled((window.__lenis ? window.__lenis.scroll : window.scrollY) > 40);
+    setOpen(false);
+
     if (path === '/contact') {
       setActive('contact');
       setProgress({ contact: 1 });
-      return;
-    }
-    if (path === '/analytics') {
+    } else if (path === '/analytics') {
       setActive('analytics');
       setProgress({ analytics: 1 });
-      return;
+    } else {
+      setActive('hero');
     }
+  }, [path]);
 
-    let lastY = window.scrollY;
+  // Universal scroll listener for hide/show behavior on all pages (Home, Analytics, Contact)
+  useEffect(() => {
+    let lastY = typeof window.__lenis?.scroll === 'number' ? window.__lenis.scroll : window.scrollY;
+
     const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 40);
-      setHidden(y > lastY && y > 220);
+      const y = typeof window.__lenis?.scroll === 'number' ? window.__lenis.scroll : window.scrollY;
+
+      // Always show navbar at the top of any page
+      if (y <= 40) {
+        setScrolled(false);
+        setHidden(false);
+      } else {
+        setScrolled(true);
+        // Scroll down past threshold -> hide navbar
+        if (y > lastY + 8 && y > 120) {
+          setHidden(true);
+        } else if (y < lastY - 8) {
+          // Scroll up -> reveal navbar
+          setHidden(false);
+        }
+      }
       lastY = y;
 
-      // active section
-      let current = 'hero';
-      for (const l of LINKS) {
-        if (!l.isSection) continue;
-        const el = document.getElementById(l.id);
-        if (el && el.getBoundingClientRect().top < window.innerHeight * 0.42) current = l.id;
-      }
-      setActive(current);
+      // Active section tracking (active on Home page)
+      if (path === '/') {
+        let current = 'hero';
+        for (const l of LINKS) {
+          if (!l.isSection) continue;
+          const el = document.getElementById(l.id);
+          if (el && el.getBoundingClientRect().top < window.innerHeight * 0.42) {
+            current = l.id;
+          }
+        }
+        setActive(current);
 
-      // section progress for indicator
-      const p = {};
-      for (const l of LINKS) {
-        if (!l.isSection) continue;
-        const el = document.getElementById(l.id);
-        if (!el) continue;
-        const rect = el.getBoundingClientRect();
-        const total = rect.height;
-        const passed = Math.min(Math.max(-rect.top, 0), total);
-        p[l.id] = total ? passed / total : 0;
+        // Section progress calculation for indicators
+        const p = {};
+        for (const l of LINKS) {
+          if (!l.isSection) continue;
+          const el = document.getElementById(l.id);
+          if (!el) continue;
+          const rect = el.getBoundingClientRect();
+          const total = rect.height;
+          const passed = Math.min(Math.max(-rect.top, 0), total);
+          p[l.id] = total ? passed / total : 0;
+        }
+        setProgress(p);
       }
-      setProgress(p);
     };
+
     window.addEventListener('scroll', onScroll, { passive: true });
+    if (window.__lenis) {
+      window.__lenis.on('scroll', onScroll);
+    }
     onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (window.__lenis) {
+        window.__lenis.off('scroll', onScroll);
+      }
+    };
   }, [path]);
 
   useEffect(() => {
@@ -99,8 +129,7 @@ export default function Navbar() {
             href="/"
             onClick={(e) => {
               e.preventDefault();
-              if (path !== '/') navigate('/');
-              else scrollTo('hero');
+              navigate('/');
             }}
             className="group flex items-center gap-3 cursor-pointer"
             aria-label="SignSpeak AI home"
@@ -134,11 +163,7 @@ export default function Navbar() {
                       if (l.isPage) {
                         navigate(l.to);
                       } else {
-                        if (path !== '/') {
-                          navigate('/', l.id);
-                        } else {
-                          scrollTo(l.id);
-                        }
+                        navigate('/', l.id);
                       }
                     }}
                     className={`relative block rounded-full px-4 py-2 font-sans text-[13px] font-medium transition-colors duration-300 cursor-pointer ${
@@ -223,11 +248,7 @@ export default function Navbar() {
                   if (l.isPage) {
                     navigate(l.to);
                   } else {
-                    if (path !== '/') {
-                      navigate('/', l.id);
-                    } else {
-                      scrollTo(l.id);
-                    }
+                    navigate('/', l.id);
                   }
                 }, 80);
               }}

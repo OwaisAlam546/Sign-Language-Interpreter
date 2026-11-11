@@ -35,12 +35,7 @@ export default function Footer() {
     } else if (id === 'analytics') {
       navigate('/analytics');
     } else {
-      if (path !== '/') {
-        navigate('/', id);
-      } else {
-        if (window.__lenis) window.__lenis.scrollTo(`#${id}`, { offset: -70 });
-        else document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-      }
+      navigate('/', id);
     }
   };
 
