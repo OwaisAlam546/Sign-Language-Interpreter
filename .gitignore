@@ -31,4 +31,9 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Scratch & temporary workspace files
+scratch/
+project-report/pdf-qa/
+project-report/qa/
+
 backend/ai-service/data/

@@ -54,7 +54,7 @@ function dist3D(pts, i, j) {
  * @param {Array|Float32Array} rawLandmarks - Array of 21 [x,y,z] tuples, {x,y,z} objects, or 63-flat coordinates
  * @returns {Float32Array} 90-dimensional feature array
  */
-export function extractAlphabetFeatures(rawLandmarks) {
+export function extractAlphabetFeatures(rawLandmarks, isLeftHand = false) {
   const pts = parseLandmarks(rawLandmarks);
 
   // 1. Translation Invariance: center at wrist (landmark 0)
@@ -64,7 +64,9 @@ export function extractAlphabetFeatures(rawLandmarks) {
 
   const rel = new Float32Array(21 * 3);
   for (let i = 0; i < 21; i += 1) {
-    rel[i * 3] = pts[i * 3] - wx;
+    const rx = pts[i * 3] - wx;
+    // Canonicalize left hand to match right-hand trained model distribution
+    rel[i * 3] = isLeftHand ? -rx : rx;
     rel[i * 3 + 1] = pts[i * 3 + 1] - wy;
     rel[i * 3 + 2] = pts[i * 3 + 2] - wz;
   }
@@ -159,3 +161,5 @@ export function extractAlphabetFeatures(rawLandmarks) {
 
   return out;
 }
+
+export const extractAlphabetLandmarkFeatures = extractAlphabetFeatures;

@@ -47,13 +47,13 @@ export function loadLandmarkLabels() {
  * @param {Array|Float32Array} landmarks - 21 MediaPipe hand landmarks or 90D pre-extracted features
  * @returns {Promise<{gesture: string, confidence: number, margin: number, scores: Object}>}
  */
-export async function inferAlphabetLandmark(landmarks, _frameWidth, _frameHeight) {
+export async function inferAlphabetLandmark(landmarks, isLeftHand = false) {
   const [session, labels] = await Promise.all([loadLandmarkSession(), loadLandmarkLabels()]);
 
   // If input is already a 90D Float32Array, use directly; otherwise extract 90D features
   const features = (landmarks instanceof Float32Array && landmarks.length === 90)
     ? landmarks
-    : extractAlphabetFeatures(landmarks);
+    : extractAlphabetFeatures(landmarks, Boolean(isLeftHand));
 
   const inputName = session.inputNames[0];
   const tensor = new ort.Tensor('float32', features, [1, 90]);
@@ -85,21 +85,24 @@ export async function inferAlphabetLandmark(landmarks, _frameWidth, _frameHeight
   const scoreByLabel = Object.fromEntries(probabilities.map(({ label, score }) => [label, score]));
   const best = probabilities[0];
   const second = probabilities[1] || { score: 0 };
+  const margin = (best?.score || 0) - (second.score || 0);
+  const isAccepted = (best?.score || 0) >= 0.65 && margin >= 0.15;
 
   if (DEBUG_LOCAL_ONNX) {
     const top5 = probabilities.slice(0, 5);
-    const top5Lines = top5.map((item) => `${item.label} ${(item.score * 100).toFixed(1)}%`).join('\n');
-    console.log(`TOP 5 RAW MODEL (90D LANDMARK):\n${top5Lines}\nRaw winner: ${best?.label || 'NONE'} (${((best?.score || 0) * 100).toFixed(1)}%)`);
+    const top5Lines = top5.map((item) => `${item.label} ${(item.score * 100).toFixed(1)}%`).join(' | ');
+    console.log(`[ONNX 90D] ${top5Lines} => Winner: ${best?.label || 'NONE'} (conf: ${((best?.score || 0) * 100).toFixed(1)}%, margin: ${(margin * 100).toFixed(1)}%, accepted: ${isAccepted})`);
   }
 
   return {
-    gesture: best?.score >= 0.5 ? best.label : 'UNKNOWN',
+    gesture: isAccepted ? best.label : 'UNKNOWN',
     confidence: best?.score || 0,
-    margin: (best?.score || 0) - (second.score || 0),
+    margin,
     scores: scoreByLabel,
     rawWinner: best?.label,
     rawConfidence: best?.score || 0,
     top5: probabilities.slice(0, 5),
+    isAccepted,
   };
 }
 

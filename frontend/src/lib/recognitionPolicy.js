@@ -1,4 +1,5 @@
-export const MIN_RECOGNITION_CONFIDENCE = 0.78;
+export const MIN_RECOGNITION_CONFIDENCE = 0.65;
+export const MIN_TOP2_MARGIN = 0.15;
 export const MOTION_TRANSITION_THRESHOLD = 0.075;
 export const MOTION_SETTLED_THRESHOLD = 0.045;
 export const STABLE_FRAMES_STATIC = 4;
@@ -7,12 +8,25 @@ export const STABLE_FRAMES_DYNAMIC = 2;
 export function isAcceptedPrediction({
   gesture,
   confidence,
+  margin = 1.0,
   displayed = true,
   serviceState = 'local',
   wordLabels = new Set(),
 }) {
+  if (serviceState === 'error' || serviceState === 'idle' || serviceState === 'checking') {
+    return false;
+  }
   const label = typeof gesture === 'string' ? gesture.trim().toUpperCase() : '';
-  if (!/^[A-Z]+$/.test(label) || displayed === false || Number(confidence) < MIN_RECOGNITION_CONFIDENCE) return false;
+  if (
+    !/^[A-Z]+$/.test(label) ||
+    label === 'UNKNOWN' ||
+    label === 'NONE' ||
+    displayed === false ||
+    Number(confidence) < MIN_RECOGNITION_CONFIDENCE ||
+    Number(margin) < MIN_TOP2_MARGIN
+  ) {
+    return false;
+  }
   if (label.length === 1) return true;
   return wordLabels.has(label) && serviceState === 'ready';
 }

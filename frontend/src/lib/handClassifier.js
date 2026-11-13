@@ -1,4 +1,4 @@
-import { ASL_LANDMARKS } from '../components/HandSkeleton.jsx';
+import { ASL_LANDMARKS } from './aslLandmarksData.js';
 
 // ─────────────────────────────────────────────────────────────
 // lib/handClassifier.js — High-Accuracy Spatial & Temporal ASL Engine
@@ -73,8 +73,14 @@ export function classifyHand(rawLms) {
   if (!rawLms || rawLms.length < 21) return { gesture: 'UNKNOWN', confidence: 0.5, type: 'unknown' };
   const lms = rawLms.map(pt);
 
+  // Reject degenerate / collapsed landmarks
+  const rawPalm = dist2D(lms[0], lms[9]);
+  if (rawPalm < 0.01) {
+    return { gesture: 'UNKNOWN', confidence: 0.2, type: 'unknown' };
+  }
+
   // Scale reference: palm size (wrist 0 to middle MCP 9)
-  const palm = Math.max(dist2D(lms[0], lms[9]), 0.04);
+  const palm = Math.max(rawPalm, 0.04);
   const d = (i, j) => dist2D(lms[i], lms[j]) / palm;
 
   // PIP bend angles for [index, middle, ring, pinky]
@@ -136,9 +142,9 @@ export function classifyHand(rawLms) {
     return { gesture: 'F', confidence: 0.96, type: 'letter' };
   }
   // O: All fingertips curved together meeting the thumb tip closely
-  const allTipsMeetThumb = d(4, 8) < 0.28 && d(4, 12) < 0.35 && nExt === 0 && pipAngles[0] < 145;
+  const allTipsMeetThumb = d(4, 8) < 0.26 && d(4, 12) < 0.32 && nExt === 0;
   if (allTipsMeetThumb && lms[8].y < lms[5].y) {
-    return { gesture: 'O', confidence: 0.95, type: 'letter' };
+    return { gesture: 'O', confidence: 0.92, type: 'letter' };
   }
 
   // ── 3. PINKY SIGNS (Y, I) ──
@@ -189,14 +195,15 @@ export function classifyHand(rawLms) {
 
   // ── 7. CURVED HAND SIGN (C) & HOOKED INDEX (X) ──
   if (nExt === 0) {
-    // C: All four fingers moderately curved (40°..115°) with an open gap between thumb and index
+    // C: All four fingers moderately curved (35°..135°) with an open gap between thumb and index
     const allCurved =
-      pipAngles.every((a) => a >= 40 && a <= 115) &&
+      pipAngles.every((a) => a >= 35 && a <= 135) &&
       d(4, 8) >= 0.28 &&
-      d(4, 8) < 1.35 &&
+      d(4, 8) < 1.45 &&
+      d(4, 12) >= 0.26 &&
       lms[8].y < lms[5].y;
     if (allCurved) {
-      return { gesture: 'C', confidence: 0.94, type: 'letter' };
+      return { gesture: 'C', confidence: 0.90, type: 'letter' };
     }
 
     // X: Index finger hooked (PIP bent 45°–140° and index tip/PIP raised well above middle/ring/pinky)
@@ -249,10 +256,20 @@ export function classifyHand(rawLms) {
     }
 
     // S: Thumb wrapped horizontally across front of clenched fingers
-    return { gesture: 'S', confidence: 0.94, type: 'letter' };
+    const isS =
+      tProj >= 0.06 &&
+      tProj <= 0.68 &&
+      lms[4].y >= lms[5].y - 0.35 * palm &&
+      d(4, 9) < 0.60;
+    if (isS) {
+      return { gesture: 'S', confidence: 0.88, type: 'letter' };
+    }
+
+    // If none of the closed-fist letters are definitively matched, reject as UNKNOWN
+    return { gesture: 'UNKNOWN', confidence: 0.35, type: 'unknown' };
   }
 
-  return { gesture: 'UNKNOWN', confidence: 0.5, type: 'unknown' };
+  return { gesture: 'UNKNOWN', confidence: 0.3, type: 'unknown' };
 }
 
 /**
