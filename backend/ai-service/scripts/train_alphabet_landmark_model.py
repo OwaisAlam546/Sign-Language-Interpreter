@@ -86,9 +86,16 @@ def main():
         return run_checks()
 
     print('Starting actual training run...')
-    data = prepare_dataset(balance_train=True, target_per_class=350, seed=42)
-    train_x, train_y = data['train_x'], data['train_y']
-    val_x, val_y = data['val_x'], data['val_y']
+    npz_path = ROOT / 'data' / 'alphabet_landmark_features.npz'
+    if npz_path.exists():
+        print(f'Loading pre-prepared dataset from {npz_path}...')
+        npz = np.load(npz_path)
+        train_x, train_y = npz['train_x'], npz['train_y']
+        val_x, val_y = npz['val_x'], npz['val_y']
+    else:
+        data = prepare_dataset(balance_train=True, target_per_class=350, seed=42)
+        train_x, train_y = data['train_x'], data['train_y']
+        val_x, val_y = data['val_x'], data['val_y']
 
     model = build_alphabet_mlp()
 
@@ -119,7 +126,9 @@ def main():
 
     MODEL_OUTPUT_PATH.parent.mkdir(exist_ok=True)
     model.save(MODEL_OUTPUT_PATH)
-    LABELS_OUTPUT_PATH.write_text(json.dumps(CLASSES, indent=2), encoding='utf-8')
+    labels_content = json.dumps(CLASSES, indent=2)
+    LABELS_OUTPUT_PATH.write_text(labels_content, encoding='utf-8')
+    (MODEL_OUTPUT_PATH.parent / 'alphabet_landmark_model_labels.json').write_text(labels_content, encoding='utf-8')
     print(f'\nTrained model saved to {MODEL_OUTPUT_PATH}')
     print(f'Labels saved to {LABELS_OUTPUT_PATH}')
     return 0

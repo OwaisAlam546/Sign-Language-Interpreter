@@ -17,17 +17,30 @@ export function isAcceptedPrediction({
     return false;
   }
   const label = typeof gesture === 'string' ? gesture.trim().toUpperCase() : '';
+  const numConf = Number(confidence);
+  const numMargin = Number(margin);
+
+  // Validate finite numeric confidence and margin within valid bounds [0, 1]
+  if (
+    !Number.isFinite(numConf) ||
+    !Number.isFinite(numMargin) ||
+    numConf < MIN_RECOGNITION_CONFIDENCE ||
+    numConf > 1.0 ||
+    numMargin < MIN_TOP2_MARGIN ||
+    numMargin > 1.0
+  ) {
+    return false;
+  }
+
   if (
     !/^[A-Z]+$/.test(label) ||
     label === 'UNKNOWN' ||
     label === 'NONE' ||
-    displayed === false ||
-    Number(confidence) < MIN_RECOGNITION_CONFIDENCE ||
-    Number(margin) < MIN_TOP2_MARGIN
+    displayed === false
   ) {
     return false;
   }
-  if (label.length === 1) return true;
+  if (label.length === 1 || label === 'DEL' || label === 'SPACE') return true;
   return wordLabels.has(label) && serviceState === 'ready';
 }
 

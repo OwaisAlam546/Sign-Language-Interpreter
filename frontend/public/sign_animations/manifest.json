@@ -1,0 +1,252 @@
+[
+  {
+    "gloss": "BEFORE",
+    "category": "Time",
+    "handedness": "1-Handed",
+    "tips": "Move open flat hand backward toward your shoulder.",
+    "video_id": "05724",
+    "original_url": "https://www.youtube.com/watch?v=pDqITge_TGs",
+    "gif_url": "/sign_animations/before.gif",
+    "storyboard_url": "/sign_animations/before_storyboard.jpg"
+  },
+  {
+    "gloss": "BOOK",
+    "category": "Everyday Object",
+    "handedness": "2-Handed",
+    "tips": "Start with flat palms together, then open outward like a book.",
+    "video_id": "07068",
+    "original_url": "https://s3-us-west-1.amazonaws.com/files.startasl.com/asldictionary/book.mp4",
+    "gif_url": "/sign_animations/book.gif",
+    "storyboard_url": "/sign_animations/book_storyboard.jpg"
+  },
+  {
+    "gloss": "CHAIR",
+    "category": "Everyday Object",
+    "handedness": "2-Handed",
+    "tips": "Tap dominant bent index/middle fingers twice on non-dominant fingers.",
+    "video_id": "09848",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/74909.mp4",
+    "gif_url": "/sign_animations/chair.gif",
+    "storyboard_url": "/sign_animations/chair_storyboard.jpg"
+  },
+  {
+    "gloss": "COMPUTER",
+    "category": "Everyday Object",
+    "handedness": "2-Handed / Arm",
+    "tips": "Move dominant 'C' hand up forearm in a small arc twice.",
+    "video_id": "12311",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/51378.mp4",
+    "gif_url": "/sign_animations/computer.gif",
+    "storyboard_url": "/sign_animations/computer_storyboard.jpg"
+  },
+  {
+    "gloss": "DEAF",
+    "category": "Identity & Community",
+    "handedness": "1-Handed",
+    "tips": "Touch index finger near ear, then move to corner of mouth.",
+    "video_id": "14882",
+    "original_url": "https://s3-us-west-1.amazonaws.com/files.startasl.com/asldictionary/deaf.mp4",
+    "gif_url": "/sign_animations/deaf.gif",
+    "storyboard_url": "/sign_animations/deaf_storyboard.jpg"
+  },
+  {
+    "gloss": "DRINK",
+    "category": "Action & Need",
+    "handedness": "1-Handed",
+    "tips": "Hold 'C' cup hand to mouth and tilt upward.",
+    "video_id": "17709",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/153289.mp4",
+    "gif_url": "/sign_animations/drink.gif",
+    "storyboard_url": "/sign_animations/drink_storyboard.jpg"
+  },
+  {
+    "gloss": "EAT",
+    "category": "Action & Need",
+    "handedness": "1-Handed",
+    "tips": "Tap flattened 'O' fingertips to lips twice.",
+    "video_id": "18324",
+    "original_url": "https://s3-us-west-1.amazonaws.com/files.startasl.com/asldictionary/eat.mp4",
+    "gif_url": "/sign_animations/eat.gif",
+    "storyboard_url": "/sign_animations/eat_storyboard.jpg"
+  },
+  {
+    "gloss": "FAMILY",
+    "category": "People & Social",
+    "handedness": "2-Handed",
+    "tips": "Circle both 'F' hands outward from thumbs to pinkies.",
+    "video_id": "20978",
+    "original_url": "https://elementalaslconcepts.weebly.com/uploads/2/4/4/5/24454483/family.mov",
+    "gif_url": "/sign_animations/family.gif",
+    "storyboard_url": "/sign_animations/family_storyboard.jpg"
+  },
+  {
+    "gloss": "FINE",
+    "category": "Affirmation",
+    "handedness": "1-Handed",
+    "tips": "Thumb of open '5' hand taps center of chest.",
+    "video_id": "21869",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/92669.mp4",
+    "gif_url": "/sign_animations/fine.gif",
+    "storyboard_url": "/sign_animations/fine_storyboard.jpg"
+  },
+  {
+    "gloss": "FINISH",
+    "category": "Action & State",
+    "handedness": "2-Handed",
+    "tips": "Flick both open '5' hands outward from chest to palms down.",
+    "video_id": "21941",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/455668.mp4",
+    "gif_url": "/sign_animations/finish.gif",
+    "storyboard_url": "/sign_animations/finish_storyboard.jpg"
+  },
+  {
+    "gloss": "GO",
+    "category": "Motion & Travel",
+    "handedness": "2-Handed",
+    "tips": "Roll both index fingers forward away from body.",
+    "video_id": "24940",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/58507.mp4",
+    "gif_url": "/sign_animations/go.gif",
+    "storyboard_url": "/sign_animations/go_storyboard.jpg"
+  },
+  {
+    "gloss": "HELP",
+    "category": "Action & Need",
+    "handedness": "2-Handed",
+    "tips": "Dominant 'A' fist on flat palm, lift upward together.",
+    "video_id": "27206",
+    "original_url": "https://s3-us-west-1.amazonaws.com/files.startasl.com/asldictionary/help.mp4",
+    "gif_url": "/sign_animations/help.gif",
+    "storyboard_url": "/sign_animations/help_storyboard.jpg"
+  },
+  {
+    "gloss": "LIKE",
+    "category": "Preference & Feeling",
+    "handedness": "1-Handed",
+    "tips": "Pull middle finger and thumb away from chest while pinching.",
+    "video_id": "33266",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/457551.mp4",
+    "gif_url": "/sign_animations/like.gif",
+    "storyboard_url": "/sign_animations/like_storyboard.jpg"
+  },
+  {
+    "gloss": "MOTHER",
+    "category": "Family & People",
+    "handedness": "1-Handed",
+    "tips": "Thumb of open '5' hand taps chin twice.",
+    "video_id": "36929",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/48601.mp4",
+    "gif_url": "/sign_animations/mother.gif",
+    "storyboard_url": "/sign_animations/mother_storyboard.jpg"
+  },
+  {
+    "gloss": "NO",
+    "category": "Affirmation & Response",
+    "handedness": "1-Handed",
+    "tips": "Snap index and middle fingers down onto thumb like a beak.",
+    "video_id": "38524",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/48823.mp4",
+    "gif_url": "/sign_animations/no.gif",
+    "storyboard_url": "/sign_animations/no_storyboard.jpg"
+  },
+  {
+    "gloss": "NOW",
+    "category": "Time",
+    "handedness": "2-Handed",
+    "tips": "Drop both 'Y' hands downward decisively in front of body.",
+    "video_id": "38990",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/111145.mp4",
+    "gif_url": "/sign_animations/now.gif",
+    "storyboard_url": "/sign_animations/now_storyboard.jpg"
+  },
+  {
+    "gloss": "SCHOOL",
+    "category": "Place & Education",
+    "handedness": "2-Handed",
+    "tips": "Dominant flat hand claps horizontally on non-dominant palm twice.",
+    "video_id": "49595",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/50778.mp4",
+    "gif_url": "/sign_animations/school.gif",
+    "storyboard_url": "/sign_animations/school_storyboard.jpg"
+  },
+  {
+    "gloss": "WALK",
+    "category": "Motion & Activity",
+    "handedness": "2-Handed",
+    "tips": "Alternate flat hands forward and backward in stepping motion.",
+    "video_id": "62159",
+    "original_url": "https://s3-us-west-1.amazonaws.com/files.startasl.com/asldictionary/walk.mp4",
+    "gif_url": "/sign_animations/walk.gif",
+    "storyboard_url": "/sign_animations/walk_storyboard.jpg"
+  },
+  {
+    "gloss": "WANT",
+    "category": "Action & Need",
+    "handedness": "2-Handed",
+    "tips": "Pull both clawed hands toward your chest.",
+    "video_id": "62245",
+    "original_url": "https://s3-us-west-1.amazonaws.com/files.startasl.com/asldictionary/want-2.mp4",
+    "gif_url": "/sign_animations/want.gif",
+    "storyboard_url": "/sign_animations/want_storyboard.jpg"
+  },
+  {
+    "gloss": "WHAT",
+    "category": "Question",
+    "handedness": "2-Handed",
+    "tips": "Palms up, shake hands side-to-side with questioning face.",
+    "video_id": "62964",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/51095.mp4",
+    "gif_url": "/sign_animations/what.gif",
+    "storyboard_url": "/sign_animations/what_storyboard.jpg"
+  },
+  {
+    "gloss": "WHO",
+    "category": "Question",
+    "handedness": "1-Handed",
+    "tips": "Thumb on chin, wiggle extended index finger twice.",
+    "video_id": "63225",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/51811.mp4",
+    "gif_url": "/sign_animations/who.gif",
+    "storyboard_url": "/sign_animations/who_storyboard.jpg"
+  },
+  {
+    "gloss": "WOMAN",
+    "category": "Family & People",
+    "handedness": "1-Handed",
+    "tips": "Thumb of open '5' touches chin, then touches upper chest.",
+    "video_id": "63665",
+    "original_url": "https://s3-us-west-1.amazonaws.com/files.startasl.com/asldictionary/woman2.mp4",
+    "gif_url": "/sign_animations/woman.gif",
+    "storyboard_url": "/sign_animations/woman_storyboard.jpg"
+  },
+  {
+    "gloss": "WORK",
+    "category": "Daily Life & Activity",
+    "handedness": "2-Handed",
+    "tips": "Tap dominant fist wrist onto non-dominant wrist twice.",
+    "video_id": "63790",
+    "original_url": "https://s3-us-west-1.amazonaws.com/files.startasl.com/asldictionary/work.mp4",
+    "gif_url": "/sign_animations/work.gif",
+    "storyboard_url": "/sign_animations/work_storyboard.jpg"
+  },
+  {
+    "gloss": "YEAR",
+    "category": "Time",
+    "handedness": "2-Handed",
+    "tips": "Dominant fist orbits around stationary fist and rests on top.",
+    "video_id": "64212",
+    "original_url": "https://signstock.blob.core.windows.net/signschool/videos/db_uploads/SignSchool%20Year-VAtU8WanjmE.mp4",
+    "gif_url": "/sign_animations/year.gif",
+    "storyboard_url": "/sign_animations/year_storyboard.jpg"
+  },
+  {
+    "gloss": "YES",
+    "category": "Affirmation & Response",
+    "handedness": "1-Handed",
+    "tips": "Dominant 'S' fist nods up and down at the wrist twice.",
+    "video_id": "64280",
+    "original_url": "https://media.spreadthesign.com/video/mp4/13/485639.mp4",
+    "gif_url": "/sign_animations/yes.gif",
+    "storyboard_url": "/sign_animations/yes_storyboard.jpg"
+  }
+]

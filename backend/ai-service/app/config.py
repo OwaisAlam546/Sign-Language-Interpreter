@@ -21,13 +21,28 @@ def _cors_list(raw: str) -> list[str]:
     return [o.strip() for o in raw.split(',') if o.strip()]
 
 
+def _resolve_dir(raw: str | None, base: Path) -> Path:
+    """Resolve directory path; relative paths are anchored to the service base dir."""
+    if not raw:
+        return base / 'models'
+    p = Path(raw)
+    return p if p.is_absolute() else (base / p)
+
+
 @dataclass
 class Settings:
     host: str = field(default_factory=lambda: os.getenv('AI_HOST', '0.0.0.0'))
     port: int = field(default_factory=lambda: int(os.getenv('AI_PORT', '8000')))
-    # Where trained weights live — drop sign_lstm.h5 / .tflite / .onnx here
+    # Where trained weights live — anchored to _BASE_DIR so it works from any CWD
     model_dir: Path = field(
-        default_factory=lambda: Path(os.getenv('AI_MODEL_DIR', str(_BASE_DIR / 'models')))
+        default_factory=lambda: _resolve_dir(os.getenv('AI_MODEL_DIR'), _BASE_DIR)
+    )
+    # Explicit model selection: AI_MODEL_NAME or AI_MODEL_PATH
+    model_name: str | None = field(
+        default_factory=lambda: os.getenv('AI_MODEL_NAME', 'alphabet_landmark_model.keras')
+    )
+    model_path: Path | None = field(
+        default_factory=lambda: Path(os.getenv('AI_MODEL_PATH')) if os.getenv('AI_MODEL_PATH') else None
     )
     # tone = offline synthesized WAV fallback (zero dependencies)
     # gtts = real neural TTS (needs `pip install gTTS` + internet)

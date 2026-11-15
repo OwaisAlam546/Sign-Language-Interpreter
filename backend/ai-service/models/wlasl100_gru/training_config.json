@@ -1,0 +1,143 @@
+{
+  "task": "WLASL100 25-Class Word-Level Recognition",
+  "phase": "Phase 4 - Temporal Sequence Training",
+  "timestamp": "2026-11-14T10:01:28Z",
+  "total_clips": 584,
+  "total_classes": 25,
+  "classes": [
+    "BEFORE",
+    "BOOK",
+    "CHAIR",
+    "COMPUTER",
+    "DEAF",
+    "DRINK",
+    "EAT",
+    "FAMILY",
+    "FINE",
+    "FINISH",
+    "GO",
+    "HELP",
+    "LIKE",
+    "MOTHER",
+    "NO",
+    "NOW",
+    "SCHOOL",
+    "WALK",
+    "WANT",
+    "WHAT",
+    "WHO",
+    "WOMAN",
+    "WORK",
+    "YEAR",
+    "YES"
+  ],
+  "splits": {
+    "train": {
+      "clips": 362,
+      "signers_count": 62
+    },
+    "validation": {
+      "clips": 70,
+      "signers": [
+        12,
+        41,
+        109
+      ]
+    },
+    "test_signer_independent": {
+      "clips": 152,
+      "signers": [
+        9,
+        11,
+        13,
+        14,
+        20,
+        36
+      ]
+    },
+    "test_original_benchmark": {
+      "clips": 75
+    }
+  },
+  "hyperparameters": {
+    "seed": 42,
+    "batch_size": 16,
+    "max_epochs": 120,
+    "actual_epochs": 87,
+    "early_stopping_patience": 20,
+    "initial_learning_rate": 0.001,
+    "min_learning_rate": 1e-05,
+    "lr_reduce_factor": 0.5,
+    "lr_reduce_patience": 7,
+    "optimizer": "Adam",
+    "loss": "sparse_categorical_crossentropy"
+  },
+  "model_architecture": {
+    "name": "wlasl100_compact_gru",
+    "total_parameters": 52793,
+    "layers": [
+      {
+        "name": "sequence_input",
+        "shape": [
+          null,
+          16,
+          147
+        ]
+      },
+      {
+        "name": "spatial_projection",
+        "units": 64,
+        "activation": "relu"
+      },
+      {
+        "name": "spatial_dropout",
+        "rate": 0.2
+      },
+      {
+        "name": "bidirectional_gru",
+        "units_per_dir": 48,
+        "return_sequences": true
+      },
+      {
+        "name": "temporal_avg_pool"
+      },
+      {
+        "name": "temporal_max_pool"
+      },
+      {
+        "name": "temporal_concat",
+        "units": 192
+      },
+      {
+        "name": "temporal_dropout",
+        "rate": 0.3
+      },
+      {
+        "name": "dense_head",
+        "units": 48,
+        "activation": "relu"
+      },
+      {
+        "name": "head_dropout",
+        "rate": 0.2
+      },
+      {
+        "name": "class_probabilities",
+        "units": 25,
+        "activation": "softmax"
+      }
+    ]
+  },
+  "augmentation_policy": {
+    "training_only": true,
+    "spatial_scale_jitter": "Uniform(0.96, 1.04), p=0.5",
+    "spatial_translation_jitter": "Normal(0, 0.012), p=0.5",
+    "landmark_sensor_noise": "Normal(0, 0.003), p=0.5",
+    "temporal_index_jitter": "+/- 1 frame, p=0.3",
+    "secondary_hand_deletion": "Omitted to strictly preserve two-handed sign validity",
+    "validation_and_test_augmented": false
+  },
+  "execution_duration_seconds": 35.45,
+  "keras_version": "3.15.1",
+  "tensorflow_version": "2.16.2"
+}

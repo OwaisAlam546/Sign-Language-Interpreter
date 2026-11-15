@@ -53,7 +53,16 @@ def classify(lms: list[_Point]) -> dict[str, Any]:
     Preserves exact backward compatibility with synthetic test hands while
     adding full A–Z disambiguation for real MediaPipe camera landmarks.
     """
-    palm = max(_dist2d(lms[0], lms[9]), 0.04)
+    if not lms or len(lms) < 21:
+        return {'gesture': 'UNKNOWN', 'confidence': 0.0}
+    if any(len(p) < 3 or not all(isinstance(v, (int, float)) and math.isfinite(v) for v in p[:3]) for p in lms):
+        return {'gesture': 'UNKNOWN', 'confidence': 0.0}
+
+    raw_palm = _dist2d(lms[0], lms[9])
+    if raw_palm < 0.01:
+        return {'gesture': 'UNKNOWN', 'confidence': 0.0}
+
+    palm = max(raw_palm, 0.04)
     d = lambda i, j: _dist2d(lms[i], lms[j]) / palm
 
     angles = [_angle_at(lms[m], lms[p], lms[t])
@@ -151,7 +160,7 @@ def classify(lms: list[_Point]) -> dict[str, Any]:
 
         if angles[2] < 162.0 and angles[3] < 155.0 and d(4, 12) < 0.32 and lms[8][1] <= lms[4][1] + 0.04 * palm:
             return {'gesture': 'E', 'confidence': 0.92}
-        if t_proj < 0.0 or (t_proj <= 0.04 and lms[4][1] < lms[6][1]):
+        if (t_proj < 0.0 or (t_proj <= 0.04 and lms[4][1] < lms[6][1])) and lms[4][1] < lms[5][1] + 0.15 * palm and d(4, 5) < 0.75:
             return {'gesture': 'A', 'confidence': 0.96}
         if 0.0 <= t_proj <= 0.28 and lms[4][1] < lms[5][1] - 0.25 * palm:
             return {'gesture': 'T', 'confidence': 0.92}
@@ -159,13 +168,24 @@ def classify(lms: list[_Point]) -> dict[str, Any]:
             return {'gesture': 'M', 'confidence': 0.92}
         if 0.28 < t_proj <= 0.50 and d(4, 12) < 0.35:
             return {'gesture': 'N', 'confidence': 0.92}
-        return {'gesture': 'S', 'confidence': 0.94}
+
+        # S: Thumb wrapped horizontally across front of clenched fingers
+        is_s = (
+            0.06 <= t_proj <= 0.68
+            and lms[4][1] >= lms[5][1] - 0.35 * palm
+            and d(4, 9) < 0.60
+        )
+        if is_s:
+            return {'gesture': 'S', 'confidence': 0.88}
+
+        # Unmatched fist: reject as UNKNOWN with low confidence instead of falling back to S
+        return {'gesture': 'UNKNOWN', 'confidence': 0.35}
 
     if not thumb and n_ext == 0:
         return {'gesture': 'A', 'confidence': 0.96}
     if thumb and n_ext == 0:
         return {'gesture': 'THUMBS_UP', 'confidence': 0.95}
-    return {'gesture': 'UNKNOWN', 'confidence': 0.5}
+    return {'gesture': 'UNKNOWN', 'confidence': 0.25}
 
 
 # ── Synthetic landmark generator (mock camera / tests) ─────────

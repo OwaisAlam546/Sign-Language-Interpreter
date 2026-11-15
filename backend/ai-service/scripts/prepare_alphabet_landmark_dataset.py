@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'
 
 FEATURE_DIM = 90
-CLASSES = [chr(c) for c in range(ord('A'), ord('Z') + 1)]
+CLASSES = [chr(c) for c in range(ord('A'), ord('Z') + 1)] + ['DEL', 'SPACE']
 
 
 def extract_features(raw_landmarks: np.ndarray) -> np.ndarray:
@@ -244,7 +244,7 @@ def main():
         assert not np.isnan(feat).any(), f'Class {letter} contains NaN!'
         print(f'  Class {letter} (sample #{first_idx}): features={feat.shape}, min={feat.min():.3f}, max={feat.max():.3f} [PASS]')
 
-    print(f'\nAll 26 classes successfully transformed into {FEATURE_DIM}-dimensional feature vectors.')
+    print(f'\nAll {len(CLASSES)} classes successfully transformed into {FEATURE_DIM}-dimensional feature vectors.')
 
     if args.save:
         print('\nProcessing and splitting full dataset...')

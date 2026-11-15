@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-11-14T10:15:00Z",
+  "total_sequences": 584,
+  "max_absolute_probability_difference": 4.76837158203125e-07,
+  "mean_absolute_probability_difference": 6.699162558021499e-09,
+  "top1_agreement_rate": 1.0,
+  "top5_agreement_rate": 1.0,
+  "single_sequence_top1_rate": 1.0,
+  "single_sequence_max_abs_difference": 7.152557373046875e-07,
+  "single_sequence_mean_abs_difference": 1.0962101271161373e-07,
+  "parity_passed": true,
+  "keras_model_path": "C:\\Users\\csc\\OneDrive\\Desktop\\Sign-Project\\backend\\ai-service\\models\\wlasl100_gru\\best_model.keras",
+  "onnx_model_path": "C:\\Users\\csc\\OneDrive\\Desktop\\Sign-Project\\frontend\\public\\models\\wlasl100_gru_25class.onnx",
+  "onnx_opset": 17,
+  "tolerance_threshold": 0.0001
+}

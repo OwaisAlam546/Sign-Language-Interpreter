@@ -70,13 +70,18 @@ function angleAt(a, b, c) {
  * Comprehensive 26-letter static & posture classifier with palm-scale normalization.
  */
 export function classifyHand(rawLms) {
-  if (!rawLms || rawLms.length < 21) return { gesture: 'UNKNOWN', confidence: 0.5, type: 'unknown' };
+  if (!rawLms || rawLms.length < 21) return { gesture: 'UNKNOWN', confidence: 0.0, type: 'unknown' };
   const lms = rawLms.map(pt);
+
+  // Check for NaN or non-finite coordinates
+  if (lms.some((p) => !Number.isFinite(p.x) || !Number.isFinite(p.y) || !Number.isFinite(p.z))) {
+    return { gesture: 'UNKNOWN', confidence: 0.0, type: 'unknown' };
+  }
 
   // Reject degenerate / collapsed landmarks
   const rawPalm = dist2D(lms[0], lms[9]);
   if (rawPalm < 0.01) {
-    return { gesture: 'UNKNOWN', confidence: 0.2, type: 'unknown' };
+    return { gesture: 'UNKNOWN', confidence: 0.0, type: 'unknown' };
   }
 
   // Scale reference: palm size (wrist 0 to middle MCP 9)
@@ -236,7 +241,11 @@ export function classifyHand(rawLms) {
     }
 
     // A: Thumb rests alongside index finger (tProj < 0.0) or upright above index MCP
-    if (tProj < 0.0 || (tProj <= 0.04 && lms[4].y < lms[6].y)) {
+    const isA =
+      (tProj < 0.0 || (tProj <= 0.04 && lms[4].y < lms[6].y)) &&
+      lms[4].y < lms[5].y + 0.15 * palm &&
+      d(4, 5) < 0.75;
+    if (isA) {
       return { gesture: 'A', confidence: 0.96, type: 'letter' };
     }
 
@@ -282,7 +291,7 @@ export function classifyHand(rawLms) {
  */
 export function classifySequence(frames, secondaryFrames = []) {
   if (!frames || frames.length === 0) {
-    return { gesture: 'UNKNOWN', confidence: 0.5, type: 'unknown', displayed: false };
+    return { gesture: 'UNKNOWN', confidence: 0.0, type: 'unknown', displayed: false };
   }
 
   const normFrames = frames.map((f) => f.map(pt));
@@ -481,7 +490,7 @@ export function classifySequence(frames, secondaryFrames = []) {
   });
   const entries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   if (entries.length === 0) {
-    return { gesture: 'UNKNOWN', confidence: 0.5, type: 'unknown', displayed: false };
+    return { gesture: 'UNKNOWN', confidence: 0.0, type: 'unknown', displayed: false };
   }
   const [bestGesture, totalScore] = entries[0];
   const secondScore = entries[1] ? entries[1][1] : 0;

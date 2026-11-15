@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignSpeak AI — WLASL100 GRU Browser WASM Test Harness</title>
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #111827;
+      --border: #1f2937;
+      --text: #f9fafb;
+      --text-dim: #9ca3af;
+      --accent: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    body { background: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 20px; font-weight: 700; color: #60a5fa; margin-bottom: 8px; }
+    p.subtitle { font-size: 13px; color: var(--text-dim); margin-bottom: 24px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .card-title { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    button { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #2563eb; }
+    button:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
+    button.secondary { background: #1f2937; color: var(--text); border: 1px solid #374151; }
+    button.secondary:hover { background: #374151; }
+    button.danger { background: #7f1d1d; color: #fca5a5; }
+    button.danger:hover { background: #991b1b; }
+    select { background: #1f2937; color: var(--text); border: 1px solid #374151; padding: 10px 14px; border-radius: 6px; font-size: 13px; outline: none; }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    .status-badge.ready { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .status-badge.loading { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .status-badge.error { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .metric-box { background: #1a2234; border: 1px solid #28354f; border-radius: 6px; padding: 12px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+    .metric-value { font-size: 18px; font-weight: 700; color: #93c5fd; }
+    .progress-bar-container { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 12px; }
+    .progress-label { width: 90px; font-weight: 600; }
+    .progress-bar { flex: 1; height: 16px; background: #1f2937; border-radius: 4px; overflow: hidden; position: relative; }
+    .progress-fill { height: 100%; background: #3b82f6; border-radius: 4px; transition: width 0.3s ease; }
+    .progress-fill.top { background: #10b981; }
+    .progress-pct { width: 55px; text-align: right; color: var(--text-dim); }
+    .log-box { background: #0c1017; border: 1px solid #1a2234; border-radius: 6px; padding: 12px; height: 160px; overflow-y: auto; font-size: 12px; color: #94a3b8; }
+    .log-entry { margin-bottom: 4px; }
+    .log-entry.info { color: #60a5fa; }
+    .log-entry.success { color: #34d399; }
+    .log-entry.warn { color: #fbbf24; }
+    .log-entry.error { color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SignSpeak AI — WLASL100 GRU Browser WASM Test Harness</h1>
+    <p class="subtitle">Standalone browser verification of ONNX Runtime Web WASM inference on 25-class ASL sequences (16 frames × 147 features).</p>
+
+    <!-- Model Status Card -->
+    <div class="card">
+      <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Model & Session Status</span>
+        <span id="statusBadge" class="status-badge loading">Initializing...</span>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-label">Model File</div>
+          <div class="metric-value" style="font-size: 13px;">wlasl100_gru.onnx</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Model Size</div>
+          <div class="metric-value">250.2 KB</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Load Time</div>
+          <div id="loadTimeVal" class="metric-value">—</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">WASM Threads</div>
+          <div class="metric-value">1 (Sequential)</div>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button id="btnInit" class="secondary" onclick="initModel()">Reload Model</button>
+        <button id="btnBenchmark" disabled onclick="runBenchmark()">Run 100-Iteration Latency Benchmark</button>
+        <button id="btnErrorTest" class="danger" disabled onclick="testInvalidShape()">Test Error Handling (Invalid Shape)</button>
+      </div>
+    </div>
+
+    <!-- Inference Test Card -->
+    <div class="card">
+      <div class="card-title">Interactive Sequence Inference</div>
+      <div class="btn-group" style="align-items: center;">
+        <select id="sampleSelect" disabled onchange="runSelectedSample()">
+          <option value="">Select a test clip...</option>
+        </select>
+        <button id="btnRunInference" disabled onclick="runSelectedSample()">Run Prediction</button>
+      </div>
+
+      <div class="metrics-grid" style="margin-top: 16px;">
+        <div class="metric-box">
+          <div class="metric-label">Predicted Gloss</div>
+          <div id="predGloss" class="metric-value" style="color: #34d399;">—</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Confidence</div>
+          <div id="predConf" class="metric-value">—</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">True Gloss</div>
+          <div id="trueGloss" class="metric-value" style="color: #cbd5e1;">—</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Inference Latency</div>
+          <div id="inferLatency" class="metric-value" style="color: #facc15;">—</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 8px;">TOP-5 PREDICTIONS BREAKDOWN:</div>
+        <div id="top5Bars">
+          <div style="color: #64748b; font-size: 12px;">Run inference to view top-5 posteriors.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latency Benchmark Results Card -->
+    <div class="card" id="benchmarkCard" style="display: none;">
+      <div class="card-title">Latency Benchmark Results (100 Consecutive Runs)</div>
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-label">Median Latency</div>
+          <div id="benchMedian" class="metric-value">—</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">P95 Latency</div>
+          <div id="benchP95" class="metric-value">—</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Mean Latency</div>
+          <div id="benchMean" class="metric-value">—</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">Min / Max</div>
+          <div id="benchMinMax" class="metric-value" style="font-size: 14px;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Execution Logs -->
+    <div class="card">
+      <div class="card-title">Console & Execution Log</div>
+      <div id="logBox" class="log-box"></div>
+    </div>
+  </div>
+
+  <script>
+    let session = null;
+    let classLabels = [];
+    let testSamples = [];
+
+    function log(msg, type = 'info') {
+      const box = document.getElementById('logBox');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      box.appendChild(entry);
+      box.scrollTop = box.scrollHeight;
+      console.log(`[${type.toUpperCase()}] ${msg}`);
+    }
+
+    async function initModel() {
+      const badge = document.getElementById('statusBadge');
+      badge.className = 'status-badge loading';
+      badge.textContent = 'Loading WASM...';
+      log('Fetching labels and sample vectors...', 'info');
+
+      try {
+        // Load Labels
+        const lblRes = await fetch('/models/wlasl100_gru_labels.json');
+        classLabels = await lblRes.json();
+        log(`Loaded ${classLabels.length} class labels.`, 'success');
+
+        // Load Samples
+        const sampRes = await fetch('/models/test_word_samples.json');
+        testSamples = await sampRes.json();
+        log(`Loaded ${testSamples.length} test samples.`, 'success');
+
+        // Populate Select
+        const sel = document.getElementById('sampleSelect');
+        sel.innerHTML = '<option value="">Select a test clip...</option>';
+        testSamples.forEach((s, i) => {
+          const opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = `Clip ${s.video_id}: True Gloss = ${s.gloss} (Signer ${s.signer_id})`;
+          sel.appendChild(opt);
+        });
+
+        // Initialize ONNX Session
+        log('Creating ONNX Runtime Web WASM session...', 'info');
+        const t0 = performance.now();
+        ort.env.wasm.numThreads = 1;
+        ort.env.wasm.proxy = false;
+
+        session = await ort.InferenceSession.create('/models/wlasl100_gru_25class.onnx', {
+          executionProviders: ['wasm'],
+          graphOptimizationLevel: 'all',
+          executionMode: 'sequential'
+        });
+        const loadMs = performance.now() - t0;
+        document.getElementById('loadTimeVal').textContent = `${loadMs.toFixed(1)} ms`;
+
+        badge.className = 'status-badge ready';
+        badge.textContent = 'Session Ready';
+        log(`Model loaded successfully in ${loadMs.toFixed(1)} ms. Input: ${session.inputNames[0]}`, 'success');
+
+        document.getElementById('btnBenchmark').disabled = false;
+        document.getElementById('btnErrorTest').disabled = false;
+        document.getElementById('sampleSelect').disabled = false;
+        document.getElementById('btnRunInference').disabled = false;
+
+        // Auto-select first sample
+        sel.selectedIndex = 1;
+        runSelectedSample();
+      } catch (err) {
+        badge.className = 'status-badge error';
+        badge.textContent = 'Load Failed';
+        log(`Initialization failed: ${err.message}`, 'error');
+      }
+    }
+
+    async function runSelectedSample() {
+      const idx = document.getElementById('sampleSelect').value;
+      if (idx === '' || !testSamples[idx]) return;
+
+      const sample = testSamples[idx];
+      const flat = new Float32Array(sample.features.flat());
+      const tensor = new ort.Tensor('float32', flat, [1, 16, 147]);
+
+      try {
+        const t0 = performance.now();
+        const outputMap = await session.run({ sequence_input: tensor });
+        const latency = performance.now() - t0;
+
+        const probs = Array.from(outputMap[session.outputNames[0]].data);
+        const indexed = probs.map((p, i) => ({ idx: i, prob: p, gloss: classLabels[i] }));
+        indexed.sort((a, b) => b.prob - a.prob);
+
+        const top1 = indexed[0];
+        document.getElementById('predGloss').textContent = top1.gloss;
+        document.getElementById('predConf').textContent = `${(top1.prob * 100).toFixed(1)}%`;
+        document.getElementById('trueGloss').textContent = sample.gloss;
+        document.getElementById('inferLatency').textContent = `${latency.toFixed(2)} ms`;
+
+        // Render Top-5 Bars
+        const container = document.getElementById('top5Bars');
+        container.innerHTML = '';
+        indexed.slice(0, 5).forEach((item, r) => {
+          const row = document.createElement('div');
+          row.className = 'progress-bar-container';
+          row.innerHTML = `
+            <div class="progress-label">${item.gloss}</div>
+            <div class="progress-bar">
+              <div class="progress-fill ${r === 0 ? 'top' : ''}" style="width: ${(item.prob * 100).toFixed(1)}%;"></div>
+            </div>
+            <div class="progress-pct">${(item.prob * 100).toFixed(1)}%</div>
+          `;
+          container.appendChild(row);
+        });
+
+        log(`Inference complete: True = ${sample.gloss} | Pred = ${top1.gloss} (${(top1.prob * 100).toFixed(1)}%) in ${latency.toFixed(2)} ms`, 'info');
+      } catch (err) {
+        log(`Inference error: ${err.message}`, 'error');
+      }
+    }
+
+    async function runBenchmark() {
+      if (!session || testSamples.length === 0) return;
+      const btn = document.getElementById('btnBenchmark');
+      btn.disabled = true;
+      btn.textContent = 'Benchmarking (100 runs)...';
+      log('Starting 100-iteration WASM latency benchmark...', 'info');
+
+      const flat = new Float32Array(testSamples[0].features.flat());
+      const tensor = new ort.Tensor('float32', flat, [1, 16, 147]);
+
+      // Warmup 5 runs
+      for (let w = 0; w < 5; w++) await session.run({ sequence_input: tensor });
+
+      const latencies = [];
+      for (let i = 0; i < 100; i++) {
+        const t0 = performance.now();
+        await session.run({ sequence_input: tensor });
+        latencies.push(performance.now() - t0);
+      }
+
+      latencies.sort((a, b) => a - b);
+      const median = latencies[Math.floor(latencies.length / 2)];
+      const p95 = latencies[Math.floor(latencies.length * 0.95)];
+      const mean = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+      const min = latencies[0];
+      const max = latencies[latencies.length - 1];
+
+      document.getElementById('benchMedian').textContent = `${median.toFixed(2)} ms`;
+      document.getElementById('benchP95').textContent = `${p95.toFixed(2)} ms`;
+      document.getElementById('benchMean').textContent = `${mean.toFixed(2)} ms`;
+      document.getElementById('benchMinMax').textContent = `${min.toFixed(2)} / ${max.toFixed(2)} ms`;
+      document.getElementById('benchmarkCard').style.display = 'block';
+
+      log(`Benchmark finished! Median: ${median.toFixed(2)} ms | P95: ${p95.toFixed(2)} ms | Mean: ${mean.toFixed(2)} ms`, 'success');
+      btn.disabled = false;
+      btn.textContent = 'Run 100-Iteration Latency Benchmark';
+    }
+
+    async function testInvalidShape() {
+      log('Injecting invalid temporal tensor shape [1, 10, 147]...', 'warn');
+      try {
+        const badTensor = new ort.Tensor('float32', new Float32Array(10 * 147), [1, 10, 147]);
+        await session.run({ sequence_input: badTensor });
+        log('ERROR: Invalid shape was unexpectedly accepted!', 'error');
+      } catch (err) {
+        log(`PASSED: WASM safely rejected invalid shape: ${err.message.slice(0, 80)}...`, 'success');
+      }
+    }
+
+    // Auto initialize on load
+    window.addEventListener('DOMContentLoaded', initModel);
+  </script>
+</body>
+</html>

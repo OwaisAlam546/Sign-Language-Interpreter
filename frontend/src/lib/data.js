@@ -148,7 +148,7 @@ export const ARCH_STEPS = [
   { label: 'REST API', sub: 'HTTP · JSON', color: 'from-cyan-400 to-teal-400' },
   { label: 'Flask', sub: 'OpenCV preprocessing', color: 'from-teal-400 to-emerald-400' },
   { label: 'MediaPipe', sub: '21 landmark extraction', color: 'from-emerald-400 to-green-400' },
-  { label: 'TensorFlow · LSTM', sub: 'Gesture classification', color: 'from-green-400 to-orange-400' },
+  { label: 'ONNX Runtime Web', sub: '90D landmark classification', color: 'from-green-400 to-orange-400' },
   { label: 'Speech Engine', sub: 'TTS Output', color: 'from-orange-400 to-rose-400' },
 ];
 
@@ -159,7 +159,7 @@ export const TEAM = [
     role: 'Developer — Model Training & Backend',
     initials: 'MO',
     gradient: 'from-sky-400 to-cyan-400',
-    points: ['LSTM model training', 'Flask API integration', 'Dataset curation'],
+    points: ['Neural model training', 'FastAPI backend', 'Dataset curation'],
   },
   {
     name: 'Niranjan M',

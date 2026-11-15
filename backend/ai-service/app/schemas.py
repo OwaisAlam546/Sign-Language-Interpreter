@@ -19,18 +19,22 @@ class PredictRequest(BaseModel):
     landmarks: Optional[list[list[float]]] = None   # 21 × [x, y, z]
     capture: bool = False                           # pull a camera frame instead
     sampleId: Optional[str] = Field(default=None, max_length=80)
+    isLeftHand: bool = False
+    sessionId: Optional[str] = Field(default=None, max_length=128)
 
 
 class PredictSequenceRequest(BaseModel):
     """≥2 hand frames → one smoothed decision. Length is a DOMAIN rule
     (prediction service), shape is a schema rule."""
-    frames: list[list[list[float]]] = Field(max_length=120)
+    frames: list[list[list[float]]] = Field(default_factory=list, max_length=120)
     strategy: Literal['majority', 'average'] = 'majority'
+    sessionId: Optional[str] = Field(default=None, max_length=128)
+    reset: bool = False
 
     @field_validator('frames')
     @classmethod
     def _frame_shape(cls, frames: list[list[list[float]]]) -> list[list[list[float]]]:
-        if any(len(f) != 21 or any(len(p) != 3 for p in f) for f in frames):
+        if frames and any(len(f) != 21 or any(len(p) != 3 for p in f) for f in frames):
             raise ValueError('every frame must be 21 points of [x, y, z]')
         return frames
 

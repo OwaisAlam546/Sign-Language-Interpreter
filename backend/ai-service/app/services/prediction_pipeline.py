@@ -14,6 +14,8 @@
 #  ─────────────────────────────────────────────────────────────
 from __future__ import annotations
 
+import math
+import threading
 import time
 from collections import Counter, deque
 from typing import Any, Optional
@@ -35,6 +37,7 @@ class InferencePipeline:
         self.display_threshold = display_threshold
         self.margin_threshold = margin_threshold
         self._stable_min = stable_min
+        self._lock = threading.RLock()
         self._buf = FrameBuffer(maxlen=max(window * 2, 24),
                                 min_frames=max(2, window // 2))
         self._seq = SequenceBuffer(window)
@@ -44,8 +47,17 @@ class InferencePipeline:
     # ── helpers ───────────────────────────────────────────────
     @staticmethod
     def _normalize(probs: dict[str, float]) -> dict[str, float]:
-        total = sum(probs.values()) or 1.0
-        return {k: v / total for k, v in probs.items()}
+        clean = {}
+        for k, v in probs.items():
+            if not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0:
+                continue
+            clean[k] = float(v)
+        if not clean:
+            return {'UNKNOWN': 0.0}
+        total = sum(clean.values())
+        if total > 1.0001:
+            return {k: v / total for k, v in clean.items()}
+        return clean
 
     def _smooth_probs(self, probs: dict[str, float]) -> dict[str, float]:
         """EMA over class probabilities — a gesture that flickers for one
@@ -63,27 +75,32 @@ class InferencePipeline:
 
     def _decide(self, probs: dict[str, float]) -> dict[str, Any]:
         """Confidence Threshold + Unknown Gesture Detection."""
-        top = sorted(self._normalize(probs).items(), key=lambda kv: -kv[1])[:3]
+        norm_probs = self._normalize(probs)
+        top = sorted(norm_probs.items(), key=lambda kv: -kv[1])[:3]
+        if not top:
+            top = [('UNKNOWN', 0.0)]
         gesture, confidence = top[0]
         runner_up = top[1][1] if len(top) > 1 else 0.0
-        margin = confidence - runner_up
-        below = confidence < self.threshold
-        ambiguous = margin < self.margin_threshold
-        if gesture == 'UNKNOWN' or below or ambiguous:
+        margin = max(0.0, confidence - runner_up)
+
+        is_invalid = not math.isfinite(confidence) or not math.isfinite(margin) or confidence <= 0.0
+        below = is_invalid or (confidence < self.threshold)
+        ambiguous = (not is_invalid) and (margin < self.margin_threshold) and (len(top) > 1 and top[1][1] > 0.0)
+
+        if gesture == 'UNKNOWN' or below or ambiguous or is_invalid:
             kind = 'unknown'
-            if gesture != 'UNKNOWN':
-                gesture = 'UNKNOWN'          # low confidence → unknown
+            gesture = 'UNKNOWN'
         else:
             kind = self._model.vocabulary.type_of(gesture)
         return {
             'gesture': gesture,
-            'confidence': round(confidence, 4),
+            'confidence': round(confidence, 4) if math.isfinite(confidence) else 0.0,
             'type': kind,
             'threshold': self.threshold,
             'belowThreshold': below,
-            'margin': round(margin, 4),
+            'margin': round(margin, 4) if math.isfinite(margin) else 0.0,
             'ambiguous': ambiguous,
-            'scoresTop3': [{'label': g, 'score': round(c, 4)} for g, c in top],
+            'scoresTop3': [{'label': g, 'score': round(c, 4) if math.isfinite(c) else 0.0} for g, c in top],
         }
 
     def _apply_gates(self, decision: dict[str, Any], temporal: bool) -> dict[str, Any]:
@@ -112,75 +129,92 @@ class InferencePipeline:
     # ── one-shot (offline sequence) ───────────────────────────
     def predict_frames(self, frames: list[list[list[float]]]) -> dict[str, Any]:
         """Full window → one decision. Used by /predict-sequence."""
-        window = self._seq.from_frames(frames)
-        start = time.perf_counter()
-        result = self._model.predict_window(window)
-        latency_ms = round((time.perf_counter() - start) * 1000, 2)
+        with self._lock:
+            window = self._seq.from_frames(frames)
+            start = time.perf_counter()
+            result = self._model.predict_window(window)
+            latency_ms = round((time.perf_counter() - start) * 1000, 2)
 
-        probs = result.get('probs')
-        if probs is None:                     # rule engine → derive probs
-            probs = {result['gesture']: result['confidence']}
-        decision = self._decide(probs)
-        gated = self._apply_gates(decision, temporal=False)
-        engine_id = result.get('engine', self._model.engine.id)
-        return {
-            'gesture': gated['gesture'],
-            'confidence': gated['confidence'],
-            'type': gated['type'],
-            'threshold': decision['threshold'],
-            'belowThreshold': decision['belowThreshold'],
-            'margin': decision['margin'],
-            'ambiguous': decision['ambiguous'],
-            'scoresTop3': decision['scoresTop3'],
-            'windowSize': len(window),
-            'smoothed': False,
-            'displayed': gated['displayed'],
-            'stable': gated['stable'],
-            'recentAgreement': gated['recentAgreement'],
-            'engine': engine_id,
-            'fallbackUsed': engine_id == 'rule',
-            'latencyMs': latency_ms,
-        }
+            probs = result.get('probs')
+            if probs is None:                     # rule engine → derive probs
+                conf = float(result.get('confidence', 0.0))
+                g = result.get('gesture', 'UNKNOWN')
+                if g == 'UNKNOWN':
+                    probs = {'UNKNOWN': conf}
+                else:
+                    probs = {g: conf, 'UNKNOWN': max(0.0, 1.0 - conf)}
+            decision = self._decide(probs)
+            gated = self._apply_gates(decision, temporal=False)
+            engine_id = result.get('engine', self._model.engine.id)
+            return {
+                'gesture': gated['gesture'],
+                'confidence': gated['confidence'],
+                'type': gated['type'],
+                'threshold': decision['threshold'],
+                'belowThreshold': decision['belowThreshold'],
+                'margin': decision['margin'],
+                'ambiguous': decision['ambiguous'],
+                'scoresTop3': decision['scoresTop3'],
+                'windowSize': len(window),
+                'smoothed': False,
+                'displayed': gated['displayed'],
+                'stable': gated['stable'],
+                'recentAgreement': gated['recentAgreement'],
+                'engine': engine_id,
+                'fallbackUsed': engine_id == 'rule',
+                'latencyMs': latency_ms,
+            }
 
     # ── streaming (per-frame, live demo) ──────────────────────
-    def stream(self, hand: list[list[float]]) -> dict[str, Any]:
+    def stream(self, hand: list[list[float]], ts: Optional[float] = None) -> dict[str, Any]:
         """Push one hand; reply when the buffer has a real window."""
-        self._buf.push(hand)
-        if not self._buf.ready():
-            return {'pending': True, 'buffered': len(self._buf),
-                    'needed': self._buf.min_frames}
-        window = self._seq.build(self._buf)
-        start = time.perf_counter()
-        result = self._model.predict_window(window)
-        latency_ms = round((time.perf_counter() - start) * 1000, 2)
+        with self._lock:
+            pushed = self._buf.push(hand, ts=ts)
+            if not pushed:
+                # Frame dropped (stale or duplicate)
+                return {'pending': True, 'buffered': len(self._buf),
+                        'needed': self._buf.min_frames, 'dropped': True}
+            if not self._buf.ready():
+                return {'pending': True, 'buffered': len(self._buf),
+                        'needed': self._buf.min_frames, 'dropped': False}
+            window = self._seq.build(self._buf)
+            start = time.perf_counter()
+            result = self._model.predict_window(window)
+            latency_ms = round((time.perf_counter() - start) * 1000, 2)
 
-        probs = result.get('probs')
-        if probs is None:
-            probs = {result['gesture']: result['confidence']}
-        decision = self._decide(self._smooth_probs(probs))
-        gated = self._apply_gates(decision, temporal=True)
-        engine_id = result.get('engine', self._model.engine.id)
-        return {
-            'pending': False,
-            'gesture': gated['gesture'],
-            'confidence': gated['confidence'],
-            'type': gated['type'],
-            'threshold': decision['threshold'],
-            'belowThreshold': decision['belowThreshold'],
-            'margin': decision['margin'],
-            'ambiguous': decision['ambiguous'],
-            'scoresTop3': decision['scoresTop3'],
-            'windowSize': self.window,
-            'buffered': len(self._buf),
-            'smoothed': True,
-            'displayed': gated['displayed'],
-            'stable': gated['stable'],
-            'recentAgreement': gated['recentAgreement'],
-            'engine': engine_id,
-            'latencyMs': latency_ms,
-        }
+            probs = result.get('probs')
+            if probs is None:
+                conf = float(result.get('confidence', 0.0))
+                g = result.get('gesture', 'UNKNOWN')
+                if g == 'UNKNOWN':
+                    probs = {'UNKNOWN': conf}
+                else:
+                    probs = {g: conf, 'UNKNOWN': max(0.0, 1.0 - conf)}
+            decision = self._decide(self._smooth_probs(probs))
+            gated = self._apply_gates(decision, temporal=True)
+            engine_id = result.get('engine', self._model.engine.id)
+            return {
+                'pending': False,
+                'gesture': gated['gesture'],
+                'confidence': gated['confidence'],
+                'type': gated['type'],
+                'threshold': decision['threshold'],
+                'belowThreshold': decision['belowThreshold'],
+                'margin': decision['margin'],
+                'ambiguous': decision['ambiguous'],
+                'scoresTop3': decision['scoresTop3'],
+                'windowSize': self.window,
+                'buffered': len(self._buf),
+                'smoothed': True,
+                'displayed': gated['displayed'],
+                'stable': gated['stable'],
+                'recentAgreement': gated['recentAgreement'],
+                'engine': engine_id,
+                'latencyMs': latency_ms,
+            }
 
     def reset(self) -> None:
-        self._buf.reset()
-        self._smooth = None
-        self._stable.clear()
+        with self._lock:
+            self._buf.reset()
+            self._smooth = None
+            self._stable.clear()

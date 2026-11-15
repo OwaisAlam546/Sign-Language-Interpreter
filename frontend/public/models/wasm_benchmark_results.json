@@ -1,0 +1,328 @@
+{
+  "timestamp": "2026-11-14T10:13:32.169Z",
+  "runtime_environment": "Node.js WASM (onnxruntime-web/wasm v1.20.1)",
+  "model_name": "wlasl100_gru_25class.onnx",
+  "model_size_bytes": 250158,
+  "initialization_time_ms": 248.6861,
+  "latency_metrics_ms": {
+    "runs": 100,
+    "min": 0.734800000000007,
+    "mean": 1.2186889999999977,
+    "median": 0.9151999999999703,
+    "p95": 2.844500000000039,
+    "max": 3.5078999999999496
+  },
+  "error_handling_verified": true,
+  "sample_tests": [
+    {
+      "video_id": "05724",
+      "true_gloss": "BEFORE",
+      "pred_gloss": "GO",
+      "confidence": 0.9201568365097046,
+      "is_top1": false,
+      "is_top5": true,
+      "latency_ms": 47.2432,
+      "top5": [
+        {
+          "gloss": "GO",
+          "confidence": 0.9201568365097046
+        },
+        {
+          "gloss": "BEFORE",
+          "confidence": 0.038091711699962616
+        },
+        {
+          "gloss": "FINISH",
+          "confidence": 0.025686293840408325
+        },
+        {
+          "gloss": "DRINK",
+          "confidence": 0.0059985024854540825
+        },
+        {
+          "gloss": "MOTHER",
+          "confidence": 0.004404770210385323
+        }
+      ]
+    },
+    {
+      "video_id": "07068",
+      "true_gloss": "BOOK",
+      "pred_gloss": "BOOK",
+      "confidence": 0.9408259987831116,
+      "is_top1": true,
+      "is_top5": true,
+      "latency_ms": 1.6633000000000493,
+      "top5": [
+        {
+          "gloss": "BOOK",
+          "confidence": 0.9408259987831116
+        },
+        {
+          "gloss": "FAMILY",
+          "confidence": 0.02557951956987381
+        },
+        {
+          "gloss": "WANT",
+          "confidence": 0.00906545389443636
+        },
+        {
+          "gloss": "FINISH",
+          "confidence": 0.008773958310484886
+        },
+        {
+          "gloss": "EAT",
+          "confidence": 0.006402984261512756
+        }
+      ]
+    },
+    {
+      "video_id": "09853",
+      "true_gloss": "CHAIR",
+      "pred_gloss": "GO",
+      "confidence": 0.6032947897911072,
+      "is_top1": false,
+      "is_top5": true,
+      "latency_ms": 2.0411000000000286,
+      "top5": [
+        {
+          "gloss": "GO",
+          "confidence": 0.6032947897911072
+        },
+        {
+          "gloss": "CHAIR",
+          "confidence": 0.20635394752025604
+        },
+        {
+          "gloss": "WALK",
+          "confidence": 0.18851038813591003
+        },
+        {
+          "gloss": "BEFORE",
+          "confidence": 0.0008532545180059969
+        },
+        {
+          "gloss": "YEAR",
+          "confidence": 0.0003924489428754896
+        }
+      ]
+    },
+    {
+      "video_id": "12321",
+      "true_gloss": "COMPUTER",
+      "pred_gloss": "SCHOOL",
+      "confidence": 0.9561159014701843,
+      "is_top1": false,
+      "is_top5": true,
+      "latency_ms": 1.5406000000000404,
+      "top5": [
+        {
+          "gloss": "SCHOOL",
+          "confidence": 0.9561159014701843
+        },
+        {
+          "gloss": "BEFORE",
+          "confidence": 0.023406624794006348
+        },
+        {
+          "gloss": "COMPUTER",
+          "confidence": 0.01411571353673935
+        },
+        {
+          "gloss": "YEAR",
+          "confidence": 0.003551234258338809
+        },
+        {
+          "gloss": "LIKE",
+          "confidence": 0.001391520374454558
+        }
+      ]
+    },
+    {
+      "video_id": "14882",
+      "true_gloss": "DEAF",
+      "pred_gloss": "DEAF",
+      "confidence": 0.8745928406715393,
+      "is_top1": true,
+      "is_top5": true,
+      "latency_ms": 2.161800000000028,
+      "top5": [
+        {
+          "gloss": "DEAF",
+          "confidence": 0.8745928406715393
+        },
+        {
+          "gloss": "WHO",
+          "confidence": 0.062461186200380325
+        },
+        {
+          "gloss": "NO",
+          "confidence": 0.025077836588025093
+        },
+        {
+          "gloss": "DRINK",
+          "confidence": 0.01768255978822708
+        },
+        {
+          "gloss": "WOMAN",
+          "confidence": 0.007966889068484306
+        }
+      ]
+    },
+    {
+      "video_id": "17710",
+      "true_gloss": "DRINK",
+      "pred_gloss": "DRINK",
+      "confidence": 0.5065856575965881,
+      "is_top1": true,
+      "is_top5": true,
+      "latency_ms": 1.8602999999999952,
+      "top5": [
+        {
+          "gloss": "DRINK",
+          "confidence": 0.5065856575965881
+        },
+        {
+          "gloss": "MOTHER",
+          "confidence": 0.3821799159049988
+        },
+        {
+          "gloss": "COMPUTER",
+          "confidence": 0.0379272922873497
+        },
+        {
+          "gloss": "GO",
+          "confidence": 0.023446062579751015
+        },
+        {
+          "gloss": "DEAF",
+          "confidence": 0.022226139903068542
+        }
+      ]
+    },
+    {
+      "video_id": "18324",
+      "true_gloss": "EAT",
+      "pred_gloss": "EAT",
+      "confidence": 0.8257542848587036,
+      "is_top1": true,
+      "is_top5": true,
+      "latency_ms": 1.4105000000000132,
+      "top5": [
+        {
+          "gloss": "EAT",
+          "confidence": 0.8257542848587036
+        },
+        {
+          "gloss": "FINISH",
+          "confidence": 0.07280361652374268
+        },
+        {
+          "gloss": "MOTHER",
+          "confidence": 0.04067382961511612
+        },
+        {
+          "gloss": "WHO",
+          "confidence": 0.02053174562752247
+        },
+        {
+          "gloss": "DRINK",
+          "confidence": 0.017919208854436874
+        }
+      ]
+    },
+    {
+      "video_id": "20980",
+      "true_gloss": "FAMILY",
+      "pred_gloss": "FAMILY",
+      "confidence": 0.9661476612091064,
+      "is_top1": true,
+      "is_top5": true,
+      "latency_ms": 1.4594000000000165,
+      "top5": [
+        {
+          "gloss": "FAMILY",
+          "confidence": 0.9661476612091064
+        },
+        {
+          "gloss": "FINISH",
+          "confidence": 0.019376296550035477
+        },
+        {
+          "gloss": "BEFORE",
+          "confidence": 0.008798845112323761
+        },
+        {
+          "gloss": "BOOK",
+          "confidence": 0.002751903375610709
+        },
+        {
+          "gloss": "WHAT",
+          "confidence": 0.0008306648815050721
+        }
+      ]
+    },
+    {
+      "video_id": "21871",
+      "true_gloss": "FINE",
+      "pred_gloss": "WHO",
+      "confidence": 0.3953920304775238,
+      "is_top1": false,
+      "is_top5": true,
+      "latency_ms": 1.7590000000000146,
+      "top5": [
+        {
+          "gloss": "WHO",
+          "confidence": 0.3953920304775238
+        },
+        {
+          "gloss": "WOMAN",
+          "confidence": 0.2320500612258911
+        },
+        {
+          "gloss": "DEAF",
+          "confidence": 0.14163599908351898
+        },
+        {
+          "gloss": "FINE",
+          "confidence": 0.12821677327156067
+        },
+        {
+          "gloss": "LIKE",
+          "confidence": 0.03743137791752815
+        }
+      ]
+    },
+    {
+      "video_id": "21950",
+      "true_gloss": "FINISH",
+      "pred_gloss": "FAMILY",
+      "confidence": 0.8847065567970276,
+      "is_top1": false,
+      "is_top5": true,
+      "latency_ms": 1.6252000000000066,
+      "top5": [
+        {
+          "gloss": "FAMILY",
+          "confidence": 0.8847065567970276
+        },
+        {
+          "gloss": "FINISH",
+          "confidence": 0.07512292265892029
+        },
+        {
+          "gloss": "BOOK",
+          "confidence": 0.029373815283179283
+        },
+        {
+          "gloss": "BEFORE",
+          "confidence": 0.004868766292929649
+        },
+        {
+          "gloss": "WANT",
+          "confidence": 0.0038360089529305696
+        }
+      ]
+    }
+  ]
+}

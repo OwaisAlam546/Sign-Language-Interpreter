@@ -20,6 +20,9 @@ import {
 } from '../lib/recognitionPolicy.js';
 import { OneEuroLandmarkFilter } from '../lib/oneEuroLandmarks.js';
 import { inferAlphabetLandmark, loadLandmarkSession } from '../lib/onnxAlphabetLandmark.js';
+import { SwipeDeleteDetector } from '../lib/swipeDeleteDetector.js';
+import { extractWordFeatures, WordSequenceBuffer } from '../lib/wordLandmarkFeatures.js';
+import { inferWordSequence, loadWordSession, loadWordLabels, DEFAULT_WORD_THRESHOLDS } from '../lib/onnxWordRecognizer.js';
 
 const WASM_URL = '/models/mediapipe';
 const MODEL_URL = '/models/mediapipe/hand_landmarker.task';
@@ -40,6 +43,7 @@ function getValidGesture(label, wordLabels = new Set()) {
   const trimmed = label.trim();
   const upper = trimmed.toUpperCase();
   if (/^[A-Z]$/.test(upper)) return upper;
+  if (upper === 'DEL' || upper === 'SPACE') return upper;
   if (/^[A-Z]+$/.test(upper) && wordLabels.has(upper)) return upper;
   return null;
 }
@@ -102,7 +106,22 @@ export default function LiveDemo() {
   const fileInputRef = useRef(null);
   const lastDetectRef = useRef(0);
   const handsRef = useRef(0);
-  const landmarkFilterRef = useRef(new OneEuroLandmarkFilter());
+  const frameIdRef = useRef(0);
+  // Dedicated landmark filters per hand to eliminate cross-talk and velocity explosions
+  const landmarkFiltersRef = useRef({
+    Left: new OneEuroLandmarkFilter(),
+    Right: new OneEuroLandmarkFilter(),
+  });
+  const lastHandsInfoRef = useRef({ left: false, right: false, pose: false, leftConf: 0, rightConf: 0, rawCount: 0 });
+
+  // Word sequence stability & commitment state machine
+  const wordStabilityRef = useRef({
+    candidate: '',
+    count: 0,
+    armed: true,
+    lastCommitted: '',
+    lastCommitTime: 0,
+  });
 
   const framesRef = useRef([]);
   const secFramesRef = useRef([]);
@@ -123,6 +142,25 @@ export default function LiveDemo() {
   const wordLabelsRef = useRef(new Set());
 
   const stateRef = useRef({ candidate: '', count: 0, neutral: 0, armed: true, last: '' });
+  const swipeDetectorRef = useRef(new SwipeDeleteDetector());
+  const swipeSuppressionRef = useRef(0);
+
+  // Operating Mode: 'alphabet' | 'words' | 'hybrid'
+  const [mode, setMode] = useState('alphabet');
+  const modeRef = useRef('alphabet');
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+
+  // Top-3 Interactive Suggestions
+  const [topSuggestions, setTopSuggestions] = useState([]);
+
+  // Word Recognizer State & Sequence Buffer
+  const wordBufferRef = useRef(new WordSequenceBuffer(16));
+  const wordSampleCounterRef = useRef(0);
+  const lastCommittedWordRef = useRef('');
+  const lastWordCommitTimeRef = useRef(0);
+  const alphabetLockoutUntilRef = useRef(0);
+  const poseLandmarkerRef = useRef(null);
+  const wordModelLoadedRef = useRef(false);
 
   const [run, setRun] = useState(false);
   const [camOn, setCamOn] = useState(false);
@@ -131,6 +169,9 @@ export default function LiveDemo() {
   const [serviceState, setServiceState] = useState('idle');
   const [serviceError, setServiceError] = useState('');
   const [mirror, setMirror] = useState(true);
+  const mirrorRef = useRef(mirror);
+  useEffect(() => { mirrorRef.current = mirror; }, [mirror]);
+
   const [rec, setRec] = useState('');
   const [words, setWords] = useState([]);
   const [gesture, setGesture] = useState('');
@@ -139,15 +180,51 @@ export default function LiveDemo() {
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [diagInfo, setDiagInfo] = useState({
     engine: 'ONNX Runtime Web (WASM)',
-    modelName: 'alphabet_landmark_model.onnx (90D)',
+    modelName: 'alphabet_landmark_model.onnx',
+    activeMode: 'Alphabet (A–Z)',
+    frameId: 0,
     topLetter: '–',
     confidence: 0,
+    top2Conf: 0,
     margin: 0,
+    delProb: 0,
+    mProb: 0,
+    nProb: 0,
+    stableCount: 0,
+    isAccepted: false,
     state: 'Standby',
     rejectionReason: 'None',
     top5: [],
     landmarkQuality: 'No Hand Detected',
     fingerMotion: 0,
+    wordBufferFrames: 0,
+    validHandFrames: 0,
+    motionEnergy: 0,
+    handsCount: 0,
+    rawDetectorCount: 0,
+    leftHandDetected: false,
+    rightHandDetected: false,
+    leftHandConf: 0,
+    rightHandConf: 0,
+    poseDetected: false,
+    tensorShape: '[1, 16, 147]',
+    latencyMs: 0,
+    isArmed: true,
+    lastCommittedWord: '–',
+    timeSinceCommitMs: null,
+    swipeInfo: {
+      status: 'IDLE',
+      wristPosition: { x: 0, y: 0, userX: 0 },
+      normDeltaX: 0,
+      normDeltaY: 0,
+      velocity: 0,
+      direction: 'NONE',
+      reason: 'Awaiting hand',
+      inCooldown: false,
+      consumed: false,
+      candidate: false,
+      palmScale: 0.04,
+    },
   });
   const [hands, setHands] = useState(0);
   const [fps, setFps] = useState(0);
@@ -157,6 +234,24 @@ export default function LiveDemo() {
   const [demoMode, setDemoMode] = useState(false);
   const [videoMode, setVideoMode] = useState(false);
   const [videoSize, setVideoSize] = useState({ width: 640, height: 480 });
+  const [backendStatus, setBackendStatus] = useState('checking');
+  const [onnxStatus, setOnnxStatus] = useState('standby');
+
+  const probeBackend = async () => {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), STATUS_TIMEOUT_MS);
+      const statusResponse = await fetch(`${API_BASE}/model-status`, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (statusResponse.ok) {
+        setBackendStatus('available');
+      } else {
+        setBackendStatus('offline');
+      }
+    } catch {
+      setBackendStatus('offline');
+    }
+  };
 
   const clearIdle = () => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -167,8 +262,9 @@ export default function LiveDemo() {
     if (idleTimerRef.current) return;
     idleTimerRef.current = setTimeout(() => {
       const spelled = recRef.current;
-      const word = resolveSpelledText(spelled);
-      if (word) {
+      const trimmed = spelled.trim();
+      if (trimmed) {
+        const word = resolveSpelledText(trimmed);
         setWords((items) => [...items, word]);
         speak(word);
         setSpeaking(true);
@@ -185,6 +281,7 @@ export default function LiveDemo() {
     recognizedLabelRef.current = '';
     recognizedConfidenceRef.current = 0;
     if (noHand) {
+      swipeDetectorRef.current?.reset();
       setGesture('');
       setConf(0);
       setStatusMessage('');
@@ -197,8 +294,15 @@ export default function LiveDemo() {
       setDiagInfo((prev) => ({
         ...prev,
         state: 'Standby',
-        rejectionReason: 'No Hand Detected',
+        rejectionReason: 'No Hand Detected (Inference & Commit Blocked)',
         landmarkQuality: 'No Hand in View',
+        handsCount: 0,
+        rawDetectorCount: 0,
+        leftHandDetected: false,
+        rightHandDetected: false,
+        poseDetected: false,
+        isAccepted: false,
+        swipeInfo: swipeDetectorRef.current?.getDiagnostics(),
       }));
     }
     const state = stateRef.current;
@@ -310,6 +414,14 @@ export default function LiveDemo() {
         speak(label);
         setSpeaking(true);
         setTimeout(() => setSpeaking(false), 1200);
+      } else if (label === 'SPACE') {
+        if (recRef.current.length > 0 && !recRef.current.endsWith(' ')) {
+          recRef.current += ' ';
+          setRec(recRef.current);
+        }
+      } else if (label === 'DEL') {
+        // Disabled: Deletion is handled exclusively by the real-time left-swipe gesture detector.
+        // Static DEL pose commits are bypassed to eliminate false-positive deletions.
       } else if (/^[A-Z]$/.test(label)) {
         recRef.current += label;
         setRec(recRef.current);
@@ -326,6 +438,12 @@ export default function LiveDemo() {
     busyRef.current = true;
     const startTime = performance.now();
     try {
+      if (performance.now() < swipeSuppressionRef.current) {
+        setRecognitionState('transitioning');
+        setStatusMessage('Swipe Delete – Resuming recognition');
+        return;
+      }
+
       const motion = computeWindowMotion(frames);
       const lastFrame = frames[frames.length - 1];
       if (!lastFrame || lastFrame.length < 21) {
@@ -335,184 +453,583 @@ export default function LiveDemo() {
 
       const isLeftHand = Boolean(primaryRef.current?.isLeftHand);
 
-      if (serviceState !== 'ready') {
-        // Evaluate sequence for dynamic signs (J, Z) and lexical words
-        const seqResult = classifySequence(frames, secondaryFrames);
-        let result = null;
-        let onnxResult = null;
+      // Evaluate sequence for dynamic signs (J, Z)
+      const seqResult = classifySequence(frames, secondaryFrames);
+      let result = null;
+      let onnxResult = null;
 
-        if (seqResult && ['J', 'Z'].includes(seqResult.gesture) && seqResult.displayed) {
-          result = {
-            ...seqResult,
-            margin: 0.85,
-            rawWinner: seqResult.gesture,
-            rawConfidence: seqResult.confidence || 0.94,
-            top5: [{ label: seqResult.gesture, score: seqResult.confidence || 0.94 }],
-            isAccepted: true,
-            source: 'sequence-engine',
-          };
-        } else {
-          // PRIMARY CLIENT PATH: 90-feature ONNX model (alphabet_landmark_model.onnx)
-          try {
-            onnxResult = await inferAlphabetLandmark(lastFrame, isLeftHand);
-            if (onnxResult) {
-              result = {
-                gesture: onnxResult.gesture,
-                confidence: onnxResult.confidence,
-                margin: onnxResult.margin,
-                rawWinner: onnxResult.rawWinner,
-                rawConfidence: onnxResult.rawConfidence,
-                top5: onnxResult.top5,
-                isAccepted: onnxResult.isAccepted,
-                source: 'onnx-90d',
-                type: 'letter',
-              };
-            }
-          } catch (onnxErr) {
-            console.warn('Local ONNX inference error, checking fallback:', onnxErr);
-            const lms = lastFrame.map(([x, y, z]) => ({ x, y, z }));
-            const staticResult = classifyHand(lms);
-            if (staticResult && staticResult.gesture !== 'UNKNOWN') {
-              result = {
-                gesture: staticResult.gesture,
-                confidence: staticResult.confidence,
-                margin: 0.5,
-                rawWinner: staticResult.gesture,
-                rawConfidence: staticResult.confidence,
-                top5: [{ label: staticResult.gesture, score: staticResult.confidence }],
-                isAccepted: staticResult.confidence >= MIN_RECOGNITION_CONFIDENCE,
-                source: 'rule-fallback',
-                type: staticResult.type,
-              };
-            } else if (seqResult && seqResult.gesture !== 'UNKNOWN' && seqResult.displayed) {
-              result = {
-                ...seqResult,
-                margin: 0.5,
-                rawWinner: seqResult.gesture,
-                rawConfidence: seqResult.confidence || 0.8,
-                top5: [{ label: seqResult.gesture, score: seqResult.confidence || 0.8 }],
-                isAccepted: true,
-                source: 'sequence-engine',
-              };
-            }
+      if (seqResult && ['J', 'Z'].includes(seqResult.gesture) && seqResult.displayed) {
+        result = {
+          ...seqResult,
+          margin: 0.85,
+          rawWinner: seqResult.gesture,
+          rawConfidence: seqResult.confidence || 0.94,
+          top5: [{ label: seqResult.gesture, score: seqResult.confidence || 0.94 }],
+          isAccepted: true,
+          source: 'sequence-engine',
+        };
+      } else {
+        // PRIMARY CLIENT PATH: 90-feature ONNX model (alphabet_landmark_model.onnx)
+        try {
+          onnxResult = await inferAlphabetLandmark(lastFrame, isLeftHand);
+          if (onnxResult) {
+            result = {
+              gesture: onnxResult.gesture,
+              confidence: onnxResult.confidence,
+              margin: onnxResult.margin,
+              rawWinner: onnxResult.rawWinner,
+              rawConfidence: onnxResult.rawConfidence,
+              top5: onnxResult.top5,
+              isAccepted: onnxResult.isAccepted,
+              source: 'onnx-90d',
+              type: 'letter',
+            };
+          }
+        } catch (onnxErr) {
+          console.warn('Local ONNX inference error, checking fallback:', onnxErr);
+          const lms = lastFrame.map(([x, y, z]) => ({ x, y, z }));
+          const staticResult = classifyHand(lms);
+          if (staticResult && staticResult.gesture !== 'UNKNOWN') {
+            const fallbackAccepted = isAcceptedPrediction({
+              gesture: staticResult.gesture,
+              confidence: staticResult.confidence,
+              margin: 0.5,
+              serviceState: 'local',
+            });
+            result = {
+              gesture: fallbackAccepted ? staticResult.gesture : 'UNKNOWN',
+              confidence: staticResult.confidence,
+              margin: 0.5,
+              rawWinner: staticResult.gesture,
+              rawConfidence: staticResult.confidence,
+              top5: [{ label: staticResult.gesture, score: staticResult.confidence }],
+              isAccepted: fallbackAccepted,
+              source: 'rule-fallback',
+              type: staticResult.type,
+            };
+          } else if (seqResult && seqResult.gesture !== 'UNKNOWN' && seqResult.displayed) {
+            result = {
+              ...seqResult,
+              margin: 0.5,
+              rawWinner: seqResult.gesture,
+              rawConfidence: seqResult.confidence || 0.8,
+              top5: [{ label: seqResult.gesture, score: seqResult.confidence || 0.8 }],
+              isAccepted: true,
+              source: 'sequence-engine',
+            };
           }
         }
+      }
 
-        if (version !== versionRef.current) return;
+      if (version !== versionRef.current) return;
 
-        const latencyMs = performance.now() - startTime;
-        const topCand = result?.rawWinner || result?.gesture || '–';
-        const candConf = result?.rawConfidence ?? result?.confidence ?? 0;
-        const candMargin = result?.margin ?? 0;
-        const isMoving = motion.isMoving;
+      const latencyMs = performance.now() - startTime;
+      const topCand = result?.rawWinner || result?.gesture || '–';
+      const candConf = result?.rawConfidence ?? result?.confidence ?? 0;
+      const candMargin = result?.margin ?? 0;
+      const isMoving = motion.isMoving;
 
-        let currentSubState = 'Detecting';
-        let rejectionReason = 'None (Accepted)';
+      let currentSubState = 'Detecting';
+      let rejectionReason = 'None (Accepted)';
 
-        if (isMoving) {
-          currentSubState = 'Transitioning';
-          rejectionReason = `Hand in Motion (${motion.fingerMotion.toFixed(3)} > ${MOTION_TRANSITION_THRESHOLD})`;
-        } else if (!result || result.gesture === 'UNKNOWN' || result.isAccepted === false) {
-          currentSubState = 'Uncertain';
-          rejectionReason = candConf < MIN_RECOGNITION_CONFIDENCE
-            ? `Low Confidence (${(candConf * 100).toFixed(1)}% < ${(MIN_RECOGNITION_CONFIDENCE * 100).toFixed(0)}%)`
-            : `Ambiguous Margin (${(candMargin * 100).toFixed(1)}% < ${(MIN_TOP2_MARGIN * 100).toFixed(0)}%)`;
-        } else if (stateRef.current.count >= 2) {
-          currentSubState = 'Stable';
-        }
+      if (isMoving) {
+        currentSubState = 'Transitioning';
+        rejectionReason = `Hand in Motion (${motion.fingerMotion.toFixed(3)} > ${MOTION_TRANSITION_THRESHOLD})`;
+      } else if (!result || result.gesture === 'UNKNOWN' || result.isAccepted === false) {
+        currentSubState = 'Uncertain';
+        rejectionReason = candConf < MIN_RECOGNITION_CONFIDENCE
+          ? `Low Confidence (${(candConf * 100).toFixed(1)}% < ${(MIN_RECOGNITION_CONFIDENCE * 100).toFixed(0)}%)`
+          : `Ambiguous Margin (${(candMargin * 100).toFixed(1)}% < ${(MIN_TOP2_MARGIN * 100).toFixed(0)}%)`;
+      } else if (stateRef.current.count >= 2) {
+        currentSubState = 'Stable';
+      }
 
-        setDiagInfo({
-          engine: result?.source === 'onnx-90d' ? 'ONNX Runtime Web (WASM)' : (result?.source || 'Standby'),
-          modelName: result?.source === 'onnx-90d' ? 'alphabet_landmark_model.onnx (90D)' : (result ? 'Fallback Classifier' : 'No Model Output'),
-          topLetter: topCand,
-          confidence: candConf,
-          margin: candMargin,
-          state: currentSubState,
-          rejectionReason,
-          top5: result?.top5 || [],
-          landmarkQuality: `OK (Hand: ${isLeftHand ? 'Left' : 'Right'})`,
-          fingerMotion: motion.fingerMotion,
-        });
+      const delProb = result?.scores?.['DEL'] ?? 0;
+      const mProb = result?.scores?.['M'] ?? 0;
+      const nProb = result?.scores?.['N'] ?? 0;
+      const top2Conf = result?.top5?.[1]?.score ?? 0;
+      const stableCount = stateRef.current.count;
+      const isAccepted = Boolean(result?.isAccepted && !isMoving);
 
-        // 1. Transition Handling: actively moving hand
-        if (isMoving) {
-          setRecognitionState('transitioning');
-          setStatusMessage('Transitioning – Hold sign steady');
-          setGesture('');
-          lastUiLabelRef.current = '';
-          stateRef.current.candidate = '';
-          stateRef.current.count = 0;
-          return;
-        }
+      if (result?.top5?.length) {
+        setTopSuggestions(result.top5.slice(0, 3).map((item) => ({
+          label: item.label,
+          score: item.score,
+          isAccepted: Boolean(result.isAccepted && item.label === result.gesture),
+        })));
+      }
 
-        // 2. Uncertainty Handling: low confidence or ambiguous margin
-        if (!result || result.gesture === 'UNKNOWN' || result.isAccepted === false) {
-          setRecognitionState('uncertain');
-          setStatusMessage('Uncertain – Adjust your hand position');
-          setGesture('');
-          lastUiLabelRef.current = '';
-          stateRef.current.candidate = '';
-          stateRef.current.count = 0;
-          return;
-        }
+      setDiagInfo({
+        engine: result?.source === 'onnx-90d' ? 'ONNX Runtime Web (WASM)' : (result?.source || 'Standby'),
+        modelName: result?.source === 'onnx-90d' ? 'alphabet_landmark_model.onnx' : (result ? 'Fallback Classifier' : 'alphabet_landmark_model.onnx'),
+        activeMode: 'Alphabet (A–Z)',
+        topLetter: topCand,
+        confidence: candConf,
+        top2Conf,
+        margin: candMargin,
+        delProb,
+        mProb,
+        nProb,
+        stableCount,
+        isAccepted,
+        state: currentSubState,
+        rejectionReason,
+        top5: result?.top5 || [],
+        landmarkQuality: `OK (Hand: ${isLeftHand ? 'Left' : 'Right'})`,
+        fingerMotion: motion.fingerMotion,
+        wordBufferFrames: 0,
+        motionEnergy: 0,
+        handsCount: handsRef.current || 1,
+        leftHandDetected: lastHandsInfoRef.current.left,
+        rightHandDetected: lastHandsInfoRef.current.right,
+        poseDetected: lastHandsInfoRef.current.pose,
+        tensorShape: '[1, 90]',
+        latencyMs,
+        swipeInfo: swipeDetectorRef.current?.getDiagnostics(),
+      });
 
-        // 3. Accepted Prediction
-        acceptPrediction({
-          gesture: result.gesture,
-          confidence: result.confidence,
-          margin: result.margin,
-          latencyMs,
-          source: result.source,
-          displayed: true,
-          isMoving: false,
-          fingerMotion: motion.fingerMotion,
-        });
+      // 1. Transition Handling: actively moving hand
+      if (isMoving) {
+        setRecognitionState('transitioning');
+        setStatusMessage('Transitioning – Hold sign steady');
+        setGesture('');
+        lastUiLabelRef.current = '';
+        stateRef.current.candidate = '';
+        stateRef.current.count = 0;
         return;
       }
 
-      // Server path (when serviceState === 'ready')
-      const response = await fetch(`${API_BASE}/predict-sequence`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ frames, strategy: 'average' }),
-      });
-      const body = await safeJson(response);
-      if (version !== versionRef.current) return;
-      const latencyMs = performance.now() - startTime;
-      if (response.ok && body?.success && body?.data && body.data.gesture !== 'NONE' && body.data.gesture !== 'UNKNOWN') {
-        if (motion.isMoving) {
-          setRecognitionState('transitioning');
-          setStatusMessage('Transitioning – Hold sign steady');
-          setGesture('');
-          lastUiLabelRef.current = '';
-          return;
-        }
-        setStatusMessage('');
-        acceptPrediction({
-          ...body.data,
-          latencyMs,
-          isMoving: motion.isMoving,
-          fingerMotion: motion.fingerMotion,
-        });
-      } else {
+      // 2. Uncertainty Handling: low confidence or ambiguous margin
+      if (!result || result.gesture === 'UNKNOWN' || result.isAccepted === false) {
         setRecognitionState('uncertain');
         setStatusMessage('Uncertain – Adjust your hand position');
         setGesture('');
         lastUiLabelRef.current = '';
-        resetPrediction();
+        stateRef.current.candidate = '';
+        stateRef.current.count = 0;
+        return;
       }
+
+      // 3. Accepted Prediction
+      acceptPrediction({
+        gesture: result.gesture,
+        confidence: result.confidence,
+        margin: result.margin,
+        latencyMs,
+        source: result.source,
+        displayed: true,
+        isMoving: false,
+        fingerMotion: motion.fingerMotion,
+      });
+      return;
     } catch (error) {
-      if (version === versionRef.current && serviceState !== 'ready') {
+      if (version === versionRef.current) {
         localModelFailedRef.current = true;
         setServiceState('error');
+        setOnnxStatus('error');
         const detail = error?.message ? ` (${error.message.slice(0, 160)})` : '';
         setServiceError(`The local alphabet model could not be loaded. Hand tracking is active, but translation is paused.${detail}`);
-        resetPrediction();
-      } else if (version === versionRef.current) {
         resetPrediction();
       }
     } finally {
       busyRef.current = false;
+    }
+  };
+
+  /**
+   * Mode 2: Word-Only Sequence Prediction using wlasl100_gru_25class.onnx
+   * Implements strict multi-gate commitment protection:
+   *   1. Hand Presence: >= 10 of 16 frames must contain tracked hands
+   *   2. Motion Energy: >= 0.012 to prevent static/resting hand false positives
+   *   3. Thresholds: Confidence >= 0.72 and Margin >= 0.18
+   *   4. Stability Streak: Must hold candidate for >= 2 consecutive evaluations
+   *   5. Re-Arm State Machine: Prevents repeated commits of the same held sign
+   */
+  const predictWords = async (buffer, version, now) => {
+    if (busyRef.current) return;
+    if (now < swipeSuppressionRef.current) return;
+
+    if (!buffer.isFull()) {
+      setStatusMessage(`Buffering sign motion (${buffer.length}/16 frames)…`);
+      setRecognitionState('transitioning');
+      setDiagInfo((prev) => ({
+        ...prev,
+        frameId: frameIdRef.current,
+        handsCount: handsRef.current,
+        rawDetectorCount: lastHandsInfoRef.current.rawCount,
+        leftHandDetected: lastHandsInfoRef.current.left,
+        rightHandDetected: lastHandsInfoRef.current.right,
+        poseDetected: lastHandsInfoRef.current.pose,
+        wordBufferFrames: buffer.length,
+        validHandFrames: buffer.getValidHandFramesCount(),
+        motionEnergy: buffer.getMotionEnergy(),
+        state: `Buffering (${buffer.length}/16)`,
+        rejectionReason: `Filling Sequence Buffer (${buffer.length}/16 frames)`,
+        isAccepted: false,
+      }));
+      return;
+    }
+
+    // 1. Hand Presence Gate: At least 10 of the 16 frames must contain actual hand detections
+    const validHandFrames = buffer.getValidHandFramesCount();
+    if (validHandFrames < 10) {
+      setStatusMessage('Awaiting sign motion (Incomplete hand tracking in buffer)');
+      setRecognitionState('uncertain');
+      setDiagInfo((prev) => ({
+        ...prev,
+        frameId: frameIdRef.current,
+        handsCount: handsRef.current,
+        rawDetectorCount: lastHandsInfoRef.current.rawCount,
+        leftHandDetected: lastHandsInfoRef.current.left,
+        rightHandDetected: lastHandsInfoRef.current.right,
+        poseDetected: lastHandsInfoRef.current.pose,
+        state: 'Incomplete Sequence',
+        rejectionReason: `Insufficient Hand Presence (${validHandFrames}/16 < 10 frames)`,
+        validHandFrames,
+        wordBufferFrames: buffer.length,
+        isAccepted: false,
+      }));
+      return;
+    }
+
+    // 2. Motion Energy Gate: Hands must be actively performing a sign, not stationary/resting
+    const motionEnergy = buffer.getMotionEnergy();
+    const isStationary = motionEnergy < 0.012;
+    if (isStationary) {
+      // Re-arm when hands have settled to rest for >= 600ms
+      if (!wordStabilityRef.current.armed && now - wordStabilityRef.current.lastCommitTime > 600) {
+        wordStabilityRef.current.armed = true;
+      }
+      setStatusMessage('Hands at rest · Awaiting signing motion');
+      setRecognitionState('standby');
+      setDiagInfo((prev) => ({
+        ...prev,
+        frameId: frameIdRef.current,
+        handsCount: handsRef.current,
+        rawDetectorCount: lastHandsInfoRef.current.rawCount,
+        leftHandDetected: lastHandsInfoRef.current.left,
+        rightHandDetected: lastHandsInfoRef.current.right,
+        poseDetected: lastHandsInfoRef.current.pose,
+        state: 'Stationary Hands',
+        rejectionReason: `Stationary Hands (Motion ${motionEnergy.toFixed(4)} < 0.012)`,
+        validHandFrames,
+        motionEnergy,
+        wordBufferFrames: buffer.length,
+        isAccepted: false,
+        isArmed: wordStabilityRef.current.armed,
+      }));
+      return;
+    }
+
+    // Evaluate on a 4-frame stride (~264 ms cadence)
+    if (wordSampleCounterRef.current % 4 !== 0) {
+      setDiagInfo((prev) => ({
+        ...prev,
+        frameId: frameIdRef.current,
+        handsCount: handsRef.current,
+        rawDetectorCount: lastHandsInfoRef.current.rawCount,
+        leftHandDetected: lastHandsInfoRef.current.left,
+        rightHandDetected: lastHandsInfoRef.current.right,
+        poseDetected: lastHandsInfoRef.current.pose,
+        wordBufferFrames: buffer.length,
+        validHandFrames,
+        motionEnergy,
+      }));
+      return;
+    }
+
+    busyRef.current = true;
+    try {
+      const wordRes = await inferWordSequence(buffer.getTensorData(), {
+        minConfidence: 0.72,
+        minMargin: 0.18,
+      });
+      if (version !== versionRef.current) return;
+
+      const topCand = wordRes.topWord;
+      const candConf = wordRes.confidence;
+      const candMargin = wordRes.margin;
+      const meetsThresholds = wordRes.isAccepted;
+
+      setLatency(`${Math.round(wordRes.latencyMs || 0)}ms`);
+      setConf(candConf);
+
+      // Update Top-3 Suggestions Strip
+      setTopSuggestions(wordRes.top3.map((item) => ({
+        label: item.label,
+        score: item.score,
+        isAccepted: item.score >= 0.72 && candMargin >= 0.18,
+      })));
+
+      // Stability Streak Logic
+      const stability = wordStabilityRef.current;
+      if (meetsThresholds) {
+        if (topCand === stability.candidate) {
+          stability.count += 1;
+        } else {
+          stability.candidate = topCand;
+          stability.count = 1;
+        }
+      } else {
+        stability.count = Math.max(0, stability.count - 1);
+        if (stability.count === 0 && !stability.armed && now - stability.lastCommitTime > 600) {
+          stability.armed = true;
+        }
+      }
+
+      const isStable = stability.count >= 2;
+      const isArmed = stability.armed;
+      const canCommit = meetsThresholds && isStable && isArmed;
+
+      let subState = 'Evaluating Sequence';
+      let rejectionReason = 'None (Accepted)';
+
+      if (!meetsThresholds) {
+        subState = 'Uncertain';
+        rejectionReason = candConf < 0.72
+          ? `Low Confidence (${(candConf * 100).toFixed(1)}% < 72%)`
+          : `Ambiguous Margin (${(candMargin * 100).toFixed(1)}% < 18%)`;
+      } else if (!isStable) {
+        subState = 'Stabilizing';
+        rejectionReason = `Awaiting Stability Streak (${stability.count}/2 evaluations)`;
+      } else if (!isArmed) {
+        subState = 'Holding (Awaiting Release)';
+        rejectionReason = `Disarmed · Release sign before re-signing ${stability.lastCommitted}`;
+      }
+
+      setDiagInfo((prev) => ({
+        ...prev,
+        engine: 'ONNX Runtime Web (WASM)',
+        modelName: 'wlasl100_gru_25class.onnx',
+        activeMode: 'Words (WLASL25)',
+        frameId: frameIdRef.current,
+        topLetter: topCand,
+        confidence: candConf,
+        top2Conf: wordRes.top5[1]?.score || 0,
+        margin: candMargin,
+        delProb: 0,
+        mProb: 0,
+        nProb: 0,
+        stableCount: stability.count,
+        isAccepted: canCommit,
+        state: canCommit ? 'Committed' : subState,
+        rejectionReason,
+        top5: wordRes.top5,
+        landmarkQuality: `Dual-Hand Tracking (${handsRef.current} hand${handsRef.current === 1 ? '' : 's'})`,
+        fingerMotion: motionEnergy,
+        wordBufferFrames: buffer.length,
+        validHandFrames,
+        motionEnergy,
+        handsCount: handsRef.current,
+        rawDetectorCount: lastHandsInfoRef.current.rawCount,
+        leftHandDetected: lastHandsInfoRef.current.left,
+        rightHandDetected: lastHandsInfoRef.current.right,
+        leftHandConf: lastHandsInfoRef.current.leftConf,
+        rightHandConf: lastHandsInfoRef.current.rightConf,
+        poseDetected: lastHandsInfoRef.current.pose,
+        tensorShape: '[1, 16, 147]',
+        latencyMs: wordRes.latencyMs,
+        isArmed,
+        lastCommittedWord: stability.lastCommitted || '–',
+        timeSinceCommitMs: stability.lastCommitTime ? Math.round(now - stability.lastCommitTime) : null,
+        swipeInfo: swipeDetectorRef.current?.getDiagnostics(),
+      }));
+
+      if (canCommit) {
+        stability.armed = false; // Disarm until hands release or return to rest
+        stability.lastCommitted = topCand;
+        stability.lastCommitTime = now;
+        stability.count = 0;
+        alphabetLockoutUntilRef.current = now + DEFAULT_WORD_THRESHOLDS.LOCKOUT_MS;
+
+        // Auto word spacing: commit discrete word to words array
+        setWords((prev) => [...prev, topCand]);
+        speak(topCand);
+        setSpeaking(true);
+        setTimeout(() => setSpeaking(false), 1200);
+
+        setGesture(topCand);
+        setRecognitionState('committed');
+        setStatusMessage(`Recognized word: ${topCand}`);
+
+        logSessionPrediction({
+          label: topCand,
+          confidence: candConf,
+          latencyMs: wordRes.latencyMs,
+          handsCount: handsRef.current || 1,
+          status: 'committed',
+        });
+
+        // Reset buffer after commitment so next sign starts from a clean baseline
+        buffer.reset();
+      } else if (meetsThresholds) {
+        setGesture(topCand);
+        setRecognitionState('transitioning');
+        setStatusMessage(`Confirming word: ${topCand} (${(candConf * 100).toFixed(0)}%)…`);
+      } else {
+        setGesture(topCand);
+        setRecognitionState('uncertain');
+        setStatusMessage(`Word candidate: ${topCand} (${(candConf * 100).toFixed(0)}%)`);
+      }
+    } catch (err) {
+      console.warn('Word sequence evaluation error:', err);
+    } finally {
+      busyRef.current = false;
+    }
+  };
+
+  /**
+   * Mode 3: Intelligent Hybrid Arbitration (Motion Energy Gating + Lockout Window)
+   */
+  const predictHybrid = async (frames, secondaryFrames, buffer, version, now, frameTimes) => {
+    if (busyRef.current) return;
+    if (now < swipeSuppressionRef.current) return;
+
+    // 1. Commitment Lockout Window: 750 ms silence after a word commitment
+    const isLockedOut = now < alphabetLockoutUntilRef.current;
+
+    // 2. Motion Energy Arbitration
+    const motion = computeWindowMotion(frames);
+    const motionEnergy = buffer.getMotionEnergy();
+    const isDynamicMotion = motion.isMoving || motionEnergy > 0.035;
+
+    if (isDynamicMotion || isLockedOut) {
+      // Dynamic hand movement: route to Word Sequence Engine
+      if (!isLockedOut && buffer.isFull() && wordSampleCounterRef.current % 4 === 0) {
+        busyRef.current = true;
+        try {
+          const wordRes = await inferWordSequence(buffer.getTensorData(), {
+            minConfidence: 0.70, // Stricter threshold for hybrid arbitration
+            minMargin: 0.20,
+          });
+          if (version !== versionRef.current) return;
+
+          const topCand = wordRes.topWord;
+          const candConf = wordRes.confidence;
+          const candMargin = wordRes.margin;
+          const isAccepted = wordRes.isAccepted;
+
+          setLatency(`${Math.round(wordRes.latencyMs || 0)}ms`);
+          setConf(candConf);
+
+          setTopSuggestions(wordRes.top3.map((item) => ({
+            label: item.label,
+            score: item.score,
+            isAccepted: item.score >= 0.70 && candMargin >= 0.20,
+          })));
+
+          setDiagInfo((prev) => ({
+            ...prev,
+            engine: 'Hybrid Arbiter -> Word GRU',
+            modelName: 'wlasl100_gru_25class.onnx',
+            activeMode: 'Hybrid (Dynamic Word)',
+            topLetter: topCand,
+            confidence: candConf,
+            top2Conf: wordRes.top5[1]?.score || 0,
+            margin: candMargin,
+            delProb: 0,
+            mProb: 0,
+            nProb: 0,
+            stableCount: buffer.length,
+            isAccepted,
+            state: isAccepted ? 'Committed (Word)' : 'Dynamic Motion (Evaluating Word)',
+            rejectionReason: isAccepted ? 'None (Accepted)' : 'Hybrid Dynamic Motion Gate',
+            top5: wordRes.top5,
+            landmarkQuality: `Dual-Hand Tracking (${handsRef.current} hand${handsRef.current === 1 ? '' : 's'})`,
+            fingerMotion: motionEnergy,
+            wordBufferFrames: buffer.length,
+            motionEnergy,
+            swipeInfo: swipeDetectorRef.current?.getDiagnostics(),
+          }));
+
+          if (isAccepted) {
+            const isDuplicate = topCand === lastCommittedWordRef.current;
+            const inCooldown = now - lastWordCommitTimeRef.current < DEFAULT_WORD_THRESHOLDS.DUPLICATE_COOLDOWN_MS;
+
+            if (!isDuplicate || !inCooldown) {
+              lastCommittedWordRef.current = topCand;
+              lastWordCommitTimeRef.current = now;
+              alphabetLockoutUntilRef.current = now + DEFAULT_WORD_THRESHOLDS.LOCKOUT_MS;
+
+              // If characters were spelled, flush them first, then append word
+              if (recRef.current.trim()) {
+                const flushed = recRef.current.trim();
+                recRef.current = '';
+                setRec('');
+                setWords((prev) => [...prev, flushed, topCand]);
+              } else {
+                setWords((prev) => [...prev, topCand]);
+              }
+
+              speak(topCand);
+              setSpeaking(true);
+              setTimeout(() => setSpeaking(false), 1200);
+
+              setGesture(topCand);
+              setRecognitionState('committed');
+              setStatusMessage(`Hybrid: Committed word ${topCand}`);
+              buffer.reset();
+            }
+          }
+        } catch (err) {
+          console.warn('Hybrid word error:', err);
+        } finally {
+          busyRef.current = false;
+        }
+      } else {
+        setStatusMessage('Dynamic signing motion – Word Engine tracking…');
+        setRecognitionState('transitioning');
+      }
+    } else {
+      // 3. Static Posture: Route to Alphabet Fingerspelling Engine
+      await predict(frames, secondaryFrames, version, frameTimes);
+    }
+  };
+
+  /**
+   * Mode change handler with buffer clearance and lazy pre-warming
+   */
+  const handleModeChange = (newMode) => {
+    if (newMode === mode) return;
+    setMode(newMode);
+    clearIdle();
+    resetPrediction(true);
+    overlayRef.current?.draw([], 0);
+    wordBufferRef.current?.reset();
+    wordStabilityRef.current = { candidate: '', count: 0, armed: true, lastCommitted: '', lastCommitTime: 0 };
+    lastCommittedWordRef.current = '';
+    lastWordCommitTimeRef.current = 0;
+    alphabetLockoutUntilRef.current = 0;
+    setGesture('');
+    setTopSuggestions([]);
+
+    if (newMode === 'words' || newMode === 'hybrid') {
+      if (!wordModelLoadedRef.current) {
+        loadWordSession()
+          .then(() => { wordModelLoadedRef.current = true; })
+          .catch((err) => console.warn('Word model lazy preload:', err));
+        loadWordLabels().catch((err) => console.warn('Word labels lazy preload:', err));
+      }
+    }
+  };
+
+  /**
+   * Clicking a suggestion pill immediately inserts/commits that sign
+   */
+  const handleInsertSuggestion = (label) => {
+    if (!label || label === '–' || label === 'UNKNOWN') return;
+    clearIdle();
+    if (/^[A-Z]$/.test(label)) {
+      recRef.current += label;
+      setRec(recRef.current);
+      setStatusMessage(`Inserted letter: ${label}`);
+    } else {
+      setWords((prev) => [...prev, label]);
+      speak(label);
+      setSpeaking(true);
+      setTimeout(() => setSpeaking(false), 1200);
+      setStatusMessage(`Inserted word: ${label}`);
+      wordBufferRef.current?.reset();
     }
   };
 
@@ -544,7 +1061,13 @@ export default function LiveDemo() {
     secFramesRef.current = [];
     frameTimesRef.current = [];
     localPredictionHistoryRef.current = [];
-    landmarkFilterRef.current.reset();
+    landmarkFiltersRef.current.Left.reset();
+    landmarkFiltersRef.current.Right.reset();
+    lastHandsInfoRef.current = { left: false, right: false, pose: false, leftConf: 0, rightConf: 0, rawCount: 0 };
+    wordStabilityRef.current = { candidate: '', count: 0, armed: true, lastCommitted: '', lastCommitTime: 0 };
+    overlayRef.current?.draw([], 0);
+    swipeDetectorRef.current?.reset();
+    swipeSuppressionRef.current = 0;
     primaryRef.current = null;
     stateRef.current = { candidate: '', count: 0, neutral: 0, armed: true, last: '' };
     window.speechSynthesis?.cancel();
@@ -564,6 +1087,17 @@ export default function LiveDemo() {
       /* already closed */
     }
     landmarkerRef.current = null;
+    try {
+      poseLandmarkerRef.current?.close();
+    } catch {
+      /* already closed */
+    }
+    poseLandmarkerRef.current = null;
+    wordBufferRef.current?.reset();
+    lastCommittedWordRef.current = '';
+    lastWordCommitTimeRef.current = 0;
+    alphabetLockoutUntilRef.current = 0;
+    setTopSuggestions([]);
   };
 
   const startDemo = () => {
@@ -572,28 +1106,44 @@ export default function LiveDemo() {
     setCamError(false);
     setRun(true);
     setServiceState('local');
+    setOnnxStatus('ready');
     setServiceError('');
-    setHands(1);
+    setHands(mode === 'words' ? 2 : 1);
     setFps(30);
     setLatency('0ms');
-    const letters = ['A', 'B', 'C', 'L', 'O'];
+    const isWordMode = mode === 'words' || mode === 'hybrid';
+    const demoItems = isWordMode ? ['BOOK', 'FAMILY', 'HELP', 'YES', 'SCHOOL'] : ['A', 'B', 'C', 'L', 'O'];
     let index = 0;
     const show = () => {
-      const next = letters[index % letters.length];
+      const next = demoItems[index % demoItems.length];
       index += 1;
       setGesture(next);
-      setConf(0.99);
-      setRec(next);
+      setConf(0.98);
+      if (isWordMode) {
+        setWords((prev) => [...prev, next]);
+        setTopSuggestions([
+          { label: next, score: 0.98, isAccepted: true },
+          { label: 'WORK', score: 0.015, isAccepted: false },
+          { label: 'WANT', score: 0.005, isAccepted: false },
+        ]);
+      } else {
+        setRec(next);
+        setTopSuggestions([
+          { label: next, score: 0.98, isAccepted: true },
+          { label: 'M', score: 0.015, isAccepted: false },
+          { label: 'S', score: 0.005, isAccepted: false },
+        ]);
+      }
       logSessionPrediction({
         label: next,
-        confidence: 0.99,
+        confidence: 0.98,
         latencyMs: 12,
-        handsCount: 1,
+        handsCount: isWordMode ? 2 : 1,
         status: 'committed',
       });
     };
     show();
-    demoTimerRef.current = setInterval(show, 1600);
+    demoTimerRef.current = setInterval(show, 1800);
   };
 
   const startVideoTest = async (file) => {
@@ -607,6 +1157,7 @@ export default function LiveDemo() {
     setCamError(false);
     setServiceError('');
     setServiceState('local');
+    setOnnxStatus('ready');
     try {
       const url = URL.createObjectURL(file);
       videoUrlRef.current = url;
@@ -624,10 +1175,10 @@ export default function LiveDemo() {
       const landmarker = await HandLandmarker.createFromOptions(vision, {
         baseOptions: { modelAssetPath: MODEL_URL },
         runningMode: 'VIDEO',
-        numHands: 1,
-        minHandDetectionConfidence: 0.5,
-        minHandPresenceConfidence: 0.5,
-        minTrackingConfidence: 0.5,
+        numHands: 2,
+        minHandDetectionConfidence: 0.50,
+        minHandPresenceConfidence: 0.50,
+        minTrackingConfidence: 0.50,
       });
       if (version !== versionRef.current) {
         landmarker.close();
@@ -651,37 +1202,29 @@ export default function LiveDemo() {
     setRun(true);
     setCamError(false);
     setServiceError('');
-    setServiceState('checking');
+    setServiceState('local');
     wordLabelsRef.current = new Set();
 
-    // Pre-warm local ONNX landmark engine for instantaneous zero-latency inference
-    loadLandmarkSession().catch((err) => console.warn('Pre-warming local ONNX model:', err));
+    // 1. Asynchronously probe backend status (informational only; never blocks pipeline)
+    probeBackend();
 
-    // 1. Probe Server Model Status safely (never throws Unexpected end of JSON input)
-    let isServerReady = false;
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), STATUS_TIMEOUT_MS);
-      const statusResponse = await fetch(`${API_BASE}/model-status`, { signal: controller.signal });
-      clearTimeout(timeout);
-      const status = await safeJson(statusResponse);
-      const model = status?.data;
-      if (statusResponse.ok && status?.success && model?.engine === 'tensorflow' && model?.inputMode === 'sequence') {
-        isServerReady = true;
-        wordLabelsRef.current = new Set(
-          (Array.isArray(model?.vocabulary?.words) ? model.vocabulary.words : [])
-            .map((label) => String(label).trim().toUpperCase())
-            .filter((label) => /^[A-Z]{2,}$/.test(label))
-        );
-      }
-    } catch {
-      isServerReady = false;
+    // 2. Ensure local ONNX landmark engine is active
+    if (onnxStatus !== 'ready') {
+      setOnnxStatus('loading');
+      loadLandmarkSession()
+        .then(() => setOnnxStatus('ready'))
+        .catch((err) => {
+          console.warn('Pre-warming local ONNX model error:', err);
+          setOnnxStatus('error');
+        });
     }
 
-    if (version !== versionRef.current) return;
-    setServiceState(isServerReady ? 'ready' : 'local');
+    if (mode === 'words' || mode === 'hybrid') {
+      loadWordSession().catch(() => {});
+      loadWordLabels().catch(() => {});
+    }
 
-    // 2. Start Camera & MediaPipe
+    // 3. Start Camera & MediaPipe (with dual-hand and optional pose landmarker support)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
@@ -701,27 +1244,44 @@ export default function LiveDemo() {
       const landmarker = await HandLandmarker.createFromOptions(vision, {
         baseOptions: { modelAssetPath: MODEL_URL },
         runningMode: 'VIDEO',
-        numHands: 1,
-        minHandDetectionConfidence: 0.5,
-        minHandPresenceConfidence: 0.5,
-        minTrackingConfidence: 0.5,
+        numHands: 2,
+        minHandDetectionConfidence: 0.50,
+        minHandPresenceConfidence: 0.50,
+        minTrackingConfidence: 0.50,
       });
+
+      let poseLandmarker = null;
+      try {
+        const { PoseLandmarker } = await import('@mediapipe/tasks-vision');
+        poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+          baseOptions: { modelAssetPath: '/models/mediapipe/pose_landmarker.task' },
+          runningMode: 'VIDEO',
+          numPoses: 1,
+          minPoseDetectionConfidence: 0.4,
+          minPosePresenceConfidence: 0.4,
+          minTrackingConfidence: 0.4,
+        });
+      } catch (poseErr) {
+        console.info('PoseLandmarker initialization skipped (using geometric torso fallback):', poseErr.message);
+      }
+
       if (version !== versionRef.current) {
         landmarker.close();
+        poseLandmarker?.close();
         return;
       }
       landmarkerRef.current = landmarker;
+      poseLandmarkerRef.current = poseLandmarker;
       setCamOn(true);
       setTrackerReady(true);
     } catch (error) {
-      setServiceState(isServerReady ? 'ready' : 'local');
       setServiceError(error.message || 'Unable to start camera. Please ensure webcam permissions are enabled.');
       setCamError(true);
     }
   };
 
   useEffect(() => {
-    if (!run || !trackerReady || !camOn || serviceState === 'checking' || serviceState === 'idle' || localModelFailedRef.current) {
+    if (!run || !trackerReady || !camOn || serviceState === 'idle' || localModelFailedRef.current) {
       return undefined;
     }
     let raf, frames = 0, elapsed = 0, previous = performance.now();
@@ -729,34 +1289,115 @@ export default function LiveDemo() {
       const video = videoRef.current, landmarker = landmarkerRef.current;
       if (video?.readyState >= 2 && landmarker && now - lastDetectRef.current >= DETECT_INTERVAL_MS) {
         lastDetectRef.current = now;
+        frameIdRef.current += 1;
+        const currentFrameId = frameIdRef.current;
+
         const result = landmarker.detectForVideo(video, now);
         const sourceWidth = video.videoWidth || 640;
         const sourceHeight = video.videoHeight || 480;
-        const detected = (result.landmarks || []).map((rawLandmarks, index) => {
-          const landmarks = landmarkFilterRef.current.filter(rawLandmarks, sourceWidth, sourceHeight, now);
-          const handednessCategory = result.handedness?.[index]?.[0]?.categoryName || 'Right';
-          return {
+        const rawLandmarksList = result.landmarks || [];
+        const rawCount = rawLandmarksList.length;
+
+        // Early upper-body pose detection: anchors + facial reference (Nose)
+        let poseLms = null;
+        let nosePt = null;
+        if (poseLandmarkerRef.current) {
+          try {
+            const poseRes = poseLandmarkerRef.current.detectForVideo(video, now);
+            if (poseRes?.landmarks?.[0]) {
+              poseLms = poseRes.landmarks[0];
+              nosePt = poseLms[0];
+            }
+          } catch {
+            // fallback
+          }
+        }
+
+        // Geometric Facial False-Positive Filtering:
+        // When hands are at rest or out of view, MediaPipe can falsely trigger on the mouth/lips.
+        // False positives on the lips have tiny palm span (< 0.045) and lie directly on the nose (< 0.10)
+        // with low confidence (< 0.55).
+        // Real signs near the face (DEAF, MOTHER, WOMAN) have full forearm/palm span (> 0.06) or high confidence.
+        const detected = [];
+        for (let index = 0; index < rawLandmarksList.length; index++) {
+          const rawLandmarks = rawLandmarksList[index];
+          const handednessCategory = result.handedness?.[index]?.[0]?.categoryName || (index === 0 ? 'Right' : 'Left');
+          const score = result.handedness?.[index]?.[0]?.score || 0;
+
+          const wrist = rawLandmarks[0];
+          const middleMcp = rawLandmarks[9];
+          const palmSpan = Math.hypot(wrist.x - middleMcp.x, wrist.y - middleMcp.y);
+
+          let isFacialFalsePositive = false;
+          if (nosePt) {
+            const distToNose = Math.hypot(wrist.x - nosePt.x, wrist.y - nosePt.y);
+            if (distToNose < 0.10 && palmSpan < 0.045 && score < 0.55) {
+              isFacialFalsePositive = true;
+            }
+          }
+
+          if (isFacialFalsePositive) {
+            continue; // Suppress mouth/lips false-positive detection
+          }
+
+          const isLeft = handednessCategory.toLowerCase() === 'left';
+          const filterKey = isLeft ? 'Left' : 'Right';
+          const landmarks = landmarkFiltersRef.current[filterKey].filter(rawLandmarks, sourceWidth, sourceHeight, now);
+
+          detected.push({
             landmarks,
             bbox: bboxOf(landmarks),
-            score: result.handedness?.[index]?.[0]?.score || 0,
+            score,
             name: handednessCategory,
-            isLeftHand: handednessCategory.toLowerCase() === 'left',
-            gesture: recognizedLabelRef.current || 'HAND',
-            confidence: recognizedLabelRef.current ? recognizedConfidenceRef.current : (result.handedness?.[index]?.[0]?.score || 0),
-          };
-        });
+            isLeftHand: isLeft,
+            gesture: 'TRACKED',
+            confidence: score,
+          });
+        }
+
         if (detected.length !== handsRef.current) {
           handsRef.current = detected.length;
           setHands(detected.length);
         }
+
         if (!detected.length) {
-          overlayRef.current?.draw([]);
+          // Synchronously clear canvas overlay with frame ID alignment
+          overlayRef.current?.draw([], currentFrameId);
           primaryRef.current = null;
           framesRef.current = [];
           secFramesRef.current = [];
           frameTimesRef.current = [];
-          landmarkFilterRef.current.reset();
+          landmarkFiltersRef.current.Left.reset();
+          landmarkFiltersRef.current.Right.reset();
+          lastHandsInfoRef.current = {
+            left: false,
+            right: false,
+            pose: Boolean(poseLms),
+            rawCount,
+            leftConf: 0,
+            rightConf: 0,
+          };
+          swipeDetectorRef.current?.reset();
+          wordBufferRef.current.reset();
+          wordStabilityRef.current.armed = true; // Re-arm word engine when signer lowers hands
           resetPrediction(true);
+
+          setDiagInfo((prev) => ({
+            ...prev,
+            frameId: currentFrameId,
+            handsCount: 0,
+            rawDetectorCount: rawCount,
+            leftHandDetected: false,
+            rightHandDetected: false,
+            poseDetected: Boolean(poseLms),
+            validHandFrames: 0,
+            wordBufferFrames: 0,
+            motionEnergy: 0,
+            state: 'No Hands Detected',
+            rejectionReason: 'No Hands in Frame',
+            isAccepted: false,
+            isArmed: true,
+          }));
         } else {
           const primary = primaryRef.current
             ? detected.reduce((best, hand) =>
@@ -771,15 +1412,114 @@ export default function LiveDemo() {
             ...primary.landmarks[0],
             isLeftHand: primary.isLeftHand,
           };
-          overlayRef.current?.draw(detected);
+
+          // Distinct per-hand gesture tagging
+          primary.gesture = recognizedLabelRef.current || 'HAND';
+          primary.confidence = recognizedLabelRef.current ? recognizedConfidenceRef.current : primary.score;
+          if (secondary) {
+            if (modeRef.current === 'words' && recognizedLabelRef.current) {
+              secondary.gesture = recognizedLabelRef.current;
+              secondary.confidence = recognizedConfidenceRef.current;
+            } else {
+              secondary.gesture = 'TRACKED';
+              secondary.confidence = secondary.score;
+            }
+          }
+          overlayRef.current?.draw(detected, currentFrameId);
+
+          // Real-Time Horizontal Left-Swipe Gesture Detector (Unified across all 3 modes)
+          const swipeResult = swipeDetectorRef.current.update(primary.landmarks, now, mirrorRef.current);
+          if (swipeResult.triggered) {
+            const currentMode = modeRef.current;
+            if (currentMode === 'words') {
+              // In Words Mode: delete the entire last committed word
+              setWords((prev) => (prev.length > 0 ? prev.slice(0, -1) : prev));
+              setStatusMessage('Deleted last word (Swipe Left)');
+            } else if (currentMode === 'hybrid') {
+              // In Hybrid Mode: delete in-progress character if present, else last committed word
+              if (recRef.current.length > 0) {
+                recRef.current = recRef.current.slice(0, -1);
+                setRec(recRef.current);
+                setStatusMessage('Deleted last character (Swipe Left)');
+              } else {
+                setWords((prev) => (prev.length > 0 ? prev.slice(0, -1) : prev));
+                setStatusMessage('Deleted last word (Swipe Left)');
+              }
+            } else {
+              // In Alphabet Mode: delete exactly one character from the active sentence buffer
+              if (recRef.current.length > 0) {
+                recRef.current = recRef.current.slice(0, -1);
+                setRec(recRef.current);
+              }
+              setStatusMessage('Deleted last character (Swipe Left)');
+            }
+
+            // Suppress accidental alphabet/word predictions during/after the swipe
+            stateRef.current.candidate = '';
+            stateRef.current.count = 0;
+            lastUiLabelRef.current = '';
+            setGesture('⌫');
+            setRecognitionState('committed');
+            swipeSuppressionRef.current = now + 450;
+            wordBufferRef.current.reset();
+            setDiagInfo((prev) => ({
+              ...prev,
+              swipeInfo: swipeResult,
+            }));
+          }
 
           if (now - lastSampleRef.current >= SAMPLE_MS) {
             lastSampleRef.current = now;
             framesRef.current = [...framesRef.current, toHand(primary.landmarks)].slice(-WINDOW);
             secFramesRef.current = secondary ? [...secFramesRef.current, toHand(secondary.landmarks)].slice(-WINDOW) : [];
             frameTimesRef.current = [...frameTimesRef.current, now].slice(-WINDOW);
-            if (framesRef.current.length >= 8) {
-              predict(framesRef.current, secFramesRef.current, versionRef.current, frameTimesRef.current);
+
+            // Canonical WLASL 147D Slot Assignment:
+            // In WLASL training data:
+            //   Slot 1 (indices 0..62, presence mask 126): Camera-left hand (smaller x, signer's dominant hand)
+            //   Slot 2 (indices 63..125, presence mask 127): Camera-right hand (larger x, signer's non-dominant hand)
+            let leftHandLms = null;
+            let rightHandLms = null;
+            let leftConf = 0;
+            let rightConf = 0;
+
+            if (detected.length >= 2) {
+              const sorted = [...detected].sort((a, b) => a.landmarks[0].x - b.landmarks[0].x);
+              leftHandLms = sorted[0].landmarks;  // Camera-left (lower x) -> Slot 1
+              rightHandLms = sorted[1].landmarks; // Camera-right (higher x) -> Slot 2
+              leftConf = sorted[0].score;
+              rightConf = sorted[1].score;
+            } else if (detected.length === 1) {
+              // Single active hand -> Slot 1 (canonical training representation for 1-hand signs)
+              leftHandLms = primary.landmarks;
+              rightHandLms = null;
+              leftConf = primary.score;
+              rightConf = 0;
+            }
+
+            lastHandsInfoRef.current = {
+              left: Boolean(leftHandLms),
+              right: Boolean(rightHandLms),
+              pose: Boolean(poseLms),
+              rawCount,
+              leftConf,
+              rightConf,
+            };
+
+            // Push 147D vector to word buffer
+            const wordVec = extractWordFeatures(leftHandLms, rightHandLms, poseLms);
+            wordBufferRef.current.push(wordVec, primary.landmarks[0]);
+            wordSampleCounterRef.current += 1;
+
+            const activeMode = modeRef.current;
+            if (activeMode === 'alphabet') {
+              if (framesRef.current.length >= 8) {
+                predict(framesRef.current, secFramesRef.current, versionRef.current, frameTimesRef.current);
+              }
+            } else if (activeMode === 'words') {
+              predictWords(wordBufferRef.current, versionRef.current, now);
+            } else if (activeMode === 'hybrid') {
+              predictHybrid(framesRef.current, secFramesRef.current, wordBufferRef.current, versionRef.current, now, frameTimesRef.current);
             }
           }
         }
@@ -796,9 +1536,19 @@ export default function LiveDemo() {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [run, trackerReady, camOn, serviceState]);
+  }, [run, trackerReady, camOn]);
 
-  useEffect(() => () => clearIdle(), []);
+  useEffect(() => {
+    probeBackend();
+    setOnnxStatus('loading');
+    loadLandmarkSession()
+      .then(() => setOnnxStatus('ready'))
+      .catch((err) => {
+        console.warn('Initial ONNX preload:', err);
+        setOnnxStatus('standby');
+      });
+    return () => clearIdle();
+  }, []);
 
   const letter = gesture || '–', waveSeed = letter.charCodeAt(0) || 45;
 
@@ -807,45 +1557,118 @@ export default function LiveDemo() {
       <Particles className="pointer-events-none absolute inset-0 z-0 opacity-35 dark:opacity-25" count={34} />
       <div className="relative z-10 mx-auto max-w-7xl">
         <SectionHeading
-          eyebrow="Live Recognition"
+          eyebrow="Live Dual-Engine Recognition"
           title="Sign Language to Text"
-          sub="MediaPipe tracks the hand locally; the pretrained ONNX model recognizes static A–Z letters. Word and moving-sign recognition requires a trained sequence model, so the alphabet model will not invent words from motion."
+          sub="Real-time dual-engine ASL translation: fingerspelling alphabet (A–Z) and 25-word vocabulary (WLASL) powered client-side by MediaPipe and ONNX Runtime Web (WASM)."
         />
 
         {/* Controls Bar */}
         <Reveal>
           <div className="mb-4 sm:mb-5 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap gap-2.5">
-              <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
+              {/* Badge 1: Browser ONNX */}
+              <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
                 <span
-                  className={`h-2 w-2 rounded-full ${serviceState === 'ready'
+                  className={`h-2 w-2 rounded-full ${
+                    onnxStatus === 'ready'
                       ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
-                      : serviceState === 'local'
-                        ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]'
-                        : serviceState === 'checking'
-                          ? 'bg-amber-400 animate-pulse'
-                          : serviceState === 'error'
-                            ? 'bg-red-400'
-                            : 'bg-slate-500'
-                    }`}
+                      : onnxStatus === 'loading'
+                        ? 'bg-amber-400 animate-pulse'
+                        : onnxStatus === 'error'
+                          ? 'bg-rose-400'
+                          : 'bg-slate-500'
+                  }`}
                 />
-                {serviceState === 'ready'
-                  ? 'Server LSTM Active'
-                  : serviceState === 'local'
-                    ? 'ONNX Static Letters'
-                    : serviceState === 'checking'
-                      ? 'Checking Model…'
-                      : serviceState === 'error'
-                        ? 'Model Unavailable'
-                        : 'Model Standby'}
+                {onnxStatus === 'ready'
+                  ? 'Browser ONNX Active'
+                  : onnxStatus === 'loading'
+                    ? 'Browser ONNX Loading…'
+                    : onnxStatus === 'error'
+                      ? 'Browser ONNX Error'
+                      : 'Browser ONNX Standby'}
               </span>
-              <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
+
+              {/* Badge 2: MediaPipe */}
+              <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
                 <span
-                  className={`h-2 w-2 rounded-full ${camOn ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-500'
-                    }`}
+                  className={`h-2 w-2 rounded-full ${
+                    trackerReady && run
+                      ? 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]'
+                      : 'bg-slate-500'
+                  }`}
                 />
-                {camOn ? 'Camera Live' : 'Camera Standby'}
+                {trackerReady && run ? 'MediaPipe Active' : 'MediaPipe Standby'}
               </span>
+
+              {/* Badge 3: Camera */}
+              <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    camOn && run
+                      ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                      : 'bg-slate-500'
+                  }`}
+                />
+                {camOn && run ? 'Camera Live' : 'Camera Standby'}
+              </span>
+
+              {/* Badge 4: Backend Status */}
+              <span className="glass-frosted inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-slate-200 border border-white/12 shadow-md">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    backendStatus === 'available'
+                      ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                      : backendStatus === 'checking'
+                        ? 'bg-amber-400 animate-pulse'
+                        : 'bg-slate-500'
+                  }`}
+                />
+                {backendStatus === 'available'
+                  ? 'Backend Available'
+                  : backendStatus === 'checking'
+                    ? 'Backend Checking…'
+                    : 'Backend Offline'}
+              </span>
+            </div>
+
+            {/* Operating Mode Selector Pill Group */}
+            <div className="flex items-center gap-1 rounded-full border border-white/15 bg-slate-950/80 p-1 shadow-lg backdrop-blur-xl">
+              <span className="hidden sm:inline pl-2.5 pr-1 font-mono text-[9px] uppercase tracking-widest text-slate-400">
+                Mode:
+              </span>
+              <button
+                type="button"
+                onClick={() => handleModeChange('alphabet')}
+                className={`rounded-full px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-all ${
+                  mode === 'alphabet'
+                    ? 'bg-gradient-to-r from-cyan-400 to-blue-500 font-bold text-slate-950 shadow-glow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Alphabet (A–Z)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange('words')}
+                className={`rounded-full px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-all ${
+                  mode === 'words'
+                    ? 'bg-gradient-to-r from-cyan-400 to-blue-500 font-bold text-slate-950 shadow-glow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Words (WLASL25)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange('hybrid')}
+                className={`rounded-full px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-all ${
+                  mode === 'hybrid'
+                    ? 'bg-gradient-to-r from-cyan-400 to-blue-500 font-bold text-slate-950 shadow-glow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Hybrid (Auto)
+              </button>
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
@@ -866,6 +1689,15 @@ export default function LiveDemo() {
               >
                 <FiSliders /> Diagnostics {showDiagnostics ? 'On' : 'Off'}
               </button>
+              <a
+                href="/sign_dictionary.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-emerald-400/40 bg-slate-950/80 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-emerald-300 hover:border-emerald-300 hover:bg-emerald-950/30 transition-all shadow-md inline-flex items-center gap-1.5"
+                title="View animated visual dictionary of all 25 words"
+              >
+                <span>🎬 Learn 25 Signs</span>
+              </a>
               {!run && (
                 <button
                   type="button"
@@ -1040,6 +1872,56 @@ export default function LiveDemo() {
                   </div>
                 </div>
 
+                {/* Words Mode Only: Dedicated Top-3 Word Candidates Strip */}
+                {mode === 'words' && (
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3 backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`h-1.5 w-1.5 rounded-full ${run ? 'bg-cyan-400 animate-pulse' : 'bg-slate-600'}`} />
+                        <span className="font-mono text-[9px] uppercase tracking-widest text-cyan-300 font-semibold">
+                          Top Word Candidates
+                        </span>
+                      </div>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[8px] text-slate-400">
+                        Threshold: ≥ 65% · Margin ≥ 15%
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {topSuggestions.length > 0 ? (
+                        topSuggestions.map((item, idx) => (
+                          <button
+                            key={`${item.label}-${idx}`}
+                            type="button"
+                            onClick={() => handleInsertSuggestion(item.label)}
+                            className={`group inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 font-mono text-xs transition-all ${
+                              item.isAccepted
+                                ? 'border border-emerald-400/60 bg-emerald-500/20 text-emerald-200 shadow-[0_0_8px_rgba(52,211,153,0.3)] hover:bg-emerald-500/30'
+                                : 'border border-cyan-400/30 bg-cyan-950/40 text-cyan-200 hover:border-cyan-300 hover:bg-cyan-900/50'
+                            }`}
+                            title={`Click to insert "${item.label}"`}
+                          >
+                            <span className="font-bold text-slate-400 group-hover:text-cyan-300">#{idx + 1}</span>
+                            <span className="font-semibold text-white">{item.label}</span>
+                            <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-mono text-cyan-300">
+                              {(item.score * 100).toFixed(0)}%
+                            </span>
+                            {item.isAccepted && (
+                              <span className="rounded bg-emerald-400/30 px-1 text-[8px] font-bold text-emerald-200">
+                                ✓ COMMIT
+                              </span>
+                            )}
+                          </button>
+                        ))
+                      ) : (
+                        <span className="font-mono text-[10px] text-slate-500 italic">
+                          {run ? 'Sign motion buffered · Word candidates appear here' : 'Start camera to see live candidates'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Audio Waveform Stream */}
                 <div className="mt-4 flex h-16 items-center justify-center gap-[3px] rounded-2xl border border-white/10 bg-white/[0.03] px-3">
                   {Array.from({ length: 40 }, (_, index) => (
@@ -1087,26 +1969,26 @@ export default function LiveDemo() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left mb-2.5">
                     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-2">
-                      <div className="font-mono text-[9px] uppercase tracking-wider text-slate-400">Model</div>
+                      <div className="font-mono text-[9px] uppercase tracking-wider text-slate-400">Mode / Engine</div>
                       <div className="font-mono text-xs font-semibold text-cyan-200 truncate" title={diagInfo.modelName}>
-                        {diagInfo.modelName}
+                        {diagInfo.activeMode || 'Alphabet (A–Z)'}
                       </div>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-2">
-                      <div className="font-mono text-[9px] uppercase tracking-wider text-slate-400">State</div>
-                      <div className={`font-mono text-xs font-semibold ${diagInfo.state === 'Stable'
+                      <div className="font-mono text-[9px] uppercase tracking-wider text-slate-400">State / Buffer</div>
+                      <div className={`font-mono text-xs font-semibold ${diagInfo.state.includes('Committed') || diagInfo.state === 'Stable'
                           ? 'text-emerald-400'
-                          : diagInfo.state === 'Transitioning'
+                          : diagInfo.state === 'Transitioning' || diagInfo.state.includes('Dynamic')
                             ? 'text-amber-400'
                             : 'text-slate-300'
                         }`}>
-                        {diagInfo.state}
+                        {diagInfo.state} ({mode === 'words' || mode === 'hybrid' ? `${diagInfo.wordBufferFrames || 0}/16f` : `${diagInfo.stableCount || 0}f`})
                       </div>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-2">
-                      <div className="font-mono text-[9px] uppercase tracking-wider text-slate-400">Top-1 / Conf</div>
+                      <div className="font-mono text-[9px] uppercase tracking-wider text-slate-400">Top-1 / Top-2</div>
                       <div className="font-mono text-xs font-semibold text-white">
-                        {diagInfo.topLetter} ({(diagInfo.confidence * 100).toFixed(1)}%)
+                        {diagInfo.topLetter} ({(diagInfo.confidence * 100).toFixed(1)}%) / {((diagInfo.top2Conf || 0) * 100).toFixed(1)}%
                       </div>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-white/[0.02] p-2">
@@ -1115,6 +1997,167 @@ export default function LiveDemo() {
                         {(diagInfo.margin * 100).toFixed(1)}%
                       </div>
                     </div>
+                  </div>
+
+                  {/* Target Sign Telemetry: DEL / M / N */}
+                  <div className="grid grid-cols-3 gap-2 text-left mb-2.5">
+                    <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-2">
+                      <div className="font-mono text-[9px] uppercase tracking-wider text-rose-300">DEL Probability</div>
+                      <div className="font-mono text-xs font-bold text-rose-200">
+                        {((diagInfo.delProb || 0) * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-2">
+                      <div className="font-mono text-[9px] uppercase tracking-wider text-amber-300">M Probability</div>
+                      <div className="font-mono text-xs font-bold text-amber-200">
+                        {((diagInfo.mProb || 0) * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-sky-500/20 bg-sky-500/[0.04] p-2">
+                      <div className="font-mono text-[9px] uppercase tracking-wider text-sky-300">N Probability</div>
+                      <div className="font-mono text-xs font-bold text-sky-200">
+                        {((diagInfo.nProb || 0) * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Multi-Hand & 147D Tensor Diagnostics */}
+                  <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 mb-2.5 text-left">
+                    <div className="flex items-center justify-between border-b border-cyan-500/20 pb-1.5 mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`h-1.5 w-1.5 rounded-full ${handsRef.current >= 2 ? 'bg-emerald-400' : handsRef.current === 1 ? 'bg-amber-400' : 'bg-slate-500'}`} />
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-cyan-300 font-bold">
+                          Dual-Hand & 147D Pipeline Telemetry · Frame #{diagInfo.frameId || 0}
+                        </span>
+                      </div>
+                      <span className="font-mono text-[9px] text-slate-400">
+                        Tensor Shape: {diagInfo.tensorShape || '[1, 16, 147]'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left mb-1.5">
+                      <div className="font-mono text-[9px] text-slate-300">
+                        <span className="text-slate-400">Tracked Hands: </span>
+                        <span className={`font-bold ${diagInfo.handsCount >= 2 ? 'text-emerald-300' : diagInfo.handsCount === 1 ? 'text-amber-300' : 'text-slate-400'}`}>
+                          {diagInfo.handsCount || 0} / 2 (Raw: {diagInfo.rawDetectorCount || 0})
+                        </span>
+                      </div>
+                      <div className="font-mono text-[9px] text-slate-300">
+                        <span className="text-slate-400">Left Hand: </span>
+                        <span className={`font-bold ${diagInfo.leftHandDetected ? 'text-emerald-300' : 'text-rose-400'}`}>
+                          {diagInfo.leftHandDetected ? 'YES (Slot 0..62)' : 'MISSING (Mask=0)'}
+                        </span>
+                      </div>
+                      <div className="font-mono text-[9px] text-slate-300">
+                        <span className="text-slate-400">Right Hand: </span>
+                        <span className={`font-bold ${diagInfo.rightHandDetected ? 'text-emerald-300' : 'text-rose-400'}`}>
+                          {diagInfo.rightHandDetected ? 'YES (Slot 63..125)' : 'MISSING (Mask=0)'}
+                        </span>
+                      </div>
+                      <div className="font-mono text-[9px] text-slate-300">
+                        <span className="text-slate-400">Pose Anchors: </span>
+                        <span className={`font-bold ${diagInfo.poseDetected ? 'text-emerald-300' : 'text-amber-300'}`}>
+                          {diagInfo.poseDetected ? 'YES (Slot 128..145)' : 'MISSING (Torso Fallback)'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left text-[9px] font-mono text-slate-300">
+                      <div>
+                        <span className="text-slate-400">Sequence Buffer: </span>
+                        <span className="font-bold text-cyan-200">
+                          {diagInfo.wordBufferFrames || 0} / 16 (Valid: {diagInfo.validHandFrames || 0}/16)
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">Motion Energy: </span>
+                        <span className={`font-bold ${diagInfo.motionEnergy >= 0.012 ? 'text-emerald-300' : 'text-amber-300'}`}>
+                          {typeof diagInfo.motionEnergy === 'number' ? diagInfo.motionEnergy.toFixed(4) : '0.0000'} (Gate ≥ 0.012)
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">Stability Streak: </span>
+                        <span className={`font-bold ${diagInfo.stableCount >= 2 ? 'text-emerald-300' : 'text-cyan-200'}`}>
+                          {diagInfo.stableCount || 0} / 2 ({diagInfo.isArmed ? 'ARMED' : 'DISARMED'})
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">Last Committed: </span>
+                        <span className="font-bold text-white">
+                          {diagInfo.lastCommittedWord || '–'} {diagInfo.timeSinceCommitMs ? `(${Math.round(diagInfo.timeSinceCommitMs / 1000)}s ago)` : ''}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Motion Swipe-to-Delete Telemetry */}
+                  <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 mb-2.5">
+                    <div className="flex items-center justify-between border-b border-cyan-500/20 pb-1.5 mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`h-1.5 w-1.5 rounded-full ${
+                          diagInfo.swipeInfo?.status === 'TRIGGERED'
+                            ? 'bg-rose-400 animate-ping'
+                            : diagInfo.swipeInfo?.status === 'ARMED'
+                            ? 'bg-emerald-400'
+                            : 'bg-amber-400'
+                        }`} />
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-cyan-300 font-bold">
+                          Motion Gesture · Swipe-to-Delete
+                        </span>
+                      </div>
+                      <span className={`font-mono text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                        diagInfo.swipeInfo?.status === 'TRIGGERED'
+                          ? 'bg-rose-500/30 text-rose-300 border border-rose-500/40 animate-pulse'
+                          : diagInfo.swipeInfo?.status === 'COOLDOWN' || diagInfo.swipeInfo?.status === 'SETTLING'
+                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                          : diagInfo.swipeInfo?.status === 'ARMED'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : 'bg-slate-700/30 text-slate-400'
+                      }`}>
+                        {diagInfo.swipeInfo?.status || 'IDLE'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left mb-1.5">
+                      <div className="font-mono text-[9px] text-slate-300">
+                        <span className="text-slate-400">Direction: </span>
+                        <span className="font-bold text-cyan-200">{diagInfo.swipeInfo?.direction || 'NONE'}</span>
+                      </div>
+                      <div className="font-mono text-[9px] text-slate-300">
+                        <span className="text-slate-400">Displacement: </span>
+                        <span className="font-bold text-cyan-200">
+                          {typeof diagInfo.swipeInfo?.normDeltaX === 'number'
+                            ? `${diagInfo.swipeInfo.normDeltaX.toFixed(2)} p`
+                            : '0.00 p'}
+                        </span>
+                      </div>
+                      <div className="font-mono text-[9px] text-slate-300">
+                        <span className="text-slate-400">Velocity: </span>
+                        <span className="font-bold text-cyan-200">
+                          {typeof diagInfo.swipeInfo?.velocity === 'number'
+                            ? `${diagInfo.swipeInfo.velocity.toFixed(2)} p/s`
+                            : '0.00 p/s'}
+                        </span>
+                      </div>
+                      <div className="font-mono text-[9px] text-slate-300">
+                        <span className="text-slate-400">Cooldown: </span>
+                        <span className="font-bold text-cyan-200">{diagInfo.swipeInfo?.inCooldown ? 'ACTIVE' : 'READY'}</span>
+                      </div>
+                    </div>
+
+                    <div className="font-mono text-[9px] text-slate-400 truncate">
+                      <span className="text-slate-500">Reason: </span>
+                      <span className="text-cyan-200/90">{diagInfo.swipeInfo?.reason || 'Awaiting gesture'}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono text-[10px] text-slate-400">
+                      Policy Status:
+                    </span>
+                    <span className={`font-mono text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${diagInfo.isAccepted ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}`}>
+                      {diagInfo.isAccepted ? 'Accepted by Policy' : 'Rejected / Suppressed'}
+                    </span>
                   </div>
 
                   {diagInfo.rejectionReason && diagInfo.rejectionReason !== 'None (Accepted)' && (
@@ -1157,7 +2200,7 @@ export default function LiveDemo() {
 
         <Reveal delay={0.3}>
           <p className="mt-8 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">
-            Local Pipeline · MediaPipe hand tracking + pretrained ONNX alphabet recognition; server sequence inference is optional
+            Client-Side Architecture · MediaPipe Hand Tracking + ONNX Runtime Web (WASM) · alphabet_landmark_model.onnx
           </p>
         </Reveal>
       </div>

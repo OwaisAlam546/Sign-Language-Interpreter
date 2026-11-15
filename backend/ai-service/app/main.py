@@ -36,7 +36,11 @@ log = logging.getLogger('app')
 async def lifespan(app: FastAPI):
     """Startup: build the heavy singletons once. Shutdown: release the
     camera and let the loop wind down (model lives in the process)."""
-    model = ModelManager(settings.model_dir)
+    model = ModelManager(
+        settings.model_dir,
+        model_name=settings.model_name,
+        model_path=settings.model_path,
+    )
     camera = CameraManager(settings.camera_index)
     camera.open()
     app.state.model = model

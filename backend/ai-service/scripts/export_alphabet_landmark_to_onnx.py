@@ -15,6 +15,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+import types
+import google.protobuf
+
+if not hasattr(google.protobuf, 'runtime_version'):
+    rv = types.ModuleType('google.protobuf.runtime_version')
+    rv.ValidateProtobufRuntimeVersion = lambda *args, **kwargs: None
+    rv.Domain = types.SimpleNamespace(PUBLIC=1)
+    google.protobuf.runtime_version = rv
+    sys.modules['google.protobuf.runtime_version'] = rv
+
 import tensorflow as tf
 import tf2onnx
 

@@ -214,7 +214,7 @@ console.log('================================================================\n'
   // Ambiguous handshape halfway between sign A and sign S (conf ~0.52 < 0.65, margin ~0.04 < 0.15)
   const poseA = DATASET_LANDMARKS['A'];
   const poseS = DATASET_LANDMARKS['S'];
-  const alpha = 0.485;
+  const alpha = 0.455;
   const ambiguousPose = poseA.map((ptA, i) => {
     const ptS = poseS[i];
     return [

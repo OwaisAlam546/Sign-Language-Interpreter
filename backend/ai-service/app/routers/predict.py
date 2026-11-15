@@ -15,5 +15,10 @@ router = APIRouter()
 @router.post('/predict')
 async def predict(body: PredictRequest, request: Request) -> dict:
     service = request.app.state.prediction
-    result = service.predict(body.landmarks, body.capture, body.sampleId)
+    result = service.predict(
+        landmarks=body.landmarks,
+        capture=body.capture,
+        sample_id=body.sampleId,
+        is_left_hand=body.isLeftHand,
+    )
     return ok(result)

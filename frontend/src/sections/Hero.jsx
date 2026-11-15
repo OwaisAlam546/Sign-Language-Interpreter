@@ -230,7 +230,7 @@ export default function Hero() {
 
               {/* footer chips */}
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {['MediaPipe Hands', '21 Landmarks', 'Rules + LSTM', 'TTS Engine'].map((c) => (
+                {['MediaPipe Hands', '21 Landmarks', 'ONNX Runtime Web', 'TTS Engine'].map((c) => (
                   <span key={c} className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-0.5 font-mono text-[9px] text-slate-400">{c}</span>
                 ))}
               </div>

@@ -115,8 +115,8 @@ class HandPipeline:
         return 'mediapipe' if self._mp_hands is not None else 'rule'
 
     # ── classification + shape helpers ────────────────────────
-    def _predict(self, hand: list[list[float]]) -> dict:
-        result = self._model.classify(hand)
+    def _predict(self, hand: list[list[float]], is_left_hand: bool = False) -> dict:
+        result = self._model.classify(hand, is_left_hand=is_left_hand)
         return {
             'label': result['gesture'],
             'confidence': result['confidence'],
@@ -148,7 +148,8 @@ class HandPipeline:
             points = [[lm.x, lm.y, lm.z] for lm in hand_lms.landmark]
             handedness = (results.multi_handedness[i].classification[0]
                           if results.multi_handedness else None)
-            prediction = self._predict(points)
+            is_left = bool(handedness and handedness.label.lower() == 'left')
+            prediction = self._predict(points, is_left_hand=is_left)
             hands.append({
                 'landmarks': points,
                 'handedness': handedness.label if handedness else 'Unknown',

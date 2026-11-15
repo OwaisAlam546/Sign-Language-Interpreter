@@ -83,6 +83,16 @@ def evaluate_model(model_path: Path | str, test_x: np.ndarray, test_y: np.ndarra
     for a, b in [('X', 'S'), ('X', 'E'), ('X', 'N')]:
         report_pair(a, b)
 
+    print('\nControl signs (DEL / SPACE):')
+    del_idx = CLASSES.index('DEL')
+    space_idx = CLASSES.index('SPACE')
+    total_del = int(np.sum(test_y == del_idx))
+    del_correct = int(cm[del_idx, del_idx])
+    print(f'  DEL total:   {total_del:3d} | Correct DEL:   {del_correct:3d} ({(del_correct/max(total_del,1))*100:5.1f}%)')
+    total_space = int(np.sum(test_y == space_idx))
+    space_correct = int(cm[space_idx, space_idx])
+    print(f'  SPACE total: {total_space:3d} | Correct SPACE: {space_correct:3d} ({(space_correct/max(total_space,1))*100:5.1f}%)')
+
     return {
         'accuracy': acc,
         'confusion_matrix': cm.tolist(),
@@ -111,8 +121,15 @@ def main():
     if args.check_only:
         return run_checks()
 
-    data = prepare_dataset(balance_train=False, seed=42)
-    return evaluate_model(args.model_path, data['test_x'], data['test_y'])
+    npz_path = ROOT / 'data' / 'alphabet_landmark_features.npz'
+    if npz_path.exists():
+        npz = np.load(npz_path)
+        test_x, test_y = npz['test_x'], npz['test_y']
+    else:
+        data = prepare_dataset(balance_train=False, seed=42)
+        test_x, test_y = data['test_x'], data['test_y']
+    evaluate_model(args.model_path, test_x, test_y)
+    return 0
 
 
 if __name__ == '__main__':

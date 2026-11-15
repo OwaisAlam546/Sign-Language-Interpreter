@@ -41,9 +41,12 @@ const HandOverlay = forwardRef(function HandOverlay(
 
   useImperativeHandle(ref, () => ({
     // hands: [{ landmarks:[{x,y,z}], handedness, score, gesture, confidence, bbox }]
-    draw(hands) {
+    draw(hands, frameId = null) {
       const canvas = canvasRef.current;
       const box = boxRef.current;
+      if (canvas && frameId != null) {
+        canvas.dataset.frameId = String(frameId);
+      }
       const ctx = canvas.getContext('2d');
       const w = box.clientWidth;
       const h = box.clientHeight;
@@ -65,10 +68,15 @@ const HandOverlay = forwardRef(function HandOverlay(
         return { x: topLeft.x, y: topLeft.y, w: bbox.w * renderedWidth, h: bbox.h * renderedHeight };
       };
 
+      // Synchronously clear the entire canvas buffer to eliminate ghost/stale landmarks
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!hands || !hands.length) {
+        return;
+      }
+
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, w, h);
-      // Smoothly fade the overlay in/out as tracking is gained/lost (PRD #13).
-      canvas.style.opacity = hands.length > 0 ? '1' : '0';
       if (mirrorRef.current) {
         // mirrored canvas: landmark x maps to (w − x·w)
         ctx.translate(w, 0);
@@ -78,7 +86,11 @@ const HandOverlay = forwardRef(function HandOverlay(
       const labelRects = [];
       const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
       hands.forEach((hand, i) => {
-        const color = HAND_COLORS[i % HAND_COLORS.length];
+        // Deterministic coloring by anatomical handedness:
+        // Left hand is always Cyan (#00D9FF), Right hand is always Amber (#F59E0B).
+        // Prevents random color flipping across detection frames.
+        const isLeft = hand.isLeftHand ?? (hand.name?.toLowerCase() === 'left');
+        const color = isLeft ? '#00D9FF' : '#F59E0B';
         const lms = hand.landmarks;
         const mapped = lms.map(mapPoint);
 
@@ -107,11 +119,12 @@ const HandOverlay = forwardRef(function HandOverlay(
         });
 
         // ── bounding box ──
+        // mapBox returns coordinates in screen pixels; strokeRect takes pixels directly
         const { x, y, w: bw, h: bh } = mapBox(hand.bbox);
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.6;
         ctx.globalAlpha = 0.9;
-        ctx.strokeRect(x * w, y * h, bw * w, bh * h);
+        ctx.strokeRect(x, y, bw, bh);
 
         // ── label chip: name · gesture · confidence ──
         // In mirror mode the feed is flipped, so the handedness that
@@ -120,7 +133,11 @@ const HandOverlay = forwardRef(function HandOverlay(
           mirrorRef.current && (hand.name === 'Left' || hand.name === 'Right')
             ? hand.name === 'Left' ? 'Right' : 'Left'
             : hand.name;
-        const label = `${shown} · ${hand.gesture}  ${(hand.confidence * 100).toFixed(0)}%`;
+        const gestureSuffix = hand.gesture && hand.gesture !== 'HAND' && hand.gesture !== 'TRACKED'
+          ? ` · ${hand.gesture}`
+          : '';
+        const confVal = Math.round((hand.confidence || hand.score || 0) * 100);
+        const label = `${shown}${gestureSuffix}  ${confVal}%`;
         ctx.font = '600 11px ui-monospace, monospace';
         const pad = 8;
         const tw = ctx.measureText(label).width;
@@ -154,7 +171,7 @@ const HandOverlay = forwardRef(function HandOverlay(
 
   return (
     <div ref={boxRef} className={`absolute inset-0 pointer-events-none ${className}`}>
-      <canvas ref={canvasRef} className="h-full w-full block transition-opacity duration-300" />
+      <canvas ref={canvasRef} className="h-full w-full block" />
     </div>
   );
 });

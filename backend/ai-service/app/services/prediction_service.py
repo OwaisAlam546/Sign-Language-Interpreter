@@ -22,6 +22,7 @@ from typing import Any, Optional
 from app.services.camera_manager import CameraManager
 from app.services.model_loader import ModelManager
 from app.services.prediction_pipeline import InferencePipeline
+from app.services.sequence_buffer import SequenceSessionManager
 from app.utils.envelope import ApiError
 
 _HAND_POINTS = 21
@@ -49,11 +50,21 @@ class PredictionService:
                  alpha: float = 0.6):
         self._model = model
         self._camera = camera
-        self.pipeline = InferencePipeline(model, window, threshold, alpha)
+        self.session_manager = SequenceSessionManager(
+            model=model, window=window, threshold=threshold, alpha=alpha
+        )
+
+    @property
+    def pipeline(self) -> InferencePipeline:
+        return self.session_manager.get_or_create('default').pipeline
+
+    @pipeline.setter
+    def pipeline(self, p: InferencePipeline) -> None:
+        self.session_manager.get_or_create('default').pipeline = p
 
     # ── single frame ───────────────────────────────────────────
     def predict(self, landmarks: Optional[list], capture: bool,
-                sample_id: Optional[str]) -> dict:
+                sample_id: Optional[str], is_left_hand: bool = False) -> dict:
         source = 'client'
         if landmarks is None:
             if not capture:
@@ -67,7 +78,7 @@ class PredictionService:
         hand = _validate_hand(landmarks)
 
         start = time.perf_counter()
-        result = self._model.classify(hand)      # frame path (rule fallback for LSTMs)
+        result = self._model.classify(hand, is_left_hand=is_left_hand)      # frame path (rule fallback for LSTMs)
         latency_ms = round((time.perf_counter() - start) * 1000, 2)
 
         engine_id = result.get('engine', self._model.engine.id)
@@ -84,14 +95,21 @@ class PredictionService:
         }
 
     # ── sequence (Phase-8 pipeline) ────────────────────────────
-    def predict_sequence(self, frames: list, strategy: str = 'majority') -> dict:
+    def predict_sequence(self, frames: list, strategy: str = 'majority', session_id: Optional[str] = None) -> dict:
         if not isinstance(frames, list) or len(frames) < 2:
             raise ApiError(400, 'SEQUENCE_TOO_SHORT',
                            'send at least 2 frames for a sequence prediction')
         hands = [_validate_hand(f) for f in frames]
 
         start = time.perf_counter()
-        result = self.pipeline.predict_frames(hands)
+        if session_id:
+            session = self.session_manager.get_or_create(session_id)
+            pipe = session.pipeline
+        else:
+            # Ephemeral pipeline for stateless one-shot sequence requests
+            pipe = self.session_manager.create_ephemeral().pipeline
+
+        result = pipe.predict_frames(hands)
         # legacy keys the frontend already consumes
         votes = [self._model.classify(h) for h in hands]
         if strategy == 'average':
@@ -109,6 +127,21 @@ class PredictionService:
             {'frame': i, 'gesture': v['gesture'], 'confidence': v['confidence']}
             for i, v in enumerate(votes)
         ]
+        if session_id:
+            result['sessionId'] = session_id
         # True end-to-end cost — votes included, as the facade promises.
         result['latencyMs'] = round((time.perf_counter() - start) * 1000, 2)
         return result
+
+    # ── streaming (per-frame, session-aware) ────────────────────
+    def stream(self, hand: list[list[float]], session_id: Optional[str] = None, ts: Optional[float] = None) -> dict:
+        validated = _validate_hand(hand)
+        session = self.session_manager.get_or_create(session_id)
+        res = session.pipeline.stream(validated, ts=ts)
+        if session_id:
+            res['sessionId'] = session_id
+        return res
+
+    def reset_session(self, session_id: Optional[str] = None) -> bool:
+        sid = (session_id or 'default').strip()
+        return self.session_manager.reset(sid)

@@ -93,17 +93,17 @@ const STEPS = [
   {
     n: '04',
     shortTitle: 'Recognize',
-    tag: 'LSTM model',
-    headline: 'Temporal Sequence Classification',
-    desc: 'A rolling buffer of 12 landmark frames is fed to the server bidirectional LSTM model. It evaluates temporal finger trajectories to distinguish gestures across 27 sign classes.',
+    tag: 'ONNX model',
+    headline: '90D Landmark Feature Classification',
+    desc: 'The 21 landmarks are converted to a 90-dimensional geometric feature representation and evaluated locally in the browser by alphabet_landmark_model.onnx using ONNX Runtime Web (WASM).',
     icon: FiCpu,
     color: 'from-emerald-400 to-cyan-500',
     accent: '#10b981',
-    meta: 'Bi-LSTM Temporal Voting',
+    meta: 'ONNX Runtime Web (WASM)',
     metrics: [
-      { label: 'Sequence', value: '12 Frames' },
-      { label: 'Classes', value: '27 Signs' },
-      { label: 'Inference', value: '11.2ms' },
+      { label: 'Features', value: '90D Vector' },
+      { label: 'Classes', value: '26 Letters' },
+      { label: 'Inference', value: '< 15ms' },
     ],
   },
   {
@@ -571,8 +571,8 @@ export default function HowItWorks() {
           <div className="relative w-full h-full flex flex-col justify-between p-2.5 font-mono select-none">
             {/* Top HUD */}
             <div className="flex items-center justify-between text-xs text-slate-400 px-3.5 pt-1">
-              <span className="text-cyan-300 font-medium">12-FRAME SEQUENCE BUFFER</span>
-              <span className="text-slate-400">BI-LSTM CLASSIFIER</span>
+              <span className="text-cyan-300 font-medium">90D GEOMETRIC FEATURES</span>
+              <span className="text-slate-400">ONNX RUNTIME (WASM)</span>
             </div>
 
             {/* Sequence Frame Slots */}

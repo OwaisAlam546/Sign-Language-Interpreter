@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { classifyHand, classifySequence } from '../src/lib/handClassifier.js';
+import { ASL_LANDMARKS } from '../src/lib/aslLandmarksData.js';
 import {
   computeHandMotion,
   computeWindowMotion,
@@ -10,13 +11,7 @@ import {
   STABLE_FRAMES_DYNAMIC,
 } from '../src/lib/recognitionPolicy.js';
 
-// Parse ASL_LANDMARKS from HandSkeleton.jsx
-const handSkeletonSrc = await readFile(new URL('../src/components/HandSkeleton.jsx', import.meta.url), 'utf8');
-const landmarkMatch = handSkeletonSrc.match(/export const ASL_LANDMARKS = \{([\s\S]*?)\n\};/);
-assert.ok(landmarkMatch, 'Failed to extract ASL_LANDMARKS');
-
-const rawLandmarksCode = `({ ${landmarkMatch[1]} })`;
-const ASL_LANDMARKS = eval(rawLandmarksCode);
+const DATASET_LANDMARKS = JSON.parse(await readFile(new URL('./dataset_reference_landmarks.json', import.meta.url), 'utf8'));
 
 console.log('--- Testing Transition & Stabilization Suite ---\n');
 
@@ -24,7 +19,7 @@ console.log('--- Testing Transition & Stabilization Suite ---\n');
 // Scenario 1: Steady sign recognition (Hold 'A' steadily -> recognizes 'A')
 // -----------------------------------------------------------------------------
 console.log('Scenario 1: Steady sign recognition: Hold A steadily');
-const poseA = ASL_LANDMARKS['A'].slice(0, 21).map(([x, y]) => [x, y, 0]);
+const poseA = DATASET_LANDMARKS['A'];
 const resA = classifyHand(poseA);
 assert.equal(resA.gesture, 'A', `Expected classifyHand to recognize A, got ${resA.gesture}`);
 
@@ -87,7 +82,11 @@ function interpolatePoses(p1, p2, steps) {
     const t = s / (steps + 1);
     const frame = p1.map((pt1, idx) => {
       const pt2 = p2[idx];
-      return [pt1[0] + (pt2[0] - pt1[0]) * t, pt1[1] + (pt2[1] - pt1[1]) * t, 0];
+      return [
+        pt1[0] + (pt2[0] - pt1[0]) * t,
+        pt1[1] + (pt2[1] - pt1[1]) * t,
+        (pt1[2] || 0) + ((pt2[2] || 0) - (pt1[2] || 0)) * t,
+      ];
     });
     frames.push(frame);
   }
@@ -239,7 +238,9 @@ console.log('  ✓ Intentional dynamic Z recognized accurately');
 console.log('Scenario 7: Left and right hand recognition');
 // Test mirrored (left hand) poses
 for (const letter of ['A', 'B', 'C', 'D', 'I', 'S', 'T', 'V', 'W', 'Y']) {
-  const orig = ASL_LANDMARKS[letter].slice(0, 21).map(([x, y]) => [x, y, 0]);
+  const orig = letter === 'A'
+    ? DATASET_LANDMARKS['A']
+    : ASL_LANDMARKS[letter].slice(0, 21).map(([x, y]) => [x, y, 0]);
   // Mirror horizontally across x = 0.5
   const mirrored = orig.map(([x, y, z]) => [1.0 - x, y, z]);
   const resOrig = classifyHand(orig);

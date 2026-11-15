@@ -7,6 +7,7 @@
  */
 import * as ort from 'onnxruntime-web/wasm';
 import { extractAlphabetFeatures } from './alphabetLandmarkFeatures.js';
+import { isAcceptedPrediction } from './recognitionPolicy.js';
 
 export const DEBUG_LOCAL_ONNX = true;
 
@@ -37,7 +38,7 @@ export function loadLandmarkLabels() {
   labelsPromise ||= fetch(LABELS_URL)
     .then((res) => res.json())
     .then((list) => list.map((label) => String(label).trim().toUpperCase()).filter(Boolean))
-    .catch(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''));
+    .catch(() => [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), 'DEL', 'SPACE']);
   return labelsPromise;
 }
 
@@ -66,6 +67,20 @@ export async function inferAlphabetLandmark(landmarks, isLeftHand = false) {
   }
 
   const rawData = Array.from(outputTensor.data);
+  // Sanitize non-finite values from model output
+  if (!rawData.length || rawData.some((v) => !Number.isFinite(v))) {
+    return {
+      gesture: 'UNKNOWN',
+      confidence: 0,
+      margin: 0,
+      scores: {},
+      rawWinner: 'UNKNOWN',
+      rawConfidence: 0,
+      top5: [],
+      isAccepted: false,
+    };
+  }
+
   // Ensure normalized softmax probabilities (Keras model outputs softmax probabilities)
   const sum = rawData.reduce((acc, val) => acc + val, 0);
   const isSoftmax = Math.abs(sum - 1.0) < 0.05 && rawData.every((v) => v >= 0);
@@ -85,8 +100,13 @@ export async function inferAlphabetLandmark(landmarks, isLeftHand = false) {
   const scoreByLabel = Object.fromEntries(probabilities.map(({ label, score }) => [label, score]));
   const best = probabilities[0];
   const second = probabilities[1] || { score: 0 };
-  const margin = (best?.score || 0) - (second.score || 0);
-  const isAccepted = (best?.score || 0) >= 0.65 && margin >= 0.15;
+  const margin = Math.max(0, (best?.score || 0) - (second.score || 0));
+  const isAccepted = isAcceptedPrediction({
+    gesture: best?.label,
+    confidence: best?.score || 0,
+    margin,
+    serviceState: 'local',
+  });
 
   if (DEBUG_LOCAL_ONNX) {
     const top5 = probabilities.slice(0, 5);

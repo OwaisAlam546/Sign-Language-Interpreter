@@ -17,7 +17,21 @@
 export const FEATURE_DIM = 90;
 
 function parseLandmarks(landmarks) {
-  if (!landmarks || landmarks.length < 21) {
+  if (!landmarks) {
+    throw new Error('Expected at least 21 landmarks, received 0');
+  }
+
+  // Handle flat 63-element coordinate buffer (Array or Float32Array)
+  if ((landmarks instanceof Float32Array || Array.isArray(landmarks)) && landmarks.length === 63) {
+    const pts = new Float32Array(63);
+    for (let i = 0; i < 63; i += 1) {
+      const v = Number(landmarks[i]);
+      pts[i] = Number.isFinite(v) ? v : 0;
+    }
+    return pts;
+  }
+
+  if (landmarks.length < 21) {
     throw new Error(`Expected at least 21 landmarks, received ${landmarks?.length || 0}`);
   }
 
@@ -25,13 +39,19 @@ function parseLandmarks(landmarks) {
   for (let i = 0; i < 21; i += 1) {
     const item = landmarks[i];
     if (Array.isArray(item)) {
-      pts[i * 3] = Number(item[0]) || 0;
-      pts[i * 3 + 1] = Number(item[1]) || 0;
-      pts[i * 3 + 2] = Number(item[2]) || 0;
+      const x = Number(item[0]);
+      const y = Number(item[1]);
+      const z = Number(item[2]);
+      pts[i * 3] = Number.isFinite(x) ? x : 0;
+      pts[i * 3 + 1] = Number.isFinite(y) ? y : 0;
+      pts[i * 3 + 2] = Number.isFinite(z) ? z : 0;
     } else if (item && typeof item === 'object') {
-      pts[i * 3] = Number(item.x) || 0;
-      pts[i * 3 + 1] = Number(item.y) || 0;
-      pts[i * 3 + 2] = Number(item.z) || 0;
+      const x = Number(item.x);
+      const y = Number(item.y);
+      const z = Number(item.z);
+      pts[i * 3] = Number.isFinite(x) ? x : 0;
+      pts[i * 3 + 1] = Number.isFinite(y) ? y : 0;
+      pts[i * 3 + 2] = Number.isFinite(z) ? z : 0;
     } else {
       pts[i * 3] = 0;
       pts[i * 3 + 1] = 0;
@@ -55,6 +75,20 @@ function dist3D(pts, i, j) {
  * @returns {Float32Array} 90-dimensional feature array
  */
 export function extractAlphabetFeatures(rawLandmarks, isLeftHand = false) {
+  // Pass-through if already pre-extracted 90-dimensional feature vector
+  if (
+    rawLandmarks &&
+    (rawLandmarks instanceof Float32Array || Array.isArray(rawLandmarks)) &&
+    rawLandmarks.length === FEATURE_DIM
+  ) {
+    const clean90 = new Float32Array(FEATURE_DIM);
+    for (let i = 0; i < FEATURE_DIM; i += 1) {
+      const v = Number(rawLandmarks[i]);
+      clean90[i] = Number.isFinite(v) ? v : 0;
+    }
+    return clean90;
+  }
+
   const pts = parseLandmarks(rawLandmarks);
 
   // 1. Translation Invariance: center at wrist (landmark 0)

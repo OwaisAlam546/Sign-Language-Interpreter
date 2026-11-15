@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignSpeak AI — Visual 25-Word ASL Dictionary & Learning Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030712;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --border: rgba(255, 255, 255, 0.12);
+      --cyan: #00D9FF;
+      --cyan-glow: rgba(0, 217, 255, 0.35);
+      --emerald: #34d399;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1.5rem 4rem;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 217, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(131, 232, 245, 0.05) 0%, transparent 40%);
+    }
+    .container {
+      max-width: 1380px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      color: var(--cyan);
+      margin-bottom: 0.75rem;
+      display: inline-block;
+      padding: 0.25rem 0.85rem;
+      border-radius: 9999px;
+      background: rgba(0, 217, 255, 0.1);
+      border: 1px solid rgba(0, 217, 255, 0.3);
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, #ffffff 40%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 720px;
+      margin: 0 auto 1.5rem;
+      line-height: 1.6;
+    }
+    .nav-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .nav-btn-primary {
+      background: linear-gradient(135deg, #00D9FF, #168BFF);
+      color: #030712;
+      box-shadow: 0 0 20px var(--cyan-glow);
+    }
+    .nav-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 28px rgba(0, 217, 255, 0.6);
+    }
+    .nav-btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+    .nav-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--cyan);
+    }
+
+    /* Filter & Search Bar */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      padding: 0.85rem 1.25rem;
+      border-radius: 1.25rem;
+      backdrop-filter: blur(16px);
+      margin-bottom: 2rem;
+    }
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+      max-width: 360px;
+    }
+    .search-box input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 0.55rem 1rem 0.55rem 2.25rem;
+      color: #fff;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan-glow);
+    }
+    .search-box::before {
+      content: '🔍';
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      opacity: 0.6;
+    }
+    .category-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.4rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill:hover, .pill.active {
+      color: #030712;
+      background: var(--cyan);
+      border-color: var(--cyan);
+      font-weight: 700;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    /* Grid of Cards */
+    .signs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .sign-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      display: flex;
+      flex-col: column;
+      flex-direction: column;
+    }
+    .sign-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(0, 217, 255, 0.4);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 217, 255, 0.15);
+    }
+    .card-header {
+      padding: 1rem 1.25rem 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .word-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: #fff;
+    }
+    .badges {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+    .badge-handedness {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+    .badge-category {
+      background: rgba(0, 217, 255, 0.12);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 217, 255, 0.3);
+    }
+
+    /* Media Display Area */
+    .card-media {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #000;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+    .card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .media-toggle {
+      position: absolute;
+      bottom: 0.75rem;
+      right: 0.75rem;
+      background: rgba(3, 7, 18, 0.85);
+      border: 1px solid var(--border);
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s;
+    }
+    .media-toggle:hover {
+      background: var(--cyan);
+      color: #030712;
+      font-weight: 700;
+    }
+
+    /* Card Details */
+    .card-body {
+      padding: 1.15rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
+    }
+    .tips-text {
+      font-size: 0.875rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .action-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--cyan);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: color 0.2s;
+    }
+    .action-link:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+    .practice-link {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .practice-link:hover {
+      background: var(--cyan);
+      color: #030712;
+      border-color: var(--cyan);
+    }
+
+    /* Modal for Fullscreen View */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(3, 7, 18, 0.92);
+      backdrop-filter: blur(12px);
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      max-width: 800px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1.25rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      font-size: 1.25rem;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      z-index: 10;
+    }
+    .modal-media {
+      width: 100%;
+      max-height: 480px;
+      background: #000;
+    }
+    .modal-media img {
+      width: 100%;
+      max-height: 480px;
+      object-fit: contain;
+      display: block;
+    }
+    .modal-info {
+      padding: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="eyebrow">SignSpeak AI · 25-Word WLASL Vocabulary</span>
+      <h1>Visual ASL Learning Dictionary</h1>
+      <p class="subtitle">
+        Master every one of the 25 trained word-level ASL signs with live looping video demonstrations from the dataset, 3-step breakdown storyboards, and step-by-step movement instructions.
+      </p>
+      <div class="nav-actions">
+        <a href="/#demo" class="nav-btn nav-btn-primary">
+          <span>📹 Test Live in React Camera Demo</span>
+        </a>
+        <a href="/" class="nav-btn nav-btn-secondary">
+          <span>🏠 Return to SignSpeak AI Home</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Search & Filter Controls -->
+    <div class="filter-bar">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search signs... (e.g. Book, Eat, Yes)">
+      </div>
+      <div class="category-pills" id="categoryPills">
+        <button class="pill active" data-category="ALL">All (25)</button>
+        <button class="pill" data-category="Affirmation">Affirmations</button>
+        <button class="pill" data-category="Question">Questions</button>
+        <button class="pill" data-category="Action">Actions</button>
+        <button class="pill" data-category="Time">Time</button>
+        <button class="pill" data-category="People">People & Family</button>
+        <button class="pill" data-category="Object">Objects & Places</button>
+      </div>
+    </div>
+
+    <!-- 25 Signs Grid -->
+    <div class="signs-grid" id="signsGrid">
+      <!-- Injected dynamically by JavaScript from manifest.json -->
+    </div>
+  </div>
+
+  <!-- Fullscreen Modal View -->
+  <div class="modal" id="signModal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div class="modal-media">
+        <img id="modalImg" src="" alt="Sign Demonstration">
+      </div>
+      <div class="modal-info">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h2 id="modalTitle" style="font-size: 1.75rem; font-weight: 800; color: #fff;"></h2>
+          <div id="modalBadges" style="display: flex; gap: 0.5rem;"></div>
+        </div>
+        <p id="modalTips" style="color: #cbd5e1; font-size: 1rem; line-height: 1.6; margin-bottom: 1.25rem;"></p>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <a id="modalSourceLink" href="#" target="_blank" class="action-link" style="font-size: 0.85rem;">
+            <span>▶ Watch Original Video Source</span>
+          </a>
+          <a href="/#demo" class="nav-btn nav-btn-primary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+            <span>Practice Live in Camera</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let signsData = [];
+    let activeCategory = 'ALL';
+    let searchQuery = '';
+
+    async function loadDictionary() {
+      try {
+        const res = await fetch('/sign_animations/manifest.json');
+        if (!res.ok) throw new Error('Failed to load manifest');
+        signsData = await res.json();
+        renderSigns();
+      } catch (err) {
+        console.error('Error loading manifest:', err);
+        document.getElementById('signsGrid').innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #f87171;">
+            Failed to load sign dictionary manifest. Please ensure the dev server is running.
+          </div>
+        `;
+      }
+    }
+
+    function renderSigns() {
+      const grid = document.getElementById('signsGrid');
+      const filtered = signsData.filter(item => {
+        const matchesCategory = activeCategory === 'ALL' || item.category.toLowerCase().includes(activeCategory.toLowerCase());
+        const matchesSearch = item.gloss.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              item.tips.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+
+      if (!filtered.length) {
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: #94a3b8;">
+            <p style="font-size: 1.2rem; font-weight: 600;">No signs found matching "${searchQuery}"</p>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">Try searching for another word like Book, Eat, Help, or Yes.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map((item, index) => `
+        <div class="sign-card" data-gloss="${item.gloss}">
+          <div class="card-header">
+            <span class="word-title">${item.gloss}</span>
+            <div class="badges">
+              <span class="badge badge-handedness">${item.handedness}</span>
+              <span class="badge badge-category">${item.category.split(' ')[0]}</span>
+            </div>
+          </div>
+
+          <div class="card-media">
+            <img 
+              id="img-${item.gloss}"
+              src="${item.gif_url}" 
+              alt="${item.gloss} Sign Animation" 
+              loading="lazy"
+              onclick="openModal('${item.gloss}')"
+              style="cursor: pointer;"
+            />
+            <button 
+              type="button" 
+              class="media-toggle" 
+              onclick="toggleView(event, '${item.gloss}')"
+              title="Toggle between animated GIF and 3-step storyboard"
+            >
+              3-Step Storyboard
+            </button>
+          </div>
+
+          <div class="card-body">
+            <p class="tips-text">${item.tips}</p>
+            <div class="card-footer">
+              ${item.original_url && item.original_url !== 'N/A' ? `
+                <a href="${item.original_url}" target="_blank" rel="noopener noreferrer" class="action-link" title="Watch full HD source video">
+                  <span>▶ Video Source</span>
+                </a>
+              ` : `
+                <span class="action-link" style="color: #64748b;">Dataset Clip</span>
+              `}
+              <a href="/#demo" class="practice-link" title="Open SignSpeak live camera to practice this sign">
+                Practice Live →
+              </a>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleView(event, gloss) {
+      event.stopPropagation();
+      const img = document.getElementById(`img-${gloss}`);
+      const btn = event.target;
+      const item = signsData.find(s => s.gloss === gloss);
+      if (!img || !item) return;
+
+      if (img.src.includes('.gif')) {
+        img.src = item.storyboard_url;
+        btn.textContent = 'Animated GIF';
+      } else {
+        img.src = item.gif_url;
+        btn.textContent = '3-Step Storyboard';
+      }
+    }
+
+    function openModal(gloss) {
+      const item = signsData.find(s => s.gloss === gloss);
+      if (!item) return;
+      document.getElementById('modalImg').src = item.gif_url;
+      document.getElementById('modalTitle').textContent = item.gloss;
+      document.getElementById('modalTips').textContent = item.tips;
+      document.getElementById('modalBadges').innerHTML = `
+        <span class="badge badge-handedness" style="font-size: 0.8rem; padding: 0.3rem 0.75rem;">${item.handedness}</span>
+        <span class="badge badge-category" style="font-size: 0.8rem; padding: 0.3rem 0.75rem;">${item.category}</span>
+      `;
+      const srcLink = document.getElementById('modalSourceLink');
+      if (item.original_url && item.original_url !== 'N/A') {
+        srcLink.href = item.original_url;
+        srcLink.style.display = 'inline-flex';
+      } else {
+        srcLink.style.display = 'none';
+      }
+      document.getElementById('signModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('signModal').classList.remove('active');
+    }
+
+    // Filter event listeners
+    document.getElementById('categoryPills').addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        activeCategory = e.target.dataset.category;
+        renderSigns();
+      }
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      renderSigns();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    loadDictionary();
+  </script>
+</body>
+</html>
